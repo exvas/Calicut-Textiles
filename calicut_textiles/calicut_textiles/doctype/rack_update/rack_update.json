@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-07-11 10:48:34.945084",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_yogm",
+  "column_break_fuhw",
+  "get_item",
+  "item_group",
+  "column_break_pmro",
+  "posting_date",
+  "amended_from",
+  "section_break_rrlw",
+  "rack__item"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_yogm",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_fuhw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_pmro",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "get_item",
+   "fieldtype": "Button",
+   "label": "Get Item"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Rack Update",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "label": "Item Group",
+   "options": "Item Group"
+  },
+  {
+   "fieldname": "section_break_rrlw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "rack__item",
+   "fieldtype": "Table",
+   "label": "Rack  Item",
+   "options": "Rack Update Item"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-07-11 11:57:24.343948",
+ "modified_by": "Administrator",
+ "module": "Calicut Textiles",
+ "name": "Rack Update",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
