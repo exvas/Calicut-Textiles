@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2024-07-11 10:48:34.945084",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -9,11 +10,13 @@
   "column_break_fuhw",
   "get_item",
   "item_group",
+  "warehouse",
   "column_break_pmro",
+  "naming_series",
   "posting_date",
-  "amended_from",
   "section_break_rrlw",
-  "rack__item"
+  "rack__item",
+  "amended_from"
  ],
  "fields": [
   {
@@ -40,16 +43,6 @@
    "label": "Get Item"
   },
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Rack Update",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
    "fieldname": "item_group",
    "fieldtype": "Link",
    "label": "Item Group",
@@ -64,15 +57,38 @@
    "fieldtype": "Table",
    "label": "Rack  Item",
    "options": "Rack Update Item"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "RU.YY.MM.###"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Rack Update",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-11 11:57:24.343948",
+ "modified": "2024-07-11 15:40:14.416236",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Rack Update",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
