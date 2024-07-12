@@ -61,10 +61,23 @@ def get_items(item_group, warehouse):
 @frappe.whitelist()
 def update_item_rack_locations(items):
     items = frappe.parse_json(items)
+    updates_made = False  # Track whether any updates were made
     
-    for item in items:
-        if item.get('item_code') and item.get('rack'):
-            frappe.db.set_value('Item', item['item_code'], 'custom_rak_location', item['rack'])
-    
-    frappe.db.commit()
-    return "Success"
+    try:
+        for item in items:
+            if item.get('item_code') and item.get('rack'):
+                # Get the current custom_rak_location for the item
+                current_rack = frappe.db.get_value('Item', item['item_code'], 'custom_rak_location')
+                if current_rack != item['rack']:
+                    frappe.db.set_value('Item', item['item_code'], 'custom_rak_location', item['rack'])
+                    updates_made = True
+        
+        if updates_made:
+            frappe.db.commit()
+            return "Rack locations updated successfully."
+        else:
+            return None  # No updates were made
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Rack Update Error")
+        return f"Failed to update rack locations: {str(e)}"

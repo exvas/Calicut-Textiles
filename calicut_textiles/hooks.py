@@ -227,6 +227,7 @@ fixtures =[
             "Delivery Note Item-custom_rack_location",
             "Purchase Order Item-custom_rack_location",
             "Purchase Invoice Item-custom_rack_location",
+            "Purchase Receipt Item-custom_rack_location",
             
 			
 					]]
