@@ -6,27 +6,16 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_yogm",
-  "column_break_fuhw",
-  "get_item",
   "item_group",
   "warehouse",
   "column_break_pmro",
   "naming_series",
   "posting_date",
   "section_break_rrlw",
-  "rack__item",
+  "rack_item",
   "amended_from"
  ],
  "fields": [
-  {
-   "fieldname": "section_break_yogm",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_fuhw",
-   "fieldtype": "Column Break"
-  },
   {
    "fieldname": "column_break_pmro",
    "fieldtype": "Column Break"
@@ -38,11 +27,6 @@
    "label": "Posting Date"
   },
   {
-   "fieldname": "get_item",
-   "fieldtype": "Button",
-   "label": "Get Item"
-  },
-  {
    "fieldname": "item_group",
    "fieldtype": "Link",
    "label": "Item Group",
@@ -51,12 +35,6 @@
   {
    "fieldname": "section_break_rrlw",
    "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "rack__item",
-   "fieldtype": "Table",
-   "label": "Rack  Item",
-   "options": "Rack Update Item"
   },
   {
    "fieldname": "naming_series",
@@ -79,12 +57,18 @@
    "fieldtype": "Link",
    "label": "Warehouse",
    "options": "Warehouse"
+  },
+  {
+   "fieldname": "rack_item",
+   "fieldtype": "Table",
+   "label": "Rack  Item",
+   "options": "Rack Update Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-07-11 15:40:14.416236",
+ "modified": "2024-07-12 12:43:33.846069",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Rack Update",

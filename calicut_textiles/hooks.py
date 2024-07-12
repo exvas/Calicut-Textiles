@@ -216,9 +216,37 @@ app_license = "mit"
 # Authentication and authorization
 # --------------------------------
 
-# auth_hooks = [
-# 	"calicut_textiles.auth.validate"
-# ]
+fixtures =[
+    {
+	"doctype":"Custom Field",
+	"filters":[
+		["name","in",[
+            "Item-custom_rak_location",
+            "Sales Invoice Item-custom_rack_location",
+            "Sales Order Item-custom_rack_location",
+            "Delivery Note Item-custom_rack_location",
+            "Purchase Order Item-custom_rack_location",
+            "Purchase Invoice Item-custom_rack_location",
+            
+			
+					]]
+	]
+    
+	},
+    {
+        "doctype":"Property Setter",
+		"filters":[
+			["name","in",[
+               
+                # "Item-grant_commission-default"
+			
+	
+			]]
+	]
+	}
+]
+
+
 
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True
