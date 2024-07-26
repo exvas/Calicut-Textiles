@@ -231,6 +231,9 @@ fixtures =[
             "Item-custom_division",
             "Item-custom_type",
             "Item-custom_categories",
+            "Purchase Receipt-custom_gc_no",
+            "Purchase Receipt-custom_from",
+            "Purchase Receipt-custom_total_lr_rate",
             
 			
 					]]
