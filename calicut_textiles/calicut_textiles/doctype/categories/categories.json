@@ -6,19 +6,34 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "categories"
+  "categories",
+  "column_break_aqkh",
+  "code"
  ],
  "fields": [
   {
    "fieldname": "categories",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Categories",
+   "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "column_break_aqkh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Code",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-07-26 22:54:45.357691",
+ "modified": "2024-07-30 11:59:00.382845",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Categories",

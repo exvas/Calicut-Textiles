@@ -234,6 +234,8 @@ fixtures =[
             "Purchase Receipt-custom_gc_no",
             "Purchase Receipt-custom_from",
             "Purchase Receipt-custom_total_lr_rate",
+            "Brand-custom_code",
+            "Item-custom_item_short_name",
             
 			
 					]]
