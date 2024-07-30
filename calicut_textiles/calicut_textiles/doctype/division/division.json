@@ -8,7 +8,7 @@
  "field_order": [
   "division",
   "column_break_wfxt",
-  "code"
+  "code_id"
  ],
  "fields": [
   {
@@ -24,7 +24,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "code",
+   "fieldname": "code_id",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Code",
@@ -33,7 +33,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-07-30 11:59:19.340655",
+ "modified": "2024-07-30 12:22:03.506737",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Division",
