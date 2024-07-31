@@ -28,7 +28,9 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js"}
+doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
+              "Item" : "public/item.js"}
+
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -122,13 +124,12 @@ doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js"}
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Item": {
+        "before_insert":"calicut_textiles.calicut_textiles.item.update_item_code",
+        "validate":["calicut_textiles.calicut_textiles.item.update_barcode","calicut_textiles.calicut_textiles.item.update_batch_number_series"]
+	}
+}
 
 # Scheduled Tasks
 # ---------------
@@ -236,6 +237,7 @@ fixtures =[
             "Purchase Receipt-custom_total_lr_rate",
             "Brand-custom_code",
             "Item-custom_item_short_name",
+            "Item-custom_sanforize"
             
 			
 					]]
@@ -247,7 +249,8 @@ fixtures =[
 		"filters":[
 			["name","in",[
                
-                # "Item-grant_commission-default"
+                "Item-item_code-reqd",
+                "Item-item_code-hidden"
 			
 	
 			]]
