@@ -5,5 +5,9 @@ frappe.ui.form.on('Item', {
         } else {
             frm.set_value('create_new_batch', 0);
         }
+    },
+    after_save: function(frm) {
+        frm.set_df_property('custom_item_short_name', 'hidden', 1);
     }
 });
+

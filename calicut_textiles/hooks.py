@@ -127,8 +127,12 @@ doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
 doc_events = {
 	"Item": {
         "before_insert":"calicut_textiles.calicut_textiles.item.update_item_code",
-        "validate":["calicut_textiles.calicut_textiles.item.update_barcode","calicut_textiles.calicut_textiles.item.update_batch_number_series"]
+        "validate":["calicut_textiles.calicut_textiles.item.update_barcode","calicut_textiles.calicut_textiles.item.update_batch_number_series",]
+	},
+    "Item Price": {
+        "validate":["calicut_textiles.calicut_textiles.item_price.update_custom_rate_code"]
 	}
+    
 }
 
 # Scheduled Tasks
@@ -229,15 +233,14 @@ fixtures =[
             "Purchase Order Item-custom_rack_location",
             "Purchase Invoice Item-custom_rack_location",
             "Purchase Receipt Item-custom_rack_location",
-            "Item-custom_division",
-            "Item-custom_type",
             "Item-custom_categories",
             "Purchase Receipt-custom_gc_no",
             "Purchase Receipt-custom_from",
             "Purchase Receipt-custom_total_lr_rate",
             "Brand-custom_code",
             "Item-custom_item_short_name",
-            "Item-custom_sanforize"
+            "Item-custom_sanforize",
+            "Item Price-custom_rate_code"
             
 			
 					]]
