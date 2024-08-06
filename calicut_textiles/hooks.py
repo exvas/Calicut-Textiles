@@ -126,9 +126,8 @@ doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
 
 doc_events = {
 	"Item": {
-        "before_insert":"calicut_textiles.calicut_textiles.item.update_item_code",
+        "before_insert":["calicut_textiles.calicut_textiles.item.update_item_code","calicut_textiles.calicut_textiles.item.update_barcode"],
         "validate":["calicut_textiles.calicut_textiles.item.update_batch_number_series"],
-        "after_insert":["calicut_textiles.calicut_textiles.item.update_barcode"]
 	},
     "Item Price": {
         "validate":["calicut_textiles.calicut_textiles.item_price.update_custom_rate_code"]
