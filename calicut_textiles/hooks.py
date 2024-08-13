@@ -126,11 +126,14 @@ doctype_list_js = {"Item" : "public/item_list.js"}
 
 doc_events = {
 	"Item": {
-        "before_insert":["calicut_textiles.calicut_textiles.item.update_item_code","calicut_textiles.calicut_textiles.item.update_barcode"],
-        "validate":["calicut_textiles.calicut_textiles.item.update_batch_number_series"],
+        "before_insert":["calicut_textiles.calicut_textiles.item.update_item_code","calicut_textiles.calicut_textiles.item.update_barcode"]
+       
 	},
     "Item Price": {
         "validate":["calicut_textiles.calicut_textiles.item_price.update_custom_rate_code"]
+	},
+    "Purchase Receipt": {
+        "validate":["calicut_textiles.calicut_textiles.purchase_receipt.custom_date_code"]
 	}
     
 }
