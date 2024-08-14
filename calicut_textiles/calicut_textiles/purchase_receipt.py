@@ -1,4 +1,5 @@
 import frappe
+from datetime import datetime
 
 def convert_date_to_code(sanforize):
     mapping = {
@@ -23,11 +24,10 @@ def convert_date_to_code(sanforize):
 
 @frappe.whitelist()
 def custom_date_code(doc, method):
-    print(doc)
+    posting_date = datetime.strptime(doc.posting_date, '%Y-%m-%d')
 
-    sanforize_value = doc.posting_date
-    an_value = convert_date_to_code(sanforize_value)
+    month_year = posting_date.strftime('%m%y')
 
-    custom_date_code = f"{an_value}"
-    
-    doc.custom_date_code = custom_date_code
+    custom_code = convert_date_to_code(month_year)
+
+    doc.custom_date_code = custom_code
