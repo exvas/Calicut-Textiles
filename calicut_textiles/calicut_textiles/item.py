@@ -18,11 +18,8 @@ def update_barcode(self, method):
 
 def update_batch_number_series(doc, method):
     item_code = doc.item_code
-    
-    current_month = frappe.utils.now_datetime().strftime("%m")
-    current_year = frappe.utils.now_datetime().strftime("%y")
 
-    batch_number_series = f"{item_code}-.{current_month}.-.{current_year}.-.###"
+    batch_number_series = f"{item_code}-.MM.-.YY.-.###"
 
     doc.batch_number_series = batch_number_series
 
