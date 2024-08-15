@@ -126,7 +126,9 @@ doctype_list_js = {"Item" : "public/item_list.js"}
 
 doc_events = {
 	"Item": {
-        "before_insert":["calicut_textiles.calicut_textiles.item.update_item_code","calicut_textiles.calicut_textiles.item.update_barcode"]
+        "before_insert":["calicut_textiles.calicut_textiles.item.update_item_code",
+                        "calicut_textiles.calicut_textiles.item.update_barcode"],
+        "validate": "calicut_textiles.calicut_textiles.item.update_batch_number_series"
        
 	},
     "Item Price": {
