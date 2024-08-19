@@ -1,0 +1,46 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-08-19 13:01:30.798840",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "caption_above",
+  "caption_above_2",
+  "barcode"
+ ],
+ "fields": [
+  {
+   "fieldname": "caption_above",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Caption Above"
+  },
+  {
+   "fieldname": "caption_above_2",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Caption Above 2"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "barcode",
+   "fieldtype": "Barcode",
+   "in_list_view": 1,
+   "label": "Barcode"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-08-19 13:24:36.935826",
+ "modified_by": "Administrator",
+ "module": "Calicut Textiles",
+ "name": "Barcode Update Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
