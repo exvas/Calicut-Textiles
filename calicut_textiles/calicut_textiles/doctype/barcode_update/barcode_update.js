@@ -4,7 +4,7 @@
 frappe.ui.form.on("Barcode Update", {
 	validate: function(frm) {
         frm.doc.barcode_update_item.forEach((doc) => {
-            frappe.model.set_value(doc.doctype, doc.name, "barcode_scan", doc.barcode);
+            frappe.model.set_value(doc.doctype, doc.name, "custom_barcode_scan", doc.barcode);
         })
     }
 });
