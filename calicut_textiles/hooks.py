@@ -238,7 +238,6 @@ fixtures =[
             "Purchase Order Item-custom_rack_location",
             "Purchase Invoice Item-custom_rack_location",
             "Purchase Receipt Item-custom_rack_location",
-            "Item-custom_categories",
             "Purchase Receipt-custom_gc_no",
             "Purchase Receipt-custom_from",
             "Purchase Receipt-custom_total_lr_rate",
