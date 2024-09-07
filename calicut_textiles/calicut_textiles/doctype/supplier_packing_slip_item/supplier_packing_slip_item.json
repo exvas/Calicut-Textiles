@@ -7,14 +7,14 @@
  "engine": "InnoDB",
  "field_order": [
   "item_code",
-  "lot_no",
   "qty",
-  "uom",
+  "lot_no",
   "column_break_wxtm",
   "po_ref",
   "po_actual_qty",
   "po_remaining_qty",
   "add",
+  "uom",
   "purchase_order_item"
  ],
  "fields": [
@@ -85,14 +85,16 @@
   {
    "fieldname": "purchase_order_item",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Purchase Order Item",
-   "options": "Purchase Order Item"
+   "options": "Purchase Order Item",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-09-07 14:52:11.221019",
+ "modified": "2024-09-07 17:37:08.635266",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Packing Slip Item",
