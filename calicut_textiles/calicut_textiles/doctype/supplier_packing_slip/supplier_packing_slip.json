@@ -99,13 +99,8 @@
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [
-  {
-   "link_doctype": "Purchase Receipt Item",
-   "link_fieldname": "custom_supplier_packing_slip"
-  }
- ],
- "modified": "2024-09-07 15:27:15.549691",
+ "links": [],
+ "modified": "2024-09-07 17:35:54.779026",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Packing Slip",
