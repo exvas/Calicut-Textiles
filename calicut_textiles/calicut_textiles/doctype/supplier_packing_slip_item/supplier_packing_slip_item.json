@@ -10,10 +10,10 @@
   "qty",
   "lot_no",
   "column_break_wxtm",
-  "po_ref",
   "po_actual_qty",
   "po_remaining_qty",
   "add",
+  "po_ref",
   "uom",
   "purchase_order_item"
  ],
@@ -51,7 +51,8 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "PO Ref",
-   "options": "Purchase Order"
+   "options": "Purchase Order",
+   "read_only": 1
   },
   {
    "columns": 1,
@@ -94,7 +95,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-09-07 17:37:08.635266",
+ "modified": "2024-09-07 17:42:00.429548",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Packing Slip Item",
