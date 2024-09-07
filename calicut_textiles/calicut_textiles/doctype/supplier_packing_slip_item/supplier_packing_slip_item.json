@@ -13,7 +13,9 @@
   "column_break_wxtm",
   "po_ref",
   "po_actual_qty",
-  "po_remaining_qty"
+  "po_remaining_qty",
+  "add",
+  "purchase_order_item"
  ],
  "fields": [
   {
@@ -56,14 +58,16 @@
    "fieldname": "po_actual_qty",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "PO Act. Qty"
+   "label": "PO Act. Qty",
+   "read_only": 1
   },
   {
    "columns": 1,
    "fieldname": "po_remaining_qty",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "PO Rmng Qty"
+   "label": "PO Rmng Qty",
+   "read_only": 1
   },
   {
    "columns": 2,
@@ -71,12 +75,24 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Lot No"
+  },
+  {
+   "fieldname": "add",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "Add"
+  },
+  {
+   "fieldname": "purchase_order_item",
+   "fieldtype": "Link",
+   "label": "Purchase Order Item",
+   "options": "Purchase Order Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-09-06 09:53:56.923382",
+ "modified": "2024-09-07 14:52:11.221019",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Packing Slip Item",

@@ -13,9 +13,11 @@
   "column_break_krjw",
   "posting_date",
   "naming_series",
-  "status",
   "section_break_gppq",
-  "supplier_packing_slip_item"
+  "supplier_packing_slip_item",
+  "amended_from",
+  "purchase_order",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -53,12 +55,6 @@
    "reqd": 1
   },
   {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "options": "Draft\nCompleted"
-  },
-  {
    "fieldname": "remarks",
    "fieldtype": "Data",
    "label": "Remarks"
@@ -75,11 +71,41 @@
    "fieldtype": "Data",
    "label": "Supplier Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Supplier Packing Slip",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "purchase_order",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Purchase Order",
+   "options": "Purchase Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2024-09-06 09:50:19.523116",
+ "is_submittable": 1,
+ "links": [
+  {
+   "link_doctype": "Purchase Receipt Item",
+   "link_fieldname": "custom_supplier_packing_slip"
+  }
+ ],
+ "modified": "2024-09-07 15:27:15.549691",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Packing Slip",
