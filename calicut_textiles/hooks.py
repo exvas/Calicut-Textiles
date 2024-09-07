@@ -29,7 +29,8 @@ app_license = "mit"
 
 # include js in doctype views
 doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
-              "Item" : "public/item.js"}
+              "Item" : "public/item.js",
+              "Purchase Order" : "public/purchase_order.js",}
 
 doctype_list_js = {"Item" : "public/item_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -244,25 +245,26 @@ fixtures =[
             "Brand-custom_code",
             "Item-custom_item_short_name",
             "Item-custom_sanforize",
-            "Item Price-custom_rate_code"
+            "Item Price-custom_rate_code",
+            "Purchase Receipt Item-custom_supplier_packing_slip"
             
 			
 					]]
 	]
     
 	},
-    {
-        "doctype":"Property Setter",
-		"filters":[
-			["name","in",[
+    # {
+    #     "doctype":"Property Setter",
+	# 	"filters":[
+	# 		["name","in",[
                
-                "Item-item_code-reqd",
-                "Item-item_code-hidden"
+    #             "Item-item_code-reqd",
+    #             "Item-item_code-hidden"
 			
 	
-			]]
-	]
-	}
+	# 		]]
+	# ]
+	# }
 ]
 
 
