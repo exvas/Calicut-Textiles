@@ -136,8 +136,12 @@ doc_events = {
         "validate":["calicut_textiles.calicut_textiles.item_price.update_custom_rate_code"]
 	},
     "Purchase Receipt": {
-        "validate":["calicut_textiles.calicut_textiles.purchase_receipt.custom_date_code"]
-	}
+        "validate":["calicut_textiles.calicut_textiles.purchase_receipt.custom_date_code"],
+        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"]
+	},
+    "Batch": {
+        "validate": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
+    }
     
 }
 
@@ -177,9 +181,10 @@ doc_events = {
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
-# override_doctype_dashboards = {
-# 	"Task": "calicut_textiles.task.get_dashboard_data"
-# }
+override_doctype_dashboards = {
+	"Purchase Order": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.purchase_order_dashboard",
+    "Purchase Receipt": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.purchase_receipt"
+}
 
 # exempt linked doctypes from being automatically cancelled
 #
@@ -232,21 +237,22 @@ fixtures =[
 	"doctype":"Custom Field",
 	"filters":[
 		["name","in",[
-            "Item-custom_rak_location",
-            "Sales Invoice Item-custom_rack_location",
-            "Sales Order Item-custom_rack_location",
-            "Delivery Note Item-custom_rack_location",
-            "Purchase Order Item-custom_rack_location",
-            "Purchase Invoice Item-custom_rack_location",
-            "Purchase Receipt Item-custom_rack_location",
-            "Purchase Receipt-custom_gc_no",
-            "Purchase Receipt-custom_from",
-            "Purchase Receipt-custom_total_lr_rate",
-            "Brand-custom_code",
-            "Item-custom_item_short_name",
-            "Item-custom_sanforize",
-            "Item Price-custom_rate_code",
-            "Purchase Receipt Item-custom_supplier_packing_slip"
+            # "Item-custom_rak_location",
+            # "Sales Invoice Item-custom_rack_location",
+            # "Sales Order Item-custom_rack_location",
+            # "Delivery Note Item-custom_rack_location",
+            # "Purchase Order Item-custom_rack_location",
+            # "Purchase Invoice Item-custom_rack_location",
+            # "Purchase Receipt Item-custom_rack_location",
+            # "Purchase Receipt-custom_gc_no",
+            # "Purchase Receipt-custom_from",
+            # "Purchase Receipt-custom_total_lr_rate",
+            # "Brand-custom_code",
+            # "Item-custom_item_short_name",
+            # "Item-custom_sanforize",
+            # "Item Price-custom_rate_code",
+            # "Purchase Receipt Item-custom_supplier_packing_slip"
+            "Purchase Receipt Item-custom_batch"
             
 			
 					]]

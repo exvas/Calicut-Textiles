@@ -13,6 +13,7 @@
   "column_break_krjw",
   "posting_date",
   "naming_series",
+  "purchase_receipt",
   "section_break_gppq",
   "supplier_packing_slip_item",
   "amended_from",
@@ -95,12 +96,20 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "purchase_receipt",
+   "fieldtype": "Check",
+   "label": "Purchase Receipt",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-07 17:35:54.779026",
+ "modified": "2024-09-10 13:25:22.334689",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Packing Slip",

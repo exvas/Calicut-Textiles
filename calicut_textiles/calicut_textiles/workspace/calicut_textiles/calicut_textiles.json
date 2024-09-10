@@ -134,6 +134,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Supplier Packing Slip",
+   "link_count": 0,
+   "link_to": "Supplier Packing Slip",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Payment Entry",
    "link_count": 0,
    "link_to": "Payment Entry",
@@ -212,36 +222,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Division",
-   "link_count": 0,
-   "link_to": "Division",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Type",
-   "link_count": 0,
-   "link_to": "Type",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Categories",
-   "link_count": 0,
-   "link_to": "Categories",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Settings",
    "link_count": 4,
    "link_type": "DocType",
@@ -289,7 +269,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-07-26 23:10:17.433431",
+ "modified": "2024-09-10 13:57:54.956070",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles",
