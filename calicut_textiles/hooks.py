@@ -233,32 +233,8 @@ override_doctype_dashboards = {
 # --------------------------------
 
 fixtures =[
-    {
-	"doctype":"Custom Field",
-	"filters":[
-		["name","in",[
-            # "Item-custom_rak_location",
-            # "Sales Invoice Item-custom_rack_location",
-            # "Sales Order Item-custom_rack_location",
-            # "Delivery Note Item-custom_rack_location",
-            # "Purchase Order Item-custom_rack_location",
-            # "Purchase Invoice Item-custom_rack_location",
-            # "Purchase Receipt Item-custom_rack_location",
-            # "Purchase Receipt-custom_gc_no",
-            # "Purchase Receipt-custom_from",
-            # "Purchase Receipt-custom_total_lr_rate",
-            # "Brand-custom_code",
-            # "Item-custom_item_short_name",
-            # "Item-custom_sanforize",
-            # "Item Price-custom_rate_code",
-            # "Purchase Receipt Item-custom_supplier_packing_slip"
-            "Purchase Receipt Item-custom_batch"
-            
-			
-					]]
-	]
-    
-	},
+    {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]}
+  
     # {
     #     "doctype":"Property Setter",
 	# 	"filters":[
