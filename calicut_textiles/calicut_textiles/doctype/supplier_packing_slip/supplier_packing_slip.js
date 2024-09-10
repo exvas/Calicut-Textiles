@@ -6,7 +6,7 @@ frappe.ui.form.on("Supplier Packing Slip", {
         frm.get_field('supplier_packing_slip_item').grid.cannot_add_rows = true;
     },
 	refresh(frm) {
-        if (frm.doc.docstatus == 1) {
+        if (frm.doc.docstatus == 1 && frm.doc.purchase_receipt != 1) {
             frm.add_custom_button(__('Purchase Receipt'), function() {
                 frappe.call({
                     method: "calicut_textiles.calicut_textiles.doctype.supplier_packing_slip.supplier_packing_slip.make_purchase_receipt",
