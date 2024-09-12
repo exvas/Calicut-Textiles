@@ -2,6 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Supplier Packing Slip", {
+    setup : function(frm) {
+        frm.ignore_doctypes_on_cancel_all = ["Serial and Batch Bundle"];
+    },
     onload(frm){
         frm.get_field('supplier_packing_slip_item').grid.cannot_add_rows = true;
     },
@@ -31,6 +34,16 @@ frappe.ui.form.on("Supplier Packing Slip", {
 frappe.ui.form.on('Supplier Packing Slip Item', {
     add: function(frm, cdt, cdn) {
         var item = frappe.get_doc(cdt, cdn);
+
+        if (item.qty > item.po_actual_qty) {
+            frappe.msgprint(__('Quantity is more than in Actual Qty'));
+            return; 
+        }
+
+        if (item.qty <= 0) {
+            frappe.msgprint(__('Quantity is zero, cannot add a new row.'));
+            return; 
+        }
         
         item.po_remaining_qty = item.po_actual_qty - item.qty;
         if (item.po_remaining_qty <= 0) {
@@ -44,6 +57,7 @@ frappe.ui.form.on('Supplier Packing Slip Item', {
 
         
         new_row.item_code = item.item_code;
+        new_row.qty = 0
         new_row.uom = item.uom;
         new_row.po_ref = item.po_ref;
         new_row.po_actual_qty = item.po_remaining_qty;

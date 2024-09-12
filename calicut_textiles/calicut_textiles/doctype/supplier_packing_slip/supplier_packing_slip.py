@@ -7,11 +7,16 @@ from frappe import _
 
 
 class SupplierPackingSlip(Document):
-	def on_submit(self):
-          for item in self.supplier_packing_slip_item:
-               if item.qty ==0:
-                    frappe.throw(_("Cannot submit Packing Slip with zero quantity item"))	
+    def on_submit(self):
+        for item in self.supplier_packing_slip_item:
+            if item.qty == 0:
+                frappe.throw(_("Cannot submit Packing Slip with zero quantity item"))
+            if item.qty > item.po_actual_qty:
+                frappe.throw(_("Cannot submit Qty is more than PO Actual Qty"))
 
+    def on_cancel(self):
+        if self.purchase_receipt:
+            self.db_set('purchase_receipt', 0)
 
 @frappe.whitelist()
 def make_purchase_receipt(packing_slip):
@@ -39,6 +44,7 @@ def make_purchase_receipt(packing_slip):
         pr_item.rate = po_item.rate
         pr_item.purchase_order = item.po_ref
         pr_item.custom_supplier_packing_slip = item.parent
+        pr_item.custom_supplier_packing_slip_item = item.name
         pr_item.purchase_order_item = item.purchase_order_item
         
     pr.taxes = order.taxes
