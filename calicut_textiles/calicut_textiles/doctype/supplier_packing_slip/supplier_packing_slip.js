@@ -46,10 +46,10 @@ frappe.ui.form.on('Supplier Packing Slip Item', {
         }
         
         item.po_remaining_qty = item.po_actual_qty - item.qty;
-        if (item.po_remaining_qty <= 0) {
-            frappe.msgprint(__('All qty are used, no more rows can be added.'));
-            return; 
-        }
+        // if (item.po_remaining_qty <= 0) {
+        //     frappe.msgprint(__('All qty are used, no more rows can be added.'));
+        //     return; 
+        // }
 
         let row_index = frm.doc.supplier_packing_slip_item.findIndex(row => row.name === item.name);
 
