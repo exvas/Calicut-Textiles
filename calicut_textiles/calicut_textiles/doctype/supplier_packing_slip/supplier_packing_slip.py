@@ -11,8 +11,6 @@ class SupplierPackingSlip(Document):
         for item in self.supplier_packing_slip_item:
             if item.qty == 0:
                 frappe.throw(_("Cannot submit Packing Slip with zero quantity item"))
-            if item.qty > item.po_actual_qty:
-                frappe.throw(_("Cannot submit Qty is more than PO Actual Qty"))
 
     def on_cancel(self):
         if self.purchase_receipt:
