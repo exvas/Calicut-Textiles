@@ -13,7 +13,7 @@ def convert_date_to_code(sanforize):
         '7': 'I',
         '8': 'Z',
         '9': 'E',
-        '0': 'T'
+        '0': '+'
     }
     
     result = ''

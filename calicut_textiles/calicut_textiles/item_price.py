@@ -11,7 +11,7 @@ def convert_rate_to_code(sanforize):
         '7': 'I',
         '8': 'Z',
         '9': 'E',
-        '0': 'T'
+        '0': '+'
     }
     
     result = ''
@@ -30,6 +30,5 @@ def update_custom_rate_code(doc, method):
     an_value = convert_rate_to_code(sanforize_value)
 
     custom_rate_code = f"{an_value}"
-    print(custom_rate_code)
-
+    
     doc.custom_rate_code = custom_rate_code
