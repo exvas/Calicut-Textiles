@@ -11,7 +11,7 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/calicut_textiles/css/calicut_textiles.css"
-# app_include_js = "/assets/calicut_textiles/js/calicut_textiles.js"
+app_include_js = ["/assets/calicut_textiles/js/barcode_scan.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/calicut_textiles/css/calicut_textiles.css"
@@ -30,7 +30,9 @@ app_license = "mit"
 # include js in doctype views
 doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
               "Item" : "public/item.js",
-              "Purchase Order" : "public/purchase_order.js",}
+              "Purchase Order" : "public/purchase_order.js",
+            #   "Sales Invoice" : "public/sales_invoice.js",
+              }
 
 doctype_list_js = {"Item" : "public/item_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -140,6 +142,10 @@ doc_events = {
 	},
     "Batch": {
         "after_insert": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
+    },
+    "Sales Invoice": {
+        "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_sales_person",
+
     }
     
 }
@@ -173,9 +179,10 @@ doc_events = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "calicut_textiles.event.get_events"
-# }
+override_whitelisted_methods = {
+    "erpnext.stock.utils.scan_barcode": "calicut_textiles.calicut_textiles.events.sales_invoice.scan_barcode",
+
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -232,20 +239,8 @@ override_doctype_dashboards = {
 # --------------------------------
 
 fixtures =[
-    {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]}
-  
-    # {
-    #     "doctype":"Property Setter",
-	# 	"filters":[
-	# 		["name","in",[
-               
-    #             "Item-item_code-reqd",
-    #             "Item-item_code-hidden"
-			
-	
-	# 		]]
-	# ]
-	# }
+    {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
+    {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
 ]
 
 
