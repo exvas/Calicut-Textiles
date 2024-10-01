@@ -31,7 +31,7 @@ app_include_js = ["/assets/calicut_textiles/js/barcode_scan.js"]
 doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
               "Item" : "public/item.js",
               "Purchase Order" : "public/purchase_order.js",
-            #   "Sales Invoice" : "public/sales_invoice.js",
+              "Salary Slip" : "public/salary_slip.js",
               }
 
 doctype_list_js = {"Item" : "public/item_list.js"}
@@ -146,6 +146,10 @@ doc_events = {
     "Sales Invoice": {
         "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_sales_person",
 
+    },
+    "Salary Slip": {
+        "validate": "calicut_textiles.calicut_textiles.events.salary_slip.calculate_deducted_gross",
+
     }
     
 }
@@ -240,7 +244,7 @@ override_doctype_dashboards = {
 
 fixtures =[
     {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
-    {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
+    # {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
 ]
 
 

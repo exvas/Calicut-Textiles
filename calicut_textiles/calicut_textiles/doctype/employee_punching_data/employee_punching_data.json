@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:EMP-{MM}-{employee_code}-{##}",
+ "creation": "2024-09-29 22:43:43.007872",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "payroll_date",
+  "employee",
+  "employee_code",
+  "ot_hours",
+  "column_break_q8ij",
+  "company",
+  "late_coming_hours",
+  "early_going_hours",
+  "late_early",
+  "section_break_huwo",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_huwo",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "employee_code",
+   "fieldtype": "Data",
+   "label": "Employee Code"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "ot_hours",
+   "fieldtype": "Float",
+   "label": "OT Hours"
+  },
+  {
+   "fieldname": "column_break_q8ij",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "late_coming_hours",
+   "fieldtype": "Float",
+   "label": "Late Coming Hours"
+  },
+  {
+   "fieldname": "early_going_hours",
+   "fieldtype": "Float",
+   "label": "Early Going Hours"
+  },
+  {
+   "fieldname": "late_early",
+   "fieldtype": "Float",
+   "label": "Late Early"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Employee Punching Data",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "payroll_date",
+   "fieldtype": "Date",
+   "label": "Payroll Date",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-09-30 14:54:49.045730",
+ "modified_by": "Administrator",
+ "module": "Calicut Textiles",
+ "name": "Employee Punching Data",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

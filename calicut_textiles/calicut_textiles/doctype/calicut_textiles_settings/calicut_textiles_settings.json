@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-09-30 12:18:35.649241",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "details_tab",
+  "working_hour",
+  "ot_component",
+  "early_component"
+ ],
+ "fields": [
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "working_hour",
+   "fieldtype": "Float",
+   "label": "Working Hour"
+  },
+  {
+   "fieldname": "ot_component",
+   "fieldtype": "Link",
+   "label": "OT Component",
+   "options": "Salary Component"
+  },
+  {
+   "fieldname": "early_component",
+   "fieldtype": "Link",
+   "label": "Early Component",
+   "options": "Salary Component"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-09-30 12:26:30.725581",
+ "modified_by": "Administrator",
+ "module": "Calicut Textiles",
+ "name": "Calicut Textiles Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
