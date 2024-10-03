@@ -31,7 +31,7 @@ app_include_js = ["/assets/calicut_textiles/js/barcode_scan.js"]
 doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
               "Item" : "public/item.js",
               "Purchase Order" : "public/purchase_order.js",
-              "Salary Slip" : "public/salary_slip.js",
+            #   "Salary Slip" : "public/salary_slip.js",
               }
 
 doctype_list_js = {"Item" : "public/item_list.js"}
