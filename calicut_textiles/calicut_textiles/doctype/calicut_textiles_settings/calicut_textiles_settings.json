@@ -6,20 +6,20 @@
  "engine": "InnoDB",
  "field_order": [
   "details_tab",
-  "working_hour",
+  "section_break_tuju",
   "ot_component",
-  "early_component"
+  "column_break_0hrb",
+  "early_component",
+  "default_item_tab",
+  "transporter_item",
+  "column_break_j1rv",
+  "handling_charge_item"
  ],
  "fields": [
   {
    "fieldname": "details_tab",
    "fieldtype": "Tab Break",
    "label": "Details"
-  },
-  {
-   "fieldname": "working_hour",
-   "fieldtype": "Float",
-   "label": "Working Hour"
   },
   {
    "fieldname": "ot_component",
@@ -32,12 +32,41 @@
    "fieldtype": "Link",
    "label": "Early Component",
    "options": "Salary Component"
+  },
+  {
+   "fieldname": "section_break_tuju",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_0hrb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default_item_tab",
+   "fieldtype": "Tab Break",
+   "label": "Default Item"
+  },
+  {
+   "fieldname": "transporter_item",
+   "fieldtype": "Link",
+   "label": "Transporter Item",
+   "options": "Item"
+  },
+  {
+   "fieldname": "column_break_j1rv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "handling_charge_item",
+   "fieldtype": "Link",
+   "label": "Handling Charge Item",
+   "options": "Item"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-09-30 12:26:30.725581",
+ "modified": "2024-10-03 11:53:30.267581",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles Settings",

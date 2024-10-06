@@ -34,7 +34,12 @@ class EmployeePunchingData(Document):
 			frappe.throw(f"No base amount found for employee {self.employee}")
 
 		settings = frappe.get_doc("Calicut Textiles Settings")
-		working_hour = frappe.db.get_value("HR Settings","standard_working_hours")
+		working_hour = frappe.db.get_value("HR Settings",None, "standard_working_hours")
+		if working_hour:
+			working_hour = float(working_hour)  
+		else:
+			frappe.throw("Unable to fetch standard working hours from HR Settings.")
+
 
 		if self.ot_hours == 0:
 			return
@@ -69,7 +74,11 @@ class EmployeePunchingData(Document):
 			frappe.throw(f"No base amount found for employee {self.employee}")
 	
 		settings = frappe.get_doc("Calicut Textiles Settings")
-		working_hour = frappe.db.get_value("HR Settings","standard_working_hours")
+		working_hour = frappe.db.get_value("HR Settings",None, "standard_working_hours")
+		if working_hour:
+			working_hour = float(working_hour) 
+		else:
+			frappe.throw("Unable to fetch standard working hours from HR Settings.")
 
 		if self.late_early == 0:
 			return  

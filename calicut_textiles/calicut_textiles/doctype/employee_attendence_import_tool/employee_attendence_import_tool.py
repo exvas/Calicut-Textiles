@@ -14,7 +14,7 @@ class EmployeeAttendenceImportTool(Document):
 
 @frappe.whitelist()
 def import_attendance_data(file_name, payroll_date, docname):
-	
+    
     file_doc, extension = get_file_and_extension(file_name)
 
     if extension == "csv":
@@ -26,18 +26,24 @@ def import_attendance_data(file_name, payroll_date, docname):
     error_count = 0
     log = []
 
-    for row in data:
-        employee_code = row.get('employee_code')  
-        if not employee_code:
-            log.append("Employee Code is required for each row.")
-            error_count += 1
-            continue
 
+    for row in data:
+        employee_code = row.get('employee_code')
+
+        if not employee_code:
+            frappe.throw("Employee Code is required for each row. Import aborted.")
+        
+        employee = frappe.db.get_value("Employee", {"attendance_device_id": employee_code}, "employee")
+
+        if not employee:
+            frappe.throw(f"Employee with code {employee_code} not found. Import aborted.")
+        
         ot = row.get('ot_hours')
         late_coming_hours = row.get('late_coming_hours')
         early_going_hours = row.get('early_going_hours')
 
         try:
+            # Create and populate a new Employee Punching Data document
             attendance_doc = frappe.new_doc('Employee Punching Data')
             attendance_doc.employee_code = employee_code
             attendance_doc.ot_hours = convert_time_to_minutes(ot) 
@@ -45,19 +51,20 @@ def import_attendance_data(file_name, payroll_date, docname):
             attendance_doc.early_going_hours = convert_time_to_minutes(early_going_hours)
             attendance_doc.payroll_date = payroll_date
 
-       
+            # Save and submit the document
             attendance_doc.save()
             attendance_doc.submit()
             success_count += 1
-            
-        except Exception as e:
-            log.append(f"Error for Employee Code: {employee_code}, OT Hours: {ot}, Late Coming Hours: {late_coming_hours}, Early Going Hours: {early_going_hours} - {str(e)}")
-            error_count += 1
 
+        except Exception as e:
+            frappe.throw(f"Error for Employee Code: {employee_code}, OT Hours: {ot}, Late Coming Hours: {late_coming_hours}, Early Going Hours: {early_going_hours} - {str(e)}")
+
+    # Update the Employee Attendance Import Tool document with the result and log
     frappe.db.set_value("Employee Attendence Import Tool", docname, "status", "Success" if error_count == 0 else "Failed")
     frappe.db.set_value("Employee Attendence Import Tool", docname, "import_log", "\n".join(log))
 
     return {"success_count": success_count, "error_count": error_count}
+
 
 def convert_time_to_minutes(time_str):
     if not time_str:

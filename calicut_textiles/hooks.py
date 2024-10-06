@@ -150,6 +150,10 @@ doc_events = {
     "Salary Slip": {
         "validate": "calicut_textiles.calicut_textiles.events.salary_slip.calculate_deducted_gross",
 
+    },
+    "Purchase Invoice": {
+        "before_submit": "calicut_textiles.calicut_textiles.events.purchase_invoice.create_purchase_invoices",
+
     }
     
 }
