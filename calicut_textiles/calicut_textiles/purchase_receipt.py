@@ -43,3 +43,47 @@ def update_supplier_packing_slip(doc, method):
             sp = frappe.get_doc("Supplier Packing Slip", supplier_packing_slip)
             sp.purchase_receipt = 1
             sp.save()
+
+
+@frappe.whitelist()
+def create_landed_cost_voucher(pr):
+    purchase_receipt = frappe.get_doc("Purchase Receipt", pr)
+    clt_settings = frappe.get_single("Calicut Textiles Settings")
+
+ 
+    lcv = frappe.new_doc("Landed Cost Voucher")
+    
+
+    lcv.company = purchase_receipt.company
+    lcv.posting_date = purchase_receipt.posting_date
+
+    lcv.append("purchase_receipts", {
+        "receipt_document_type": "Purchase Receipt",
+        "receipt_document": purchase_receipt.name,
+        "posting_date": purchase_receipt.posting_date,
+        "supplier": purchase_receipt.supplier,
+        "grand_total": purchase_receipt.grand_total
+    })
+
+    for tax in clt_settings.taxes:
+        if tax.transport_charge and purchase_receipt.custom_total_lr_rate:
+            lcv.append("taxes", {
+                "expense_account": tax.expense_account,
+                "description": tax.description,  
+                "amount": purchase_receipt.custom_total_lr_rate
+            })
+        elif tax.handling_charge and purchase_receipt.custom_handling_charge_rate:
+            lcv.append("taxes", {
+                "expense_account": tax.expense_account,
+                "description": tax.description,  
+                "amount": purchase_receipt.custom_handling_charge_rate
+            })
+
+    lcv.save()
+    lcv.submit()
+    purchase_receipt.custom_landed_cost = 1  
+    purchase_receipt.save()  
+
+    return lcv.name
+
+

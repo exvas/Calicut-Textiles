@@ -13,7 +13,9 @@
   "default_item_tab",
   "transporter_item",
   "column_break_j1rv",
-  "handling_charge_item"
+  "handling_charge_item",
+  "section_break_u1h6",
+  "taxes"
  ],
  "fields": [
   {
@@ -61,12 +63,22 @@
    "fieldtype": "Link",
    "label": "Handling Charge Item",
    "options": "Item"
+  },
+  {
+   "fieldname": "section_break_u1h6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "taxes",
+   "fieldtype": "Table",
+   "label": "Taxes",
+   "options": "Landed Cost Taxes"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-10-03 11:53:30.267581",
+ "modified": "2024-10-06 14:07:14.328578",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles Settings",

@@ -19,7 +19,7 @@ def create_purchase_invoices(doc, method):
         "qty": 1,
         "rate": doc.custom_total_lr_rate
     })
-    invoice_1.submit()
+    invoice_1.save()
 
     if not doc.custom_handling_charger:
         return
@@ -37,7 +37,7 @@ def create_purchase_invoices(doc, method):
         "qty": 1,
         "rate": doc.custom_handling_charge_rate
     })
-    invoice_2.submit()
+    invoice_2.save()
 
 
 
