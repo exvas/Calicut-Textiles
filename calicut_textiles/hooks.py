@@ -119,9 +119,9 @@ doctype_list_js = {"Item" : "public/item_list.js"}
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-# 	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"Leave Encashment": "calicut_textiles.calicut_textiles.events.encashment.CustomLeaveEncashment"
+}
 
 # Document Events
 # ---------------
@@ -153,6 +153,10 @@ doc_events = {
     },
     "Purchase Invoice": {
         "before_submit": "calicut_textiles.calicut_textiles.events.purchase_invoice.create_purchase_invoices",
+
+    },
+    "Salary Structure Assignment": {
+        "validate": "calicut_textiles.calicut_textiles.events.salary_structure_assignment.validate_encashment_amount",
 
     }
     
@@ -189,6 +193,7 @@ doc_events = {
 #
 override_whitelisted_methods = {
     "erpnext.stock.utils.scan_barcode": "calicut_textiles.calicut_textiles.events.sales_invoice.scan_barcode",
+    "hrms.hr.doctype.leave_encashment.leave_encashment.get_leave_details_for_encashment": "calicut_textiles.calicut_textiles.events.encashment.get_leave_details_for_encashment",
 
 }
 #
