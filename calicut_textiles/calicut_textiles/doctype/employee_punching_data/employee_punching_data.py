@@ -38,7 +38,7 @@ class EmployeePunchingData(Document):
 		if working_hour:
 			working_hour = float(working_hour)  
 		else:
-			frappe.throw("Unable to fetch standard working hours from HR Settings.")
+			frappe.throw("Unable to fetch working hours from Employee.")
 
 
 		if self.ot_hours == 0:
