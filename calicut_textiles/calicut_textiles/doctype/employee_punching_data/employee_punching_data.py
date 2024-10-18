@@ -45,6 +45,15 @@ class EmployeePunchingData(Document):
 			return
 
 		if self.employee and self.ot_hours > 0:
+			existing_additional_salary = frappe.db.exists("Additional Salary", {
+            "employee": self.employee,
+            "payroll_date": self.payroll_date,
+            "custom_ot_min": 1
+        	})
+        
+			if existing_additional_salary:
+				frappe.throw(f"An Additional Salary record already exists for employee {self.employee} on {self.payroll_date}.")
+
 			one_day = base_amount / 30
 			one_hour = one_day / working_hour
 			one_min = one_hour / 60
@@ -84,6 +93,16 @@ class EmployeePunchingData(Document):
 			return  
 
 		if self.employee and self.late_early:
+
+			existing_additional_salary = frappe.db.exists("Additional Salary", {
+            "employee": self.employee,
+            "payroll_date": self.payroll_date,
+            "custom_is_late_early": 1
+        	})
+        
+			if existing_additional_salary:
+				frappe.throw(f"An Additional Salary record already exists for employee {self.employee} on {self.payroll_date}.")
+
 			one_day = base_amount/30
 			one_hour =  one_day/working_hour
 			one_min = one_hour/60
