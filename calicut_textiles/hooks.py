@@ -120,7 +120,8 @@ doctype_list_js = {"Item" : "public/item_list.js"}
 # Override standard doctype classes
 
 override_doctype_class = {
-	"Leave Encashment": "calicut_textiles.calicut_textiles.events.encashment.CustomLeaveEncashment"
+	"Leave Encashment": "calicut_textiles.calicut_textiles.events.encashment.CustomLeaveEncashment",
+    "Department": "calicut_textiles.calicut_textiles.events.department.CustomDepartment"
 }
 
 # Document Events
