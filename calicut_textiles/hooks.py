@@ -148,6 +148,10 @@ doc_events = {
         "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_sales_person",
 
     },
+    "Salary Slip": {
+        "before_insert": "calicut_textiles.calicut_textiles.events.salary_slip.before_save",
+
+    },
     "Purchase Invoice": {
         "before_submit": "calicut_textiles.calicut_textiles.events.purchase_invoice.create_purchase_invoices",
 
