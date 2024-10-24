@@ -1,20 +1,39 @@
 import frappe
+from frappe.utils import getdate, month_diff
 
-
-
-def calculate_deducted_gross(doc, method):
-    total_deducted_amount = 0
+@frappe.whitelist()
+def calculate_deducted_gross(employee, start_date):
     base_amount = 0
+    deducted_gross = 0
 
-    base_amount = frappe.db.get_value("Salary Structure Assignment", {"employee": doc.employee}, "base", order_by="creation desc")
+    late_component = frappe.db.get_value("Calicut Textiles Settings", None, "early_component")
 
-    for row in doc.deductions:
-        if row.custom_is_late_early:
-            total_deducted_amount += row.amount
-    deducted_gross = base_amount - total_deducted_amount
+    base_amount = frappe.db.get_value("Salary Structure Assignment", {"employee": employee}, "base", order_by="creation desc")
 
-    doc.custom_deducted_gross = deducted_gross
-    doc.custom_deducted_per_day = deducted_gross/doc.payment_days
-    doc.custom_deducted_basic = deducted_gross/100*62.5
-    doc.custom_deducted_da = deducted_gross/100*40
+    start_date = getdate(start_date)
 
+    additional_salaries = frappe.get_all(
+        "Additional Salary", 
+        filters={
+            "employee": employee,
+            "Salary_component": late_component,
+            "custom_is_late_early": 1,
+            "docstatus": 1
+        },
+        fields=["amount", "payroll_date"]
+    )
+
+    lop = 0
+
+    for additional_salary in additional_salaries:
+        payroll_date = getdate(additional_salary.get('payroll_date'))
+        
+        if payroll_date and payroll_date.month == start_date.month and payroll_date.year == start_date.year:
+            lop = additional_salary.get('amount')
+
+    if lop:
+        deducted_gross = base_amount - lop
+    else:
+        deducted_gross = base_amount
+
+    return deducted_gross

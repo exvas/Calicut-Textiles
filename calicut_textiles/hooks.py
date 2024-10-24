@@ -31,7 +31,7 @@ app_include_js = ["/assets/calicut_textiles/js/barcode_scan.js"]
 doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
               "Item" : "public/item.js",
               "Purchase Order" : "public/purchase_order.js",
-            #   "Salary Slip" : "public/salary_slip.js",
+              "Salary Slip" : "public/salary_slip.js",
               }
 
 doctype_list_js = {"Item" : "public/item_list.js"}
@@ -146,10 +146,6 @@ doc_events = {
     },
     "Sales Invoice": {
         "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_sales_person",
-
-    },
-    "Salary Slip": {
-        "validate": "calicut_textiles.calicut_textiles.events.salary_slip.calculate_deducted_gross",
 
     },
     "Purchase Invoice": {
