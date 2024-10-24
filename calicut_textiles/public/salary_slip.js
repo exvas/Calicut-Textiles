@@ -2,7 +2,9 @@ frappe.ui.form.on('Salary Slip', {
     refresh: function (frm) {
         if(frm.doc.employee && frm.doc.start_date) {
 		frm.trigger("deducted_gross");
-        frm.save()
+        if (!frm.doc.docstatus == 1) {
+            frm.save();
+        }
         }
 	},
     employee: function(frm) {
@@ -36,8 +38,7 @@ frappe.ui.form.on('Salary Slip', {
                     frm.set_value('custom_deducted_basic', deducted_gross * 62.5 / 100);
                     frm.set_value('custom_deducted_da', deducted_gross * 40 / 100);
             
-    
-                    
+
                 }
             }
         });
