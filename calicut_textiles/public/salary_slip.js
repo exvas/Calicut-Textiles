@@ -27,7 +27,7 @@ frappe.ui.form.on('Salary Slip', {
                 },
                 callback: function(r) {
                     if(r.message) {
-                        let deducted_gross = r.message;
+                        let deducted_gross = r.message - frm.doc.leave_without_pay;
                         frm.set_value('custom_deducted_gross', deducted_gross);
                         frm.set_value('custom_deducted_per_day', deducted_gross / frm.doc.payment_days);
                         frm.set_value('custom_deducted_basic', deducted_gross * 62.5 / 100);
