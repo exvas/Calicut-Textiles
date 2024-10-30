@@ -9,6 +9,15 @@ frappe.ui.form.on('Item', {
     after_save: function(frm) {
         frm.set_df_property('custom_item_short_name', 'hidden', 1);
     },
+    onload: function(frm) {
+        frm.set_query('custom_cost_center', function() {
+            return {
+                filters: [
+                    ['Cost Center', 'is_group', '=', 0],
+                ]
+            };
+        });
+    }
 
 });
 

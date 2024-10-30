@@ -159,8 +159,11 @@ doc_events = {
     "Salary Structure Assignment": {
         "validate": "calicut_textiles.calicut_textiles.events.salary_structure_assignment.validate_encashment_amount",
 
+    },
+
+    "Serial and Batch Bundle": {
+        "before_save":["calicut_textiles.calicut_textiles.events.event.custom_date_code"],
     }
-    
 }
 
 # Scheduled Tasks
@@ -254,7 +257,7 @@ override_doctype_dashboards = {
 
 fixtures =[
     {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
-    # {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
+    {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
 ]
 
 
