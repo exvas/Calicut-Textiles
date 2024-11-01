@@ -1,8 +1,5 @@
-import frappe 
+import frappe
 from frappe import _
-
-from datetime import datetime
-
 from datetime import datetime
 
 def convert_date_to_code(sanforize):
@@ -27,7 +24,10 @@ def convert_date_to_code(sanforize):
     return result
 
 def custom_date_code(doc, method):
-    posting_date = datetime.strptime(doc.posting_date, '%Y-%m-%d')
+    if isinstance(doc.posting_date, str):
+        posting_date = datetime.strptime(doc.posting_date, '%Y-%m-%d')
+    else:
+        posting_date = doc.posting_date
 
     month_year = posting_date.strftime('%m%y')
 
