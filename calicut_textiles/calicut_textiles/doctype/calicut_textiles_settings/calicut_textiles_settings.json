@@ -12,6 +12,8 @@
   "early_component",
   "section_break_zjrq",
   "price_listmrp",
+  "column_break_gqiu",
+  "retail_price",
   "default_item_tab",
   "transporter_item",
   "column_break_j1rv",
@@ -86,12 +88,22 @@
    "fieldtype": "Link",
    "label": "Price List(MRP)",
    "options": "Price List"
+  },
+  {
+   "fieldname": "column_break_gqiu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "retail_price",
+   "fieldtype": "Link",
+   "label": "Retail Price",
+   "options": "Price List"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-10-29 10:51:53.284815",
+ "modified": "2024-11-08 15:59:06.508686",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles Settings",
