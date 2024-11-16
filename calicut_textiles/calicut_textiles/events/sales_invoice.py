@@ -67,6 +67,6 @@ def scan_barcode(search_value: str) -> BarcodeScanResult:
 	return {}
 
 
-def validate_sales_person(doc,method):
-	if not doc.custom_sales_person:
-		frappe.throw(_("Please select a sales person"))
+# def validate_sales_person(doc,method):
+# 	if not doc.custom_sales_person:
+# 		frappe.throw(_("Please select a sales person"))
