@@ -1,0 +1,68 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-11-21 22:01:30.109783",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_t4xk",
+  "employee",
+  "employee_name",
+  "column_break_5dex",
+  "employee_advance",
+  "advance_amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_t4xk",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5dex",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employee_advance",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee Advance",
+   "options": "Employee Advance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "advance_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Advance Amount",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-11-21 22:16:13.474670",
+ "modified_by": "Administrator",
+ "module": "Calicut Textiles",
+ "name": "Employee Advance Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
