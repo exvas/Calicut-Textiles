@@ -1,5 +1,7 @@
 from erpnext.accounts.doctype.payment_entry.payment_entry import PaymentEntry
+
 import frappe
+from frappe import _
 
 class CustomPaymentEntry(PaymentEntry):
     def validate(self):
@@ -31,4 +33,4 @@ class CustomPaymentEntry(PaymentEntry):
 
     def validate_transaction_reference(self):
         pass
-
+        

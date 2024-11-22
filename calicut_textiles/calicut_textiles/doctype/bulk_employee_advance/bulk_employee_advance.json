@@ -8,9 +8,13 @@
  "field_order": [
   "posting_date",
   "mode_of_payment",
+  "salary_component",
   "column_break_rsep",
+  "payroll_date",
   "company",
   "purpose",
+  "employee_advance",
+  "additional_salary",
   "currency_section",
   "currency",
   "column_break_uxfp",
@@ -44,16 +48,6 @@
    "fieldtype": "Table",
    "label": "Employee Details",
    "options": "Employee Details"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Bulk Employee Advance",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
   },
   {
    "fieldname": "mode_of_payment",
@@ -96,12 +90,51 @@
    "fieldtype": "Float",
    "label": "Exchange Rate",
    "precision": "9"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "employee_advance",
+   "fieldtype": "Check",
+   "label": "Employee Advance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Bulk Employee Advance",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "salary_component",
+   "fieldtype": "Link",
+   "label": "Salary Component",
+   "options": "Salary Component",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payroll_date",
+   "fieldtype": "Date",
+   "label": "Payroll Date",
+   "reqd": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "additional_salary",
+   "fieldtype": "Check",
+   "label": "Additional Salary",
+   "read_only": 1
   }
  ],
  "hide_toolbar": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-21 19:39:30.329454",
+ "modified": "2024-11-22 12:16:28.537857",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Bulk Employee Advance",

@@ -7,8 +7,15 @@ frappe.ui.form.on("Bulk Employee Advance", {
     },
 	
     refresh: function(frm) {
-        if (frm.doc.docstatus == 1) {
-            frm.add_custom_button(__('Create Employee Advance'), function() {
+        frm.set_query("salary_component", function () {
+            return {
+                filters: {
+                    "type": "Deduction"
+                }
+            };
+        });
+        if (frm.doc.docstatus == 1 && frm.doc.employee_advance != 1) {
+            frm.add_custom_button(__('Employee Advance'), function() {
                 frappe.call({
                     method: "calicut_textiles.calicut_textiles.doctype.bulk_employee_advance.bulk_employee_advance.create_employee_advances",
                     args: { doc_name: frm.doc.name },
@@ -21,7 +28,23 @@ frappe.ui.form.on("Bulk Employee Advance", {
                         }
                     }
                 });
-            });
+            }, __('Create'));
+        }
+        if (frm.doc.docstatus == 1 && frm.doc.employee_advance == 1 && frm.doc.additional_salary != 1) {
+            frm.add_custom_button(__('Additional Salary'), function() {
+                frappe.call({
+                    method: "calicut_textiles.calicut_textiles.doctype.bulk_employee_advance.bulk_employee_advance.create_bulk_additional_salary",
+                    args: { doc_name: frm.doc.name },
+                    callback: function(r) {
+                        if (!r.exc) {
+                            frappe.msgprint(__('Employee Additional Salary created successfully.'));
+                            frm.reload_doc();
+                        } else {
+                            frappe.msgprint(__('Failed to create Additional Salary Please try again.'));
+                        }
+                    }
+                });
+            }, __('Create'));
         }
     },
     posting_date: function (frm) {

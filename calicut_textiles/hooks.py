@@ -165,6 +165,12 @@ doc_events = {
 
     "Serial and Batch Bundle": {
         "before_save":["calicut_textiles.calicut_textiles.events.event.custom_date_code"],
+    },
+    "Employee Advance": {
+        "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_advance"],
+    },
+     "Additional Salary": {
+        "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_additional"],
     }
 }
 
