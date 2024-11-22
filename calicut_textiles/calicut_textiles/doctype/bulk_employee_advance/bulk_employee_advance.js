@@ -2,6 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Bulk Employee Advance", {
+    setup : function(frm) {
+        frm.ignore_doctypes_on_cancel_all = ["Payment Entry"];
+    },
     onload(frm){
         frm.get_field('employee_details').grid.cannot_add_rows = true;
     },

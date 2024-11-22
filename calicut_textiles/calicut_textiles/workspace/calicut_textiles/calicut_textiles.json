@@ -222,6 +222,35 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Custom Modules",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Rack Update",
+   "link_count": 0,
+   "link_to": "Rack Update",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Bulk Employee Advance",
+   "link_count": 0,
+   "link_to": "Bulk Employee Advance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Settings",
    "link_count": 4,
    "link_type": "DocType",
@@ -264,6 +293,16 @@
    "label": "Buying Settings",
    "link_count": 0,
    "link_to": "Buying Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "CLT Settings",
+   "link_count": 0,
+   "link_to": "Calicut Textiles Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
