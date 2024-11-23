@@ -10,6 +10,13 @@ from frappe import _
 class BulkEmployeeAdvance(Document):
     def on_cancel(self):
         self.update_advance()
+        self.update_additional()
+
+    def validate(self):
+        bank_account = frappe.db.get_value("Mode of Payment", self.mode_of_payment, "type")
+        if bank_account == "Bank":
+             if not self.reference_no:
+                 frappe.throw(_("Reference No and Reference Date is mandatory for Bank transaction"))
 
     def update_advance(self):
         if self.employee_advance:
@@ -68,6 +75,8 @@ def create_employee_advances(doc_name):
         payment_entry.paid_from = paid_to_account
         payment_entry.target_exchange_rate = bulk_advance.exchange_rate
         payment_entry.source_exchange_rate = bulk_advance.exchange_rate
+        payment_entry.reference_no = bulk_advance.reference_no
+        payment_entry.reference_date = bulk_advance.reference_date
         payment_entry.append("references", {
             "reference_doctype": "Employee Advance",
             "reference_name": employee_advance.name,

@@ -122,8 +122,7 @@ doctype_list_js = {"Item" : "public/item_list.js"}
 
 override_doctype_class = {
 	"Leave Encashment": "calicut_textiles.calicut_textiles.events.encashment.CustomLeaveEncashment",
-    "Department": "calicut_textiles.calicut_textiles.events.department.CustomDepartment",
-    "Payment Entry": "calicut_textiles.calicut_textiles.events.payment_entry.CustomPaymentEntry"
+    "Department": "calicut_textiles.calicut_textiles.events.department.CustomDepartment"
 }
 
 # Document Events
@@ -171,7 +170,8 @@ doc_events = {
     },
      "Additional Salary": {
         "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_additional"],
-    }
+    },
+   
 }
 
 # Scheduled Tasks

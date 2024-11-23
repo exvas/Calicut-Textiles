@@ -9,6 +9,8 @@
   "posting_date",
   "mode_of_payment",
   "salary_component",
+  "reference_no",
+  "reference_date",
   "column_break_rsep",
   "payroll_date",
   "company",
@@ -129,12 +131,23 @@
    "fieldtype": "Check",
    "label": "Additional Salary",
    "read_only": 1
+  },
+  {
+   "fieldname": "reference_no",
+   "fieldtype": "Data",
+   "label": "Reference No"
+  },
+  {
+   "default": "Today",
+   "fieldname": "reference_date",
+   "fieldtype": "Date",
+   "label": "Reference Date"
   }
  ],
  "hide_toolbar": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-22 12:16:28.537857",
+ "modified": "2024-11-23 11:34:25.521854",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Bulk Employee Advance",
