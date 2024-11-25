@@ -77,6 +77,7 @@ def create_employee_advances(doc_name):
         payment_entry.source_exchange_rate = bulk_advance.exchange_rate
         payment_entry.reference_no = bulk_advance.reference_no
         payment_entry.reference_date = bulk_advance.reference_date
+        payment_entry.payment_account = bulk_advance.company
         payment_entry.append("references", {
             "reference_doctype": "Employee Advance",
             "reference_name": employee_advance.name,
