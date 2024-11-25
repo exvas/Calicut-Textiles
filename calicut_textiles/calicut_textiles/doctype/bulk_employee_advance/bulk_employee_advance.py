@@ -54,35 +54,46 @@ def create_employee_advances(doc_name):
         frappe.db.commit()
         employee_advance.submit()
         created_advances.append(employee_advance.name)
-        
-		
 
         paid_to = frappe.get_doc("Mode of Payment", bulk_advance.mode_of_payment)
-        paid_to_account = paid_to.accounts[0].default_account if paid_to.accounts else None
-        company = frappe.db.get_value("Company", {'name': bulk_advance.company}, "default_employee_advance_account")
+        paid_to_account = None
+
+        if paid_to.accounts:
+            for account in paid_to.accounts:
+                if account.company == bulk_advance.company:  
+                    paid_to_account = account.default_account
+                    break
+
         if not paid_to_account:
-            frappe.throw("No default account set for the selected mode of payment.")
-        
+            frappe.throw(_("No default account set for the selected mode of payment and company."))
+        company_account = frappe.db.get_value(
+            "Company", {"name": bulk_advance.company}, "default_employee_advance_account"
+        )
+        if not company_account:
+            frappe.throw(_("Default employee advance account not found for the company."))
         payment_entry = frappe.new_doc("Payment Entry")
-        payment_entry.payment_type = 'Pay'
+        payment_entry.payment_type = "Pay"
         payment_entry.posting_date = bulk_advance.posting_date
         payment_entry.mode_of_payment = bulk_advance.mode_of_payment
-        payment_entry.party_type = 'Employee'
+        payment_entry.party_type = "Employee"
         payment_entry.party = row.employee
         payment_entry.paid_amount = row.advance_amount
         payment_entry.received_amount = row.advance_amount
-        payment_entry.paid_to = company
+        payment_entry.paid_to = company_account
         payment_entry.paid_from = paid_to_account
         payment_entry.target_exchange_rate = bulk_advance.exchange_rate
         payment_entry.source_exchange_rate = bulk_advance.exchange_rate
         payment_entry.reference_no = bulk_advance.reference_no
         payment_entry.reference_date = bulk_advance.reference_date
         payment_entry.company = bulk_advance.company
-        payment_entry.append("references", {
-            "reference_doctype": "Employee Advance",
-            "reference_name": employee_advance.name,
-            "allocated_amount": row.advance_amount
-        })
+        payment_entry.append(
+            "references",
+            {
+                "reference_doctype": "Employee Advance",
+                "reference_name": employee_advance.name,
+                "allocated_amount": row.advance_amount,
+            },
+        )
 
         payment_entry.insert(ignore_permissions=True)
         payment_entry.submit()
@@ -92,6 +103,7 @@ def create_employee_advances(doc_name):
         "created_advances": created_advances,
         "created_payment_entries": created_payment_entries,
     }
+
 
 
 @frappe.whitelist()
