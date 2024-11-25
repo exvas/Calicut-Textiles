@@ -21,6 +21,8 @@ frappe.ui.form.on("Bulk Employee Advance", {
             frm.add_custom_button(__('Employee Advance'), function() {
                 frappe.call({
                     method: "calicut_textiles.calicut_textiles.doctype.bulk_employee_advance.bulk_employee_advance.create_employee_advances",
+                    freeze: true, 
+                    freeze_message: __('Creating Employee Advance and Payment Entry...'),
                     args: { doc_name: frm.doc.name },
                     callback: function(r) {
                         if (!r.exc) {
@@ -37,6 +39,8 @@ frappe.ui.form.on("Bulk Employee Advance", {
             frm.add_custom_button(__('Additional Salary'), function() {
                 frappe.call({
                     method: "calicut_textiles.calicut_textiles.doctype.bulk_employee_advance.bulk_employee_advance.create_bulk_additional_salary",
+                    freeze: true, 
+                    freeze_message: __('Creating Additional Salary...'),
                     args: { doc_name: frm.doc.name },
                     callback: function(r) {
                         if (!r.exc) {
@@ -51,32 +55,40 @@ frappe.ui.form.on("Bulk Employee Advance", {
         }
     },
     posting_date: function (frm) {
-        if (frm.doc.company && frm.doc.posting_date) {
-            frappe.call({
-                method: 'frappe.client.get_list',
-                args: {
-                    doctype: 'Employee',
-                    filters: {
-                        company: frm.doc.company
-                    },
-                    fields: ['name','designation', 'employee_name']
-                },
-                callback: function (r) {
-                    if (r.message) {
-                        frm.clear_table('employee_details'); 
-                        r.message.forEach(emp => {
-                            let row = frm.add_child('employee_details');
-                            row.employee = emp.name;
-                            row.designation = emp.designation;
-                            row.employee_name = emp.employee_name;
-                        });
-                        frm.refresh_field('employee_details'); 
-                    } else {
-                        frappe.msgprint(__('No employees found for the selected company.'));
-                    }
-                }
-            });
-        }
+        table_update(frm)
     },
-    
+    company: function (frm) {
+        table_update(frm)
+    },
 });
+function table_update(frm) {
+    if (frm.doc.company && frm.doc.posting_date) {
+        frappe.call({
+            method: 'frappe.client.get_list',
+            freeze: true, 
+            freeze_message: __('Fetching employee details...'), 
+            args: {
+                doctype: 'Employee',
+                filters: {
+                    company: frm.doc.company
+                },
+                fields: ['name', 'designation', 'employee_name']
+            },
+            callback: function (r) {
+                if (r.message) {
+                    frm.clear_table('employee_details'); 
+                    r.message.forEach(emp => {
+                        let row = frm.add_child('employee_details');
+                        row.employee = emp.name;
+                        row.designation = emp.designation;
+                        row.employee_name = emp.employee_name;
+                    });
+                    frm.refresh_field('employee_details'); 
+                } else {
+                    frappe.msgprint(__('No employees found for the selected company.'));
+                }
+            }
+        });
+    }
+}
+
