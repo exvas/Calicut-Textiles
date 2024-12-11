@@ -132,7 +132,8 @@ override_doctype_class = {
 doc_events = {
 	"Item": {
         "before_insert":["calicut_textiles.calicut_textiles.item.update_item_code"],
-        "validate": "calicut_textiles.calicut_textiles.item.update_batch_number_series"
+        "validate": ["calicut_textiles.calicut_textiles.item.update_batch_number_series",
+                    "calicut_textiles.calicut_textiles.item.item_name_unique", ]
        
 	},
     "Item Price": {
@@ -264,7 +265,7 @@ override_doctype_dashboards = {
 # --------------------------------
 
 fixtures =[
-    {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
+    # {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
     {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
 ]
 

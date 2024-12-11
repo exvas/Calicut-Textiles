@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 @frappe.whitelist()
 def update_item_code(self, method):
@@ -23,5 +24,9 @@ def update_batch_number_series(doc, method):
     doc.batch_number_series = batch_number_series
 
 
-
+def item_name_unique(doc, method):
+    if doc.item_name:
+        existing_item = frappe.db.exists("Item", {"item_name": doc.item_name, "name": ["!=", doc.name]})
+        if existing_item:
+            frappe.throw(_("An item with the name '{0}' already exists. Please choose a unique name.").format(doc.item_name))
 
