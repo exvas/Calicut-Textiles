@@ -96,16 +96,13 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 				fetch_item_code = frappe.db.get_value('Batch', { 'name': batch_no }, 'item')
 					.then(res => res && res.item ? res.item : null);
 			}
-	
 			fetch_item_code.then((resolved_item_code) => {
 				if (!resolved_item_code) {
 					this.show_alert(__("Item code not found for batch {0}", [batch_no]), "red");
 					reject();
 					return;
 				}
-	
-	            let row = null; 
-
+				let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode);
 				if (batch_no) {
 					let batch_already_scanned = this.frm.doc[this.items_table_name].some(row => row.batch_no === batch_no);
 					if (batch_already_scanned) {
@@ -153,6 +150,12 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 					});
 				} else {
 					row = row || frappe.model.add_child(this.frm.doc, cur_grid.doctype, this.items_table_name);
+					if (this.is_duplicate_serial_no(row, serial_no)) {
+						this.clean_up();
+						reject();
+						return;
+					}
+		
 					frappe.run_serially([
 						() => this.set_selector_trigger_flag(data),
 						() => this.set_item(row, resolved_item_code, barcode, batch_no, serial_no).then((qty) => {
@@ -167,7 +170,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 						() => resolve(row),
 					]);
 				}
-			});
+			})
 		});
 	}
 	
