@@ -143,9 +143,9 @@ doc_events = {
         "validate":["calicut_textiles.calicut_textiles.purchase_receipt.custom_date_code"],
         "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"]
 	},
-    "Batch": {
-        "after_insert": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
-    },
+    # "Batch": {
+    #     "after_insert": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
+    # },
     # "Sales Invoice": {
     #     "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_sales_person",
 
@@ -165,6 +165,7 @@ doc_events = {
 
     "Serial and Batch Bundle": {
         "before_save":["calicut_textiles.calicut_textiles.events.event.custom_date_code"],
+        "after_insert": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
     },
     "Employee Advance": {
         "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_advance"],
