@@ -144,7 +144,7 @@ doc_events = {
         "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"]
 	},
     # "Batch": {
-    #     "after_insert": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
+    #     "after_save": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
     # },
     # "Sales Invoice": {
     #     "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_sales_person",
