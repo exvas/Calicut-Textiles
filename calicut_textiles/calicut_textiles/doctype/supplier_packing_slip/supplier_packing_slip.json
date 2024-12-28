@@ -45,7 +45,8 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "SPS.YY.###"
+   "options": "SPS.YY.###",
+   "print_hide": 1
   },
   {
    "fieldname": "company",
@@ -103,13 +104,14 @@
    "fieldname": "purchase_receipt",
    "fieldtype": "Check",
    "label": "Purchase Receipt",
+   "print_hide": 1,
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-10 13:25:22.334689",
+ "modified": "2024-12-28 10:28:36.844837",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Packing Slip",
