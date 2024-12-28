@@ -1,6 +1,22 @@
 [
  {
   "default_value": null,
+  "doc_type": "Item",
+  "docstatus": 0,
+  "doctype": "Property Setter",
+  "doctype_or_field": "DocField",
+  "field_name": "item_name",
+  "is_system_generated": 0,
+  "modified": "2024-12-10 14:44:14.126681",
+  "module": "Calicut Textiles",
+  "name": "Item-item_name-unique",
+  "property": "unique",
+  "property_type": "Check",
+  "row_name": null,
+  "value": "1"
+ },
+ {
+  "default_value": null,
   "doc_type": "Employee Advance",
   "docstatus": 0,
   "doctype": "Property Setter",
