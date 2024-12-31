@@ -70,3 +70,15 @@ def scan_barcode(search_value: str) -> BarcodeScanResult:
 # def validate_sales_person(doc,method):
 # 	if not doc.custom_sales_person:
 # 		frappe.throw(_("Please select a sales person"))
+
+
+@frappe.whitelist()
+def set_user(user):
+    settings = frappe.get_single("Calicut Textiles Settings")
+
+    user_series = [
+        doc.series for doc in settings.set_user_series if doc.user == user
+    ]
+
+    return user_series if user_series else []
+

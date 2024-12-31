@@ -103,36 +103,39 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 					return;
 				}
 				let row = this.get_row_to_modify_on_scan(item_code, batch_no, uom, barcode);
+				if (!row) {
+				
+					// if (this.dont_allow_new_row) {
+					// 	this.show_alert(__("Maximum quantity scanned for item {0}.", [resolved_item_code]), "red");
+					// 	this.clean_up();
+					// 	reject();
+					// 	return;
+					// // }
+					row = frappe.model.add_child(this.frm.doc, cur_grid.doctype, this.items_table_name);
+					// this.frm.script_manager.trigger(`${this.items_table_name}_add`, row.doctype, row.name);
+					// this.frm.has_items = false;
+				}
+
 				if (batch_no) {
-					let batch_already_scanned = this.frm.doc[this.items_table_name].some(row => row.batch_no === batch_no);
-					if (batch_already_scanned) {
-						this.show_alert(__("Batch {0} already scanned.", [batch_no]), "red");
-						this.clean_up();
-						reject();
-						return;
-					}
+					// let batch_already_scanned = this.frm.doc[this.items_table_name].some(row => row.batch_no === batch_no);
+					// if (batch_already_scanned) {
+					// 	this.show_alert(__("Batch {0} already scanned.", [batch_no]), "red");
+					// 	this.clean_up();
+					// 	reject();
+					// 	return;
+					// }
 					
 					frappe.db.get_value('Batch', { 'name': batch_no }, 'batch_qty', (r) => {
 						if (r && r.batch_qty) {
 							const batch_qty = r.batch_qty;
 	
-							this.frm.doc[this.items_table_name].forEach(existing_row => {
-								if (!existing_row.item_code && !existing_row.batch_no && !row) {
-									row = existing_row;
-								}
-							});
+							// this.frm.doc[this.items_table_name].forEach(existing_row => {
+							// 	if (!existing_row.item_code && !existing_row.batch_no && !row) {
+							// 		row = existing_row;
+							// 	}
+							// });
 	
-							if (!row) {
-								if (this.dont_allow_new_row) {
-									this.show_alert(__("Maximum quantity scanned for item {0}.", [resolved_item_code]), "red");
-									this.clean_up();
-									reject();
-									return;
-								}
-								row = frappe.model.add_child(this.frm.doc, cur_grid.doctype, this.items_table_name);
-								this.frm.script_manager.trigger(`${this.items_table_name}_add`, row.doctype, row.name);
-								this.frm.has_items = false;
-							}
+							
 	
 							// Update values for the row
 							frappe.model.set_value(row.doctype, row.name, 'item_code', resolved_item_code);
@@ -150,11 +153,11 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 					});
 				} else {
 					row = row || frappe.model.add_child(this.frm.doc, cur_grid.doctype, this.items_table_name);
-					if (this.is_duplicate_serial_no(row, serial_no)) {
-						this.clean_up();
-						reject();
-						return;
-					}
+					// if (this.is_duplicate_serial_no(row, serial_no)) {
+					// 	this.clean_up();
+					// 	reject();
+					// 	return;
+					// }
 		
 					frappe.run_serially([
 						() => this.set_selector_trigger_flag(data),
@@ -464,7 +467,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 				item_match &&
 				uom_match &&
 				!item_scanned &&
-				(!is_batch_no_scan || batch_match) &&
+				(!is_batch_no_scan) &&
 				(!check_max_qty || qty_in_limit)
 			);
 		};

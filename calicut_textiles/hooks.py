@@ -11,7 +11,7 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/calicut_textiles/css/calicut_textiles.css"
-app_include_js = ["/assets/calicut_textiles/js/barcode_scanbklo.js"]
+app_include_js = ["/assets/calicut_textiles/js/barcode_scan_31.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/calicut_textiles/css/calicut_textiles.css"
@@ -165,7 +165,7 @@ doc_events = {
 
     "Serial and Batch Bundle": {
         "before_save":["calicut_textiles.calicut_textiles.events.event.custom_date_code"],
-        "after_insert": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
+        "before_insert": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
     },
     "Employee Advance": {
         "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_advance"],
@@ -266,7 +266,7 @@ override_doctype_dashboards = {
 # --------------------------------
 
 fixtures =[
-    # {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
+    {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
     {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
 ]
 

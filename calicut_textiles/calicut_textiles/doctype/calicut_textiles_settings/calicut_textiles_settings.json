@@ -19,7 +19,9 @@
   "column_break_j1rv",
   "handling_charge_item",
   "section_break_u1h6",
-  "taxes"
+  "taxes",
+  "set_series_tab",
+  "set_user_series"
  ],
  "fields": [
   {
@@ -98,12 +100,23 @@
    "fieldtype": "Link",
    "label": "Retail Price",
    "options": "Price List"
+  },
+  {
+   "fieldname": "set_series_tab",
+   "fieldtype": "Tab Break",
+   "label": "Set Series"
+  },
+  {
+   "fieldname": "set_user_series",
+   "fieldtype": "Table",
+   "label": "Set user series",
+   "options": "Set user series"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-11-08 15:59:06.508686",
+ "modified": "2024-12-31 22:30:50.616200",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles Settings",
