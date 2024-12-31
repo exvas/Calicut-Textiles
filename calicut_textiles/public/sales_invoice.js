@@ -23,8 +23,6 @@ frappe.ui.form.on('Sales Invoice', {
             callback: function (r) {
                 if (r.message && r.message.length > 0) {
                     frm.set_value('naming_series', r.message);
-                } else {
-                    frappe.msgprint(__('No naming series assigned for your user.'));
                 }
             }
         });
