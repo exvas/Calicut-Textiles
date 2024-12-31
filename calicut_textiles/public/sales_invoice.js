@@ -25,19 +25,6 @@ frappe.ui.form.on('Sales Invoice', {
             }
         });
     },
-    // refresh : function(frm) {
-    //     frappe.call({
-    //         method: 'calicut_textiles.calicut_textiles.events.sales_invoice.set_user',
-    //         args: {
-    //             user: frappe.session.user
-    //         },
-    //         callback: function (r) {
-    //             if (r.message && r.message.length > 0) {
-    //                 frm.set_value('naming_series', r.message);
-    //             }
-    //         }
-    //     });
-    // },
     custom_type_barcode: function(frm) {
         frm.barcode_scanner.process_scan().catch(() => {
             frappe.msgprint(__('Unable to process barcode'));
