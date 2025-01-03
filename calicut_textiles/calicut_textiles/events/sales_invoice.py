@@ -73,7 +73,7 @@ def scan_barcode(search_value: str) -> BarcodeScanResult:
 
 
 @frappe.whitelist()
-def set_user_and_customer(user):
+def set_user_and_customer_and_branch(user):
     settings = frappe.get_single("Calicut Textiles Settings")
 
     user_series = [
@@ -84,9 +84,14 @@ def set_user_and_customer(user):
         doc.customer for doc in settings.set_user_series if doc.user == user
     ]
 
+    user_branch = [
+        doc.branch for doc in settings.set_user_series if doc.user == user
+    ]
+
     return {
         "user_series": user_series if user_series else [],
-        "default_customer": user_customer[0] if user_customer else None
+        "default_customer": user_customer[0] if user_customer else None,
+        "default_branch": user_branch[0] if user_branch else None
     }
 
 

@@ -13,7 +13,7 @@ frappe.ui.form.on('Sales Invoice', {
             scan_api: "erpnext.stock.utils.scan_barcode" 
         });
         frappe.call({
-            method: 'calicut_textiles.calicut_textiles.events.sales_invoice.set_user_and_customer',
+            method: 'calicut_textiles.calicut_textiles.events.sales_invoice.set_user_and_customer_and_branch',
             args: {
                 user: frappe.session.user
             },
@@ -26,9 +26,13 @@ frappe.ui.form.on('Sales Invoice', {
                     if (r.message.default_customer) {
                         frm.set_value('customer', r.message.default_customer);
                     }
+                    if (r.message.default_branch) {
+                        frm.set_value('custom_branch', r.message.default_branch);
+                    }
                 }
             }
         });
+        
         
     },
     custom_type_barcode: function(frm) {
