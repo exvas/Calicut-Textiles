@@ -30,6 +30,7 @@
   {
    "fieldname": "customer",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Customer",
    "options": "Customer"
   },
@@ -40,14 +41,15 @@
   {
    "fieldname": "branch",
    "fieldtype": "Link",
-   "label": "Branch",
-   "options": "Branch"
+   "in_list_view": 1,
+   "label": "Counter",
+   "options": "Counter"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-01-03 11:57:27.332126",
+ "modified": "2025-01-07 09:55:48.700178",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Set user series",

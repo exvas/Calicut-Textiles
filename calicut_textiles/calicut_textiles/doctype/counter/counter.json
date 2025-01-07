@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:counter",
+ "creation": "2025-01-07 09:55:07.478392",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_w6en",
+  "counter"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_w6en",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "counter",
+   "fieldtype": "Data",
+   "label": "Counter",
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-01-07 10:02:54.712845",
+ "modified_by": "Administrator",
+ "module": "Calicut Textiles",
+ "name": "Counter",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
