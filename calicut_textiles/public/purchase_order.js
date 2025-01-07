@@ -22,3 +22,20 @@ frappe.ui.form.on('Purchase Order', {
 }
 
 })
+
+frappe.ui.form.on("Estimate bom Items", {
+    custom_pcs: function(frm, cdt, cdn) {
+        update_qty(frm, cdt, cdn)
+    },
+    custom_per_meter: function(frm, cdt, cdn) {
+        update_qty(frm, cdt, cdn)
+    },
+
+
+});
+
+function update_qty(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+        row.qty = row.custom_pcs * row.custom_per_meter
+        frm.refresh_field("items");
+}

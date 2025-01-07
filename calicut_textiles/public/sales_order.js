@@ -1,5 +1,6 @@
-frappe.ui.form.on('Sales Invoice', {
+frappe.ui.form.on('Sales Order', {
     onload: function(frm) {
+        console.log("ghjk")
         frm.barcode_scanner = new erpnext.utils.BarcodeScanner({
             frm: frm,
             scan_field_name: 'custom_type_barcode', 
@@ -12,8 +13,7 @@ frappe.ui.form.on('Sales Invoice', {
             prompt_qty: true,
             scan_api: "erpnext.stock.utils.scan_barcode" 
         });
-        
-        
+
     },
     refresh: function(frm){
         frappe.call({
@@ -31,7 +31,7 @@ frappe.ui.form.on('Sales Invoice', {
                         frm.set_value('taxes_and_charges', r.message.default_tax);
                     }
                     if (r.message.default_branch) {
-                        frm.set_value('custom_branch', r.message.default_branch);
+                        frm.set_value('custom_counter', r.message.default_branch);
                     }
                     if (r.message.default_price) {
                         frm.set_value('selling_price_list', r.message.default_price);
