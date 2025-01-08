@@ -125,9 +125,9 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 					// 	return;
 					// }
 					
-					frappe.db.get_value('Batch', { 'name': batch_no }, 'custom_qty', (r) => {
-						if (r && r.custom_qty) {
-							const batch_qty = r.custom_qty;
+					frappe.db.get_value('Batch', { 'name': batch_no }, ['custom_qty', 'batch_qty'], (r) => {
+						if (r ) {
+							const batch_qty = (r.custom_qty && r.custom_qty > 0) ? r.custom_qty : r.batch_qty;
 	
 							// this.frm.doc[this.items_table_name].forEach(existing_row => {
 							// 	if (!existing_row.item_code && !existing_row.batch_no && !row) {

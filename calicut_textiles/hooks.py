@@ -11,7 +11,7 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/calicut_textiles/css/calicut_textiles.css"
-app_include_js = ["/assets/calicut_textiles/js/barcode_scan_32.js"]
+app_include_js = ["/assets/calicut_textiles/js/barcode_scan_33.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/calicut_textiles/css/calicut_textiles.css"
