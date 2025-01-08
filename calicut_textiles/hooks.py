@@ -11,7 +11,7 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/calicut_textiles/css/calicut_textiles.css"
-app_include_js = ["/assets/calicut_textiles/js/barcode_scan_31.js"]
+app_include_js = ["/assets/calicut_textiles/js/barcode_scan_32.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/calicut_textiles/css/calicut_textiles.css"
@@ -142,7 +142,7 @@ doc_events = {
 	},
     "Purchase Receipt": {
         "validate":["calicut_textiles.calicut_textiles.purchase_receipt.custom_date_code"],
-        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"]
+        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"],  
 	},
     # "Batch": {
     #     "after_save": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
@@ -166,7 +166,9 @@ doc_events = {
 
     "Serial and Batch Bundle": {
         "before_save":["calicut_textiles.calicut_textiles.events.event.custom_date_code"],
-        "before_insert": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
+        "before_insert": ["calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"],
+        "on_submit": "calicut_textiles.calicut_textiles.events.batch.update_qty"
+                          
     },
     "Employee Advance": {
         "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_advance"],

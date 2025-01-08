@@ -15,7 +15,7 @@ frappe.ui.form.on('Sales Order', {
         });
 
     },
-    refresh: function(frm){
+    customer: function(frm){
         frappe.call({
             method: 'calicut_textiles.calicut_textiles.events.sales_invoice.set_user_and_customer_and_branch',
             args: {

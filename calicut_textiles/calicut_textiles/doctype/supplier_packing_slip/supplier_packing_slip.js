@@ -71,10 +71,23 @@ frappe.ui.form.on('Supplier Packing Slip Item', {
     qty: function(frm, cdt, cdn) {
         set_remaining_qty(frm, cdt, cdn)
     },
+    pcs: function(frm, cdt, cdn) {
+        update_net_qty(frm, cdt, cdn)
+    },
+    custom_qty: function(frm, cdt, cdn) {
+        update_net_qty(frm, cdt, cdn)
+    },
 })
 function set_remaining_qty(frm,cdt,cdn){
     var child = locals[cdt][cdn]
     var po_remaining_qty = 0;
     po_remaining_qty = child.po_actual_qty - child.qty
     frappe.model.set_value(child.doctype, child.name, 'po_remaining_qty', po_remaining_qty);
+}
+
+function update_net_qty(frm,cdt,cdn){
+    var child = locals[cdt][cdn]
+    var qty = 0;
+    qty = child.pcs * child.custom_qty
+    frappe.model.set_value(child.doctype, child.name, 'qty', qty);
 }
