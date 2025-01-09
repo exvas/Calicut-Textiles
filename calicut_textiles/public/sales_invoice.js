@@ -16,6 +16,7 @@ frappe.ui.form.on('Sales Invoice', {
         
     },
     refresh: function(frm){
+        if (frm.doc.customer) {
         frappe.call({
             method: 'calicut_textiles.calicut_textiles.events.sales_invoice.set_user_and_customer_and_branch',
             args: {
@@ -39,6 +40,7 @@ frappe.ui.form.on('Sales Invoice', {
                 }
             }
         });
+    }
     },
     custom_type_barcode: function(frm) {
         frm.barcode_scanner.process_scan().catch(() => {

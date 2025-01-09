@@ -88,14 +88,21 @@ def set_user_and_customer_and_branch(user):
         doc.branch for doc in settings.set_user_series if doc.user == user
     ]
 
-    user_price = [
-        doc.price_list for doc in settings.set_user_series if doc.user == user
-    ]
+    # user_price = [
+    #     doc.price_list for doc in settings.set_user_series if doc.user == user
+    # ]
+
+    default_price = None
+    for doc in settings.set_user_series:
+        if doc.user == user:
+            default_price = doc.price_list
+            break
 
     return {
         "user_series": user_series if user_series else [],
         "default_tax": user_tax[0] if user_tax else None,
         "default_branch": user_branch[0] if user_branch else None,
-        "default_price": user_price[0] if user_price else None
+        "default_price": default_price
     }
+
 
