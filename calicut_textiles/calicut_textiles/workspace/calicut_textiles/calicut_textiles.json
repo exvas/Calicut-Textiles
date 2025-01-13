@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"bZnuZtgf2g\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales\",\"col\":4}},{\"id\":\"luTLyhiAkG\",\"type\":\"card\",\"data\":{\"card_name\":\"Purchase\",\"col\":4}},{\"id\":\"rpWjzczmwz\",\"type\":\"card\",\"data\":{\"card_name\":\"Custom Modules\",\"col\":4}},{\"id\":\"CS24-vSXPL\",\"type\":\"card\",\"data\":{\"card_name\":\"Item Master\",\"col\":4}},{\"id\":\"GTjAIna5sb\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}}]",
+ "content": "[{\"id\":\"bZnuZtgf2g\",\"type\":\"card\",\"data\":{\"card_name\":\"Sales\",\"col\":4}},{\"id\":\"luTLyhiAkG\",\"type\":\"card\",\"data\":{\"card_name\":\"Purchase\",\"col\":4}},{\"id\":\"rpWjzczmwz\",\"type\":\"card\",\"data\":{\"card_name\":\"Custom Modules\",\"col\":4}},{\"id\":\"CS24-vSXPL\",\"type\":\"card\",\"data\":{\"card_name\":\"Item Master\",\"col\":4}},{\"id\":\"GTjAIna5sb\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"Tv7uHDwmj9\",\"type\":\"card\",\"data\":{\"card_name\":\"Report\",\"col\":4}}]",
  "creation": "2024-07-26 23:03:37.956049",
  "custom_blocks": [],
  "docstatus": 0,
@@ -287,9 +287,29 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Report",
+   "link_count": 1,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Collection Report",
+   "link_count": 0,
+   "link_to": "Collection Report",
+   "link_type": "Report",
+   "onboard": 0,
+   "report_ref_doctype": "Sales Invoice",
+   "type": "Link"
   }
  ],
- "modified": "2024-11-23 12:36:04.304970",
+ "modified": "2025-01-13 11:36:42.040434",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles",

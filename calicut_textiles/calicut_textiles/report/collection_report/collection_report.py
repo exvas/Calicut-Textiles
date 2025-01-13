@@ -11,119 +11,136 @@ def execute(filters=None):
 
 def get_columns():
     columns = [
-        # {
-        #     "label": _("  Item Code"),
-        #     "fieldname": "item_code",
-        #     "fieldtype": "Data",
-        #     "width": 150,
-        # },
         {
             "label": _("Bill No"),
             "fieldname": "invoice_id",
             "fieldtype": "Link",
             "options": "Sales Invoice",
             "width": 150,
+            "align": "center"
+        },
+        {
+            "label": _("Customer"),
+            "fieldname": "customer",
+            "fieldtype": "Link",
+            "options": "Customer",
+            "width": 150,
+            "hidden": 1,
+            "align": "center"
         },
         {
             "label": _("Customer"),
             "fieldname": "customername",
             "fieldtype": "Data",
             "width": 150,
+            "align": "center"
         },
         {
             "label": _("Date"),
             "fieldname": "date",
             "fieldtype": "Date",
             "width": 150,
+            "align": "center"
         },
-         {
+        {
             "label": _("Discount"),
             "fieldname": "discount",
             "fieldtype": "Currency",
             "width": 150,
+            "align": "center"
         },
-        
         {
             "label": _("Net Amount"),
             "fieldname": "namount",
             "fieldtype": "Currency",
             "width": 150,
+            "align": "center"
         },
         {
             "label": _("Mode of Payment"),
             "fieldname": "mop",
-            "fieldtype": "LinK",
+            "fieldtype": "Link",
             "options": "Mode of Payment",
             "width": 150,
+            "align": "center"
         },
-
-         {
+        {
             "label": _("Amount"),
             "fieldname": "cashamount",
             "fieldtype": "Currency",
             "width": 150,
+            "align": "center"
         },
-        #  {
-        #     "label": _("Card Amount"),
-        #     "fieldname": "cardamount",
-        #     "fieldtype": "Currency",
-        #     "width": 150,
-        # },
-        #  {
-        #     "label": _("Credit Amount"),
-        #     "fieldname": "creditamount",
-        #     "fieldtype": "Currency",
-        #     "width": 150,
-        # },
-        #  {
-        #     "label": _("Cheque"),
-        #     "fieldname": "cheque",
-        #     "fieldtype": "Currency",
-        #     "width": 150,
-        # },
-        
+        {
+            "label": _("References"),
+            "fieldname": "payment_entry_id",
+            "fieldtype": "Link",
+            "options": "Payment Entry",
+            "width": 150,
+            "align": "center"
+        }
     ]
     return columns
+
 
 def get_data(filters=None):
     data = []
     query = """
-        SELECT 
-    `tabSales Invoice`.`name` AS `invoice_id`,
-    `tabSales Invoice`.`customer_name`,
-    `tabSales Invoice`.`posting_date`,
-    `tabSales Invoice`.`discount_amount`,
-    `tabSales Invoice`.`grand_total`,
-    `tabSales Invoice Payment` .`mode_of_payment` ,
+            SELECT 
+            si.name AS invoice_id,
+            si.customer AS customer,
+            si.customer_name AS customername,
+            si.posting_date AS date,
+            si.discount_amount AS discount,
+            si.grand_total AS namount,
+            COALESCE(sip.mode_of_payment, pe.mode_of_payment) AS mop,
+            COALESCE(sip.amount, pe.paid_amount) AS cashamount,
+            -- Display the Payment Entry ID (pe.name is the Payment ID)
+            pe.name AS payment_entry_id  
+            FROM 
+                `tabSales Invoice` si
+            LEFT JOIN 
+                `tabSales Invoice Payment` sip ON sip.parent = si.name
+            LEFT JOIN 
+                `tabPayment Entry Reference` per ON per.reference_name = si.name
+            LEFT JOIN 
+                `tabPayment Entry` pe ON per.parent = pe.name  
+            WHERE 
+                si.is_return = 0;
 
-    `tabSales Invoice Payment` .`amount` 
-FROM 
-    `tabSales Invoice`
 
-INNER JOIN 
-    `tabSales Invoice Payment` 
-    ON `tabSales Invoice Payment`.`parent` = `tabSales Invoice`.`name`
+
 
     """
-  
 
-    item_list = frappe.db.sql(query, filters, as_dict=True)
+    # Apply filters if provided
+    if filters:
+        if filters.get('customer'):
+            query += " AND si.customer = %(customer)s"
+        if filters.get('invoice_id'):
+            query += " AND si.name = %(invoice_id)s"
+        if filters.get('mode_of_payment'):
+            query += " AND COALESCE(sip.mode_of_payment, pe.mode_of_payment) = %(mode_of_payment)s"
 
+    # Execute the query with the filters
+    item_list = frappe.db.sql(query, {
+        'customer': filters.get('customer') if filters else None,
+        'invoice_id': filters.get('invoice_id') if filters else None,
+        'mode_of_payment': filters.get('mode_of_payment') if filters else None
+    }, as_dict=True)
+
+    # Prepare the data
     for item in item_list:
         row = {
             'invoice_id': item.invoice_id,
-            
-            'customername':item.customer_name,
-            'date': item.posting_date,
-            'discount':item.discount_amount,
-            'namount':item.grand_total,
-            'mop':item.mode_of_payment,
-           'cashamount': item.amount,
-            # 'cardamount':item.,
-            # 'creditamount':item.,
-            # 'cheque':item.
-            
-            
+            'customer': item.customer,
+            'customername': item.customername,
+            'date': item.date,
+            'discount': item.discount,
+            'namount': item.namount,
+            'mop': item.mop,
+            'cashamount': item.cashamount,
+            'payment_entry_id':item.payment_entry_id
         }
         data.append(row)
 
