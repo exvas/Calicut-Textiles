@@ -106,7 +106,8 @@ def get_data(filters=None):
             LEFT JOIN 
                 `tabPayment Entry` pe ON per.parent = pe.name  
             WHERE 
-                si.is_return = 0;
+                si.is_return = 0
+                and si.docstatus=1;
 
 
 
