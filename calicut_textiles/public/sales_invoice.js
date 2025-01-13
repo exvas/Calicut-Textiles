@@ -13,7 +13,7 @@ frappe.ui.form.on('Sales Invoice', {
             scan_api: "erpnext.stock.utils.scan_barcode" 
         });
         
-        
+        frm.get_field('custom_references').grid.cannot_add_rows = true;
     },
     refresh: function(frm){
         if (frm.doc.customer) {
@@ -52,8 +52,33 @@ frappe.ui.form.on('Sales Invoice', {
     },
     custom_checked_by: function (frm) {
         validate_employee_selection(frm);
+    },
+    scan_barcode: function (frm) {
+        var barcode = frm.doc.scan_barcode;
+        var custom_references = true
+        if(frm.doc.custom_references){
+            for (var i = 0; i < frm.doc.custom_references.length; i++) {
+                    if (frm.doc.custom_references[i].references === barcode) {
+                        custom_references = false;
+                    }
+                }
+        }
+        if(custom_references){
+            var custom_references = frm.doc.custom_references || [];
+            frm.add_child('custom_references',{
+                'references':barcode,
+                'timestamp':frappe.datetime.now_datetime()
+            })
+            frm.refresh_field('custom_references');
     }
+}
 });
+// frappe.ui.form.on('Reference Table', {
+//     form_render: function (frm) {
+//         $(".grid-header-toolbar").addClass("hidden");
+//         $(".grid-footer-toolbar").addClass("hidden");
+//       },
+// });
 
 function validate_employee_selection(frm) {
     if (frm.doc.custom_sales_person && frm.doc.custom_checked_by && frm.doc.custom_sales_person === frm.doc.custom_checked_by) {
