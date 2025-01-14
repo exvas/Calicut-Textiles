@@ -73,12 +73,15 @@ frappe.ui.form.on('Sales Invoice', {
     }
 }
 });
-// frappe.ui.form.on('Reference Table', {
-//     form_render: function (frm) {
-//         $(".grid-header-toolbar").addClass("hidden");
-//         $(".grid-footer-toolbar").addClass("hidden");
-//       },
-// });
+frappe.ui.form.on('Sales Invoice Item', {
+    qty: function(frm, cdt, cdn) {
+        get_net_qty(frm, cdt, cdn)
+    },
+    custom_pcs: function(frm, cdt, cdn) {
+        get_net_qty(frm, cdt, cdn)
+    },
+    
+});
 
 function validate_employee_selection(frm) {
     if (frm.doc.custom_sales_person && frm.doc.custom_checked_by && frm.doc.custom_sales_person === frm.doc.custom_checked_by) {
@@ -89,4 +92,14 @@ function validate_employee_selection(frm) {
         });
         frm.set_value('custom_checked_by', '');
     }
+}
+
+function get_net_qty(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+    let qty = 0;
+
+    qty = row.qty * row.custom_pcs
+
+    frappe.model.set_value(cdt, cdn, "custom_net_qty", qty);
+    
 }
