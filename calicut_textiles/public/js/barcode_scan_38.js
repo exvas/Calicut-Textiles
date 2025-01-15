@@ -140,7 +140,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 							// Update values for the row
 							frappe.model.set_value(row.doctype, row.name, 'item_code', resolved_item_code);
 							frappe.model.set_value(row.doctype, row.name, 'batch_no', batch_no);
-							frappe.model.set_value(row.doctype, row.name, this.qty_field, batch_qty);
+							frappe.model.set_value(row.doctype, row.name, "custom_net_qty", batch_qty);
 	
 							// Show scan success message
 							this.show_scan_message(row.idx, resolved_item_code, batch_qty);

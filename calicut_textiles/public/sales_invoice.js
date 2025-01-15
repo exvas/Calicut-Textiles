@@ -74,11 +74,22 @@ frappe.ui.form.on('Sales Invoice', {
 }
 });
 frappe.ui.form.on('Sales Invoice Item', {
-    qty: function(frm, cdt, cdn) {
+    item_code: function(frm, cdt, cdn) {
+        get_total(frm, cdt, cdn)
+    },
+    custom_net_qty: function(frm, cdt, cdn) {
         get_net_qty(frm, cdt, cdn)
+        get_total(frm, cdt, cdn)
     },
     custom_pcs: function(frm, cdt, cdn) {
         get_net_qty(frm, cdt, cdn)
+        get_total(frm, cdt, cdn)
+    },
+    rate: function(frm, cdt, cdn) {
+        get_total(frm, cdt, cdn)
+    },
+    amount: function(frm, cdt, cdn) {
+        get_total(frm, cdt, cdn);
     },
     
 });
@@ -98,8 +109,39 @@ function get_net_qty(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
     let qty = 0;
 
-    qty = row.qty * row.custom_pcs
+    qty = row.custom_net_qty * row.custom_pcs
 
-    frappe.model.set_value(cdt, cdn, "custom_net_qty", qty);
+    frappe.model.set_value(cdt, cdn, "qty", qty);
     
+}
+
+function get_total(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+    if (row.item_tax_template) {
+        frappe.call({
+            method: "frappe.client.get",
+            args: {
+                doctype: "Item Tax Template",
+                name: row.item_tax_template,
+            },
+            callback: function (r) {
+                if (r.message) {
+                    let tax_template = r.message;
+                    let gst_rate = tax_template.gst_rate || 0;
+                    let total = 0;
+                    let rate = 0
+
+                    rate = row.rate *  row.qty
+                    console.log("rate",rate)
+
+                    total = rate + (rate * gst_rate / 100);
+                    console.log("total",total)
+
+                    frappe.model.set_value(cdt, cdn, "custom_total", total);
+                } else {
+                    frappe.model.set_value(cdt, cdn, "custom_total", total);
+                }
+            },
+        });
+    } 
 }
