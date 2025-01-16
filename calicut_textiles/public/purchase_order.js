@@ -39,3 +39,20 @@ function update_qty(frm, cdt, cdn) {
         row.qty = row.custom_pcs * row.custom_per_meter
         frm.refresh_field("items");
 }
+
+frappe.ui.form.on("Purchase Order Item", {
+    custom_pcs: function(frm, cdt, cdn) {
+        update_qty(frm, cdt, cdn)
+    },
+    custom_net_qty: function(frm, cdt, cdn) {
+        update_qty(frm, cdt, cdn)
+    },
+
+
+});
+
+function update_qty(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+        row.qty = row.custom_pcs * row.custom_net_qty
+        frm.refresh_field("items");
+}

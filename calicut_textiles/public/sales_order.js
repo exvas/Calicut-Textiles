@@ -9,7 +9,7 @@ frappe.ui.form.on('Sales Order', {
             serial_no_field: 'serial_no', 
             batch_no_field: 'batch_no', 
             uom_field: 'uom', 
-            qty_field: 'qty', 
+            qty_field: 'custom_net_qty', 
             prompt_qty: true,
             scan_api: "erpnext.stock.utils.scan_barcode" 
         });
@@ -62,4 +62,70 @@ function validate_employee_selection(frm) {
         });
         frm.set_value('custom_checked_by', '');
     }
+}
+
+function update_qty(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+        row.qty = row.custom_pcs * row.custom_per_meter
+        frm.refresh_field("items");
+}
+
+frappe.ui.form.on('Sales Order Item', {
+    item_code: function(frm, cdt, cdn) {
+        get_total(frm, cdt, cdn)
+    },
+    custom_net_qty: function(frm, cdt, cdn) {
+        get_net_qty(frm, cdt, cdn)
+        get_total(frm, cdt, cdn)
+    },
+    custom_pcs: function(frm, cdt, cdn) {
+        get_net_qty(frm, cdt, cdn)
+        get_total(frm, cdt, cdn)
+    },
+    rate: function(frm, cdt, cdn) {
+        get_total(frm, cdt, cdn)
+    },
+    amount: function(frm, cdt, cdn) {
+        get_total(frm, cdt, cdn);
+    }
+});
+
+function get_net_qty(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+    let qty = 0;
+
+    qty = row.custom_net_qty * row.custom_pcs
+
+    frappe.model.set_value(cdt, cdn, "qty", qty);
+}
+
+function get_total(frm, cdt, cdn) {
+    let row = locals[cdt][cdn];
+    if (row.item_tax_template) {
+        frappe.call({
+            method: "frappe.client.get",
+            args: {
+                doctype: "Item Tax Template",
+                name: row.item_tax_template,
+            },
+            callback: function (r) {
+                if (r.message) {
+                    let tax_template = r.message;
+                    let gst_rate = tax_template.gst_rate || 0;
+                    let total = 0;
+                    let rate = 0
+
+                    rate = row.rate *  row.qty
+                    console.log("rate",rate)
+
+                    total = rate + (rate * gst_rate / 100);
+                    console.log("total",total)
+
+                    frappe.model.set_value(cdt, cdn, "custom_total", total);
+                } else {
+                    frappe.model.set_value(cdt, cdn, "custom_total", total);
+                }
+            },
+        });
+    } 
 }
