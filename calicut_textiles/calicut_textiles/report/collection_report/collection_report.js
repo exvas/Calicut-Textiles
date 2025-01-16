@@ -33,14 +33,6 @@ frappe.query_reports["Collection Report"] = {
 			"options": "Sales Invoice",
 			"width":150,
 		},
-		{
-			"fieldname": "mode_of_payment",
-			"label": __("Mode of Payment"),
-			"fieldtype": "Link",
-			"options": "Mode of Payment",
-			"width":150,
-			
-		},
 		
 		
 		
