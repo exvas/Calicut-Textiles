@@ -8,7 +8,7 @@ frappe.ui.form.on('Sales Invoice', {
             serial_no_field: 'serial_no', 
             batch_no_field: 'batch_no', 
             uom_field: 'uom', 
-            qty_field: 'qty', 
+            qty_field: 'custom_net_qty', 
             prompt_qty: true,
             scan_api: "erpnext.stock.utils.scan_barcode" 
         });
