@@ -114,7 +114,6 @@ function get_net_qty(frm, cdt, cdn) {
     frappe.model.set_value(cdt, cdn, "qty", qty);
     
 }
-
 function get_total(frm, cdt, cdn) {
     let row = locals[cdt][cdn];
     if (row.item_tax_template) {
