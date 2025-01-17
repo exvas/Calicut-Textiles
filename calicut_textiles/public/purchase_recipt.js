@@ -41,7 +41,7 @@ frappe.ui.form.on('Purchase Receipt', {
         }
     },
     before_submit: function(frm) {
-        if (!frm.doc.lr_no) {
+        if (!frm.doc.custom_gc_no) {
             frappe.throw(__('LR No is mandatory before submitting the Purchase Receipt.'));
         }
     },
