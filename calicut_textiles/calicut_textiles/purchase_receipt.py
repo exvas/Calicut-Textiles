@@ -1,6 +1,7 @@
 import frappe
 from datetime import datetime
 from frappe import _
+import os, re, json
 
 def convert_date_to_code(sanforize):
     mapping = {
@@ -87,3 +88,92 @@ def create_landed_cost_voucher(pr):
     return lcv.name
 
 
+
+@frappe.whitelist()
+def create_item_price(items):
+    
+    items = json.loads(items)
+
+    price_list_mrp = frappe.db.get_value("Calicut Textiles Settings", None, "price_listmrp")
+    retail_price_list = frappe.db.get_value("Calicut Textiles Settings", None, "retail_price")
+
+    if not price_list_mrp or not retail_price_list:
+        frappe.throw("Price lists are not configured in Calicut Textiles Settings.")
+
+    for item in items:
+        batch_no = frappe.db.get_value(
+            "Serial and Batch Entry",
+            {"parent": item.get("serial_and_batch_bundle")},
+            "batch_no"
+        )
+
+        selling_rate = item.get("custom_selling_rate")
+        retail_rate = item.get("custom_retail_rate")
+
+        if not selling_rate and not retail_rate:
+            continue
+
+        if selling_rate:
+            item_price = frappe.get_all(
+                "Item Price",
+                filters={
+                    "item_code": item.get("item_code"),
+                    "price_list": price_list_mrp,
+                    "batch_no": batch_no
+                },
+                fields=["name"]
+            )
+
+            if item_price:
+                item_price_doc = frappe.get_doc("Item Price", item_price[0].name)
+                item_price_doc.price_list_rate = selling_rate
+                item_price_doc.save()
+            else:
+                frappe.get_doc({
+                    "doctype": "Item Price",
+                    "item_code": item.get("item_code"),
+                    "uom": item.get("uom"),
+                    "price_list": price_list_mrp,
+                    "price_list_rate": selling_rate,
+                    "batch_no": batch_no,
+                    "custom_purchase_receipt_": item.get("parent")
+                }).insert()
+
+        if retail_rate:
+            item_price = frappe.get_all(
+                "Item Price",
+                filters={
+                    "item_code": item.get("item_code"),
+                    "price_list": retail_price_list,
+                    "batch_no": batch_no,
+                },
+                fields=["name"]
+            )
+
+            if item_price:
+                item_price_doc = frappe.get_doc("Item Price", item_price[0].name)
+                item_price_doc.price_list_rate = retail_rate
+                item_price_doc.save()
+            else:
+                frappe.get_doc({
+                    "doctype": "Item Price",
+                    "item_code": item.get("item_code"),
+                    "uom": item.get("uom"),
+                    "price_list": retail_price_list,
+                    "price_list_rate": retail_rate,
+                    "batch_no": batch_no,
+                    "custom_purchase_receipt_": item.get("parent")
+                }).insert()
+
+    frappe.db.commit()
+    return "Item prices updated successfully."
+
+def delete_item_prices(doc, method):
+    item_prices = frappe.get_all(
+        "Item Price",
+        filters={"custom_purchase_receipt_": doc.name},fields=["name"])
+
+    for item_price in item_prices:
+            item_price_doc = frappe.get_doc("Item Price", item_price.name)
+            item_price_doc.delete()
+        

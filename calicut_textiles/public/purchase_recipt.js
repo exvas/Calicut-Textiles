@@ -39,6 +39,19 @@ frappe.ui.form.on('Purchase Receipt', {
                 });
             },__('Create')); 
         }
+        frm.add_custom_button(__('Create Item Prices'), function() {
+            frappe.call({
+                method: "calicut_textiles.calicut_textiles.purchase_receipt.create_item_price",
+                args: {
+                    items: JSON.stringify(frm.doc.items)
+                },
+                callback: function(r) {console.log(r)
+                    if (r.message) {
+                        frappe.msgprint(__('Item Price updated successfully.'));
+                    }
+                }
+            });
+        }, __("Create"));
     },
     before_submit: function(frm) {
         if (!frm.doc.custom_gc_no) {
@@ -54,6 +67,18 @@ frappe.ui.form.on("Purchase Receipt Item", {
     },
     custom_net_qty: function(frm, cdt, cdn) {
         update_qty(frm, cdt, cdn)
+    },
+    custom_selling_percentage: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.rate && row.custom_selling_percentage) {
+            frappe.model.set_value(cdt, cdn, 'custom_selling_rate', row.rate + (row.rate * row.custom_selling_percentage / 100));
+        }
+    },
+    custom_retail_percentage_: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.rate && row.custom_retail_percentage_) {
+            frappe.model.set_value(cdt, cdn, 'custom_retail_rate', row.rate + (row.rate * row.custom_retail_percentage_ / 100));
+        }
     },
 
 

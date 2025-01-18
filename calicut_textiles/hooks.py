@@ -143,7 +143,8 @@ doc_events = {
 	},
     "Purchase Receipt": {
         "validate":["calicut_textiles.calicut_textiles.purchase_receipt.custom_date_code"],
-        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"],  
+        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"], 
+        "on_cancel":"calicut_textiles.calicut_textiles.purchase_receipt.delete_item_prices" 
 	},
     # "Batch": {
     #     "after_save": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"

@@ -42,6 +42,7 @@ def purchase_receipt(data):
 			"Auto Repeat": "reference_document",
 			"Purchase Receipt": "return_against",
 			"Stock Reservation Entry": "from_voucher_no",
+			"Item Price": "custom_purchase_receipt_",
 		},
 		"internal_links": {
 			"Material Request": ["items", "material_request"],
@@ -49,11 +50,12 @@ def purchase_receipt(data):
 			"Project": ["items", "project"],
 			"Quality Inspection": ["items", "quality_inspection"],
 			"Supplier Packing Slip": ["items", "custom_supplier_packing_slip"],
+			
 		},
 		"transactions": [
 			{
 				"label": _("Related"),
-				"items": ["Purchase Invoice", "Landed Cost Voucher", "Asset", "Stock Reservation Entry"],
+				"items": ["Purchase Invoice", "Landed Cost Voucher", "Asset", "Stock Reservation Entry", "Item Price"],
 			},
 			{
 				"label": _("Reference"),
