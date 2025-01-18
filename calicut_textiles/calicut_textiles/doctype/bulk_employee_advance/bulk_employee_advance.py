@@ -84,8 +84,9 @@ def create_employee_advances(doc_name):
         payment_entry.target_exchange_rate = bulk_advance.exchange_rate
         payment_entry.source_exchange_rate = bulk_advance.exchange_rate
         payment_entry.reference_no = bulk_advance.reference_no
-        payment_entry.reference_date = bulk_advance.reference_date
+        payment_entry.reference_date = bulk_advance.reference_date  
         payment_entry.company = bulk_advance.company
+        payment_entry.cost_center = bulk_advance.cost_center
         payment_entry.append(
             "references",
             {
