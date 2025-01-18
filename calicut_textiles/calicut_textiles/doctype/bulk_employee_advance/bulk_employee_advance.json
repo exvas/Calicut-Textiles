@@ -13,6 +13,7 @@
   "reference_date",
   "column_break_rsep",
   "payroll_date",
+  "cost_center",
   "company",
   "purpose",
   "employee_advance",
@@ -141,12 +142,19 @@
    "fieldname": "reference_date",
    "fieldtype": "Date",
    "label": "Reference Date"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center",
+   "reqd": 1
   }
  ],
  "hide_toolbar": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-11-29 10:58:41.268689",
+ "modified": "2025-01-18 11:24:19.941247",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Bulk Employee Advance",
