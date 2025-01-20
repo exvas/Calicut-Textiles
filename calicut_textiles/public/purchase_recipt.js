@@ -71,15 +71,31 @@ frappe.ui.form.on("Purchase Receipt Item", {
     custom_selling_percentage: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         if (row.rate && row.custom_selling_percentage) {
-            frappe.model.set_value(cdt, cdn, 'custom_selling_rate', row.rate + (row.rate * row.custom_selling_percentage / 100));
+            frappe.model.set_value(cdt, cdn, 'custom_selling_rate', 
+                row.rate + (row.rate * row.custom_selling_percentage / 100));
         }
     },
     custom_retail_percentage_: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
         if (row.rate && row.custom_retail_percentage_) {
-            frappe.model.set_value(cdt, cdn, 'custom_retail_rate', row.rate + (row.rate * row.custom_retail_percentage_ / 100));
+            frappe.model.set_value(cdt, cdn, 'custom_retail_rate', 
+                row.rate + (row.rate * row.custom_retail_percentage_ / 100));
         }
     },
+    custom_selling_rate: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.rate && row.custom_selling_rate) {
+            frappe.model.set_value(cdt, cdn, 'custom_selling_percentage', 
+                ((row.custom_selling_rate - row.rate) / row.rate) * 100);
+        }
+    },
+    custom_retail_rate: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.rate && row.custom_retail_rate) {
+            frappe.model.set_value(cdt, cdn, 'custom_retail_percentage_', 
+                ((row.custom_retail_rate - row.rate) / row.rate) * 100);
+        }
+    }
 
 
 });
