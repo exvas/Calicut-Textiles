@@ -36,6 +36,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_bulk_edit": 1,
    "fieldname": "supplier_packing_slip_item",
    "fieldtype": "Table",
    "label": "Supplier Packing Slip Item",
@@ -111,7 +112,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-28 10:28:36.844837",
+ "modified": "2025-01-20 10:50:18.522298",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Packing Slip",
