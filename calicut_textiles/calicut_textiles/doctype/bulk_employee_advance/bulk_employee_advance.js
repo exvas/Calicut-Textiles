@@ -63,18 +63,12 @@ frappe.ui.form.on("Bulk Employee Advance", {
 });
 function table_update(frm) {
     if (frm.doc.company && frm.doc.posting_date) {
-        frappe.call({
-            method: 'frappe.client.get_list',
+        frm.call({
+            method: 'get_employees',
             freeze: true, 
             freeze_message: __('Fetching employee details...'), 
-            args: {
-                doctype: 'Employee',
-                filters: {
-                    company: frm.doc.company
-                },
-                fields: ['name', 'designation', 'employee_name']
-            },
-            callback: function (r) {
+            args: {company: frm.doc.company},
+            callback: function (r) {console.log(r)
                 if (r.message) {
                     frm.clear_table('employee_details'); 
                     r.message.forEach(emp => {

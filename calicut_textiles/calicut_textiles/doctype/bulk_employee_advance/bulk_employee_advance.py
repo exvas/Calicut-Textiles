@@ -148,7 +148,13 @@ def create_bulk_additional_salary(doc_name):
     return created_advances
 
 
-        
-    
+@frappe.whitelist()
+def get_employees(company):
+    employees = frappe.get_all(
+        "Employee",
+        filters={'company': company},
+        fields=['name', 'designation', 'employee_name']
+    )
+    return employees
 
     
