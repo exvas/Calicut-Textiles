@@ -58,6 +58,42 @@ frappe.ui.form.on('Purchase Receipt', {
             frappe.throw(__('LR No is mandatory before submitting the Purchase Receipt.'));
         }
     },
+    custom_apply: function(frm) {
+        if (!frm.doc.custom_selling_percentage_ && !frm.doc.custom_retail_percentage_) {
+            frappe.msgprint(__('Please enter at least one percentage value before applying.'));
+            return;
+        }
+    
+        frm.doc.items.forEach(row => {
+            if (frm.doc.custom_selling_percentage_ !== undefined) {
+                frappe.model.set_value(row.doctype, row.name, 'custom_selling_percentage', frm.doc.custom_selling_percentage_);
+            }
+            if (frm.doc.custom_retail_percentage_ !== undefined) {
+                frappe.model.set_value(row.doctype, row.name, 'custom_retail_percentage_', frm.doc.custom_retail_percentage_);
+            }
+        });
+        frappe.msgprint(__('Percentage applied successfully.'));
+    
+        frm.refresh_field('items');
+    },
+    custom_clear: function(frm) {
+        frm.set_value("custom_selling_percentage_","")
+        frm.set_value("custom_retail_percentage_","")
+    
+        frm.doc.items.forEach(row => {
+                frappe.model.set_value(row.doctype, row.name, 'custom_selling_percentage', " ");
+          
+                frappe.model.set_value(row.doctype, row.name, 'custom_retail_percentage_', " ");
+                
+                frappe.model.set_value(row.doctype, row.name, 'custom_selling_rate', " ");
+          
+                frappe.model.set_value(row.doctype, row.name, 'custom_retail_rate', " ");
+            
+        });
+        frappe.msgprint(__('Percentage Cleared'));
+    
+        frm.refresh_field('items');
+    },
 
 });
 
