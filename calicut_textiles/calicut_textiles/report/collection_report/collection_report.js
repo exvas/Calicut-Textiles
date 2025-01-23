@@ -34,6 +34,14 @@ frappe.query_reports["Collection Report"] = {
 			"width":150,
 		},
 		
+		{
+            "fieldname": "voucher_type",
+            "label": __("Voucher Type"),
+            "fieldtype": "Select",
+            "options": "Sales Invoice\nPayment Entry", // Custom options for the filter
+            "reqd": 0,
+        },
+		
 		
 		
 
