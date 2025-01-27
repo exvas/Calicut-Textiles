@@ -23,10 +23,6 @@ frappe.ui.form.on('Sales Order', {
             },
             callback: function (r) {
                 if (r.message) {
-                    if (r.message.user_series && r.message.user_series.length > 0) {
-                        var namingSeries = Array.isArray(r.message.user_series) ? r.message.user_series[0] : r.message.user_series;
-                        frm.set_value('naming_series', namingSeries);
-                    }
                     if (r.message.default_tax) {
                         frm.set_value('taxes_and_charges', r.message.default_tax);
                     }
