@@ -27,11 +27,11 @@ def update_qty(doc, method):
             pr_items = frappe.get_all(
                 'Purchase Receipt Item',
                 filters={'item_code': doc.item_code, 'qty': batch_entry.qty, 'parent': doc.voucher_no},
-                fields=['name', 'custom_sp_qty']
+                fields=['name', 'custom_net_qty']
             )
             
             for pr_item in pr_items:
                     print("fcgvhjkl",pr_item)
-                    frappe.db.set_value('Batch', batch_entry.batch_no, 'custom_qty', pr_item['custom_sp_qty'])
+                    frappe.db.set_value('Batch', batch_entry.batch_no, 'custom_qty', pr_item['custom_net_qty'])
     frappe.db.commit()
       
