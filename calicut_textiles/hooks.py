@@ -150,10 +150,10 @@ doc_events = {
     # "Batch": {
     #     "after_save": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
     # },
-    "Sales Invoice": {
-        "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_fields",
+    # "Sales Invoice": {
+    #     "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_fields",
 
-    },
+    # },
     "Salary Slip": {
         "before_insert": "calicut_textiles.calicut_textiles.events.salary_slip.before_save",
 
