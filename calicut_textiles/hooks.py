@@ -143,16 +143,17 @@ doc_events = {
 	},
     "Purchase Receipt": {
         "validate":["calicut_textiles.calicut_textiles.purchase_receipt.custom_date_code"],
-        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"], 
+        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip",
+                          "calicut_textiles.calicut_textiles.purchase_receipt.validate_supplier_no"], 
         "on_cancel":"calicut_textiles.calicut_textiles.purchase_receipt.delete_item_prices" 
 	},
     # "Batch": {
     #     "after_save": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
     # },
-    # "Sales Invoice": {
-    #     "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_sales_person",
+    "Sales Invoice": {
+        "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_fields",
 
-    # },
+    },
     "Salary Slip": {
         "before_insert": "calicut_textiles.calicut_textiles.events.salary_slip.before_save",
 
@@ -271,7 +272,7 @@ override_doctype_dashboards = {
 # --------------------------------
 
 fixtures =[
-    {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
+    # {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
     {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
 ]
 

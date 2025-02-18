@@ -177,3 +177,6 @@ def delete_item_prices(doc, method):
             item_price_doc = frappe.get_doc("Item Price", item_price.name)
             item_price_doc.delete()
         
+def validate_supplier_no(doc,method):
+    if not doc.bill_no:
+        frappe.throw("Supplier Invoice No Required")
