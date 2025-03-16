@@ -71,7 +71,33 @@ frappe.ui.form.on('Sales Invoice', {
             })
             frm.refresh_field('custom_references');
     }
-}
+},
+    is_return: function(frm) {
+        if (frm.doc.is_return && frm.doc.custom_branch) {
+            let namingSeries = '';
+            if (frm.doc.custom_branch === 'Counter RT') {
+                namingSeries = 'RT.RET.YY.###';
+            } else if (frm.doc.custom_branch === 'Counter CT') {
+                namingSeries = 'CT.RET.YY.###';
+            }
+            if (namingSeries) {
+                frm.set_value('naming_series', namingSeries);
+            }
+        }
+    },
+    custom_branch: function(frm) {
+        if (frm.doc.is_return) {
+            let namingSeries = '';
+            if (frm.doc.custom_branch === 'Counter RT') {
+                namingSeries = 'RT.RET.YY.###';
+            } else if (frm.doc.custom_branch === 'Counter CT') {
+                namingSeries = 'CT.RET.YY.###';
+            }
+            if (namingSeries) {
+                frm.set_value('naming_series', namingSeries);
+            }
+        }
+    },
 });
 frappe.ui.form.on('Sales Invoice Item', {
     item_code: function(frm, cdt, cdn) {
