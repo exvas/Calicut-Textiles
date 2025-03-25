@@ -1,4 +1,5 @@
 frappe.query_reports["General Ledger"] = {
+	
 	filters: [
 		{
 			fieldname: "company",
