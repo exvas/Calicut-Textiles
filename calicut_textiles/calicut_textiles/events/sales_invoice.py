@@ -105,8 +105,8 @@ def set_user_and_customer_and_branch(user):
         "default_price": default_price
     }
 
-def validate_fields(doc,method):
-    if not doc.customer_address:
-        frappe.throw(_("Please select a customer address"))
+# def validate_fields(doc,method):
+#     if not doc.customer_address:
+#         frappe.throw(_("Please select a customer address"))
     
             
