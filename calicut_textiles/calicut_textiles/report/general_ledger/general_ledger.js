@@ -149,6 +149,7 @@ frappe.query_reports["General Ledger"] = {
 			],
 			default: "Group by Voucher (Consolidated)",
 		},
+		
 		{
 			fieldname: "tax_id",
 			label: __("Tax Id"),
