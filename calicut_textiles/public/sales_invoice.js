@@ -76,9 +76,9 @@ frappe.ui.form.on('Sales Invoice', {
         if (frm.doc.is_return && frm.doc.custom_branch) {
             let namingSeries = '';
             if (frm.doc.custom_branch === 'Counter RT') {
-                namingSeries = 'RT.RET.YY.###';
+                namingSeries = 'RTRET.####';
             } else if (frm.doc.custom_branch === 'Counter CT') {
-                namingSeries = 'CT.RET.YY.###';
+                namingSeries = 'CTRET.####';
             }
             if (namingSeries) {
                 frm.set_value('naming_series', namingSeries);
@@ -89,9 +89,9 @@ frappe.ui.form.on('Sales Invoice', {
         if (frm.doc.is_return) {
             let namingSeries = '';
             if (frm.doc.custom_branch === 'Counter RT') {
-                namingSeries = 'RT.RET.YY.###';
+                namingSeries = 'RTRET.####';
             } else if (frm.doc.custom_branch === 'Counter CT') {
-                namingSeries = 'CT.RET.YY.###';
+                namingSeries = 'CTRET.####';
             }
             if (namingSeries) {
                 frm.set_value('naming_series', namingSeries);
