@@ -146,13 +146,6 @@ doc_events = {
         "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"], 
         "on_cancel":"calicut_textiles.calicut_textiles.purchase_receipt.delete_item_prices" 
 	},
-    # "Batch": {
-    #     "after_save": "calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"
-    # },
-    # "Sales Invoice": {
-    #     "before_submit": "calicut_textiles.calicut_textiles.events.sales_invoice.validate_fields",
-
-    # },
     "Salary Slip": {
         "before_insert": "calicut_textiles.calicut_textiles.events.salary_slip.before_save",
 
@@ -168,7 +161,6 @@ doc_events = {
 
     "Serial and Batch Bundle": {
         "before_save":["calicut_textiles.calicut_textiles.events.event.custom_date_code"],
-        # "before_insert": ["calicut_textiles.calicut_textiles.events.batch.update_batch_in_purchase_receipt"],
         "on_submit": "calicut_textiles.calicut_textiles.events.batch.update_qty"
                           
     },
