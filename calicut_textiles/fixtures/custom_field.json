@@ -128,7 +128,7 @@
   "dt": "Purchase Receipt",
   "fetch_from": null,
   "fetch_if_empty": 0,
-  "fieldname": "custom_supplier_invoice_no",
+  "fieldname": "bill_no",
   "fieldtype": "Data",
   "hidden": 0,
   "hide_border": 0,
