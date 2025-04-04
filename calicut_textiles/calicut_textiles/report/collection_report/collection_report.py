@@ -221,6 +221,7 @@ def get_data(filters=None, valid_modes=None):
         WHERE
             si.is_return = 0 
             AND si.docstatus = 1
+            AND si.posting_date BETWEEN %(from_date)s AND %(to_date)s
         GROUP BY
             si.name, si.customer, si.customer_name, si.posting_date, si.discount_amount, si.grand_total, pe.name, si.is_pos
         """

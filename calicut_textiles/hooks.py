@@ -271,7 +271,7 @@ override_doctype_dashboards = {
 # --------------------------------
 
 fixtures =[
-    # {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
+    {"dt":"Custom Field","filters":[["module","in",["Calicut Textiles"]]]},
     {"dt":"Property Setter","filters":[["module","in",["Calicut Textiles"]]]}
 ]
 
