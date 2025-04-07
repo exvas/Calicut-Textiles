@@ -44,50 +44,87 @@ frappe.ui.form.on('Supplier Packing Slip Item', {
             frappe.msgprint(__('Quantity is zero, cannot add a new row.'));
             return; 
         }
-        
+
         item.po_remaining_qty = item.po_actual_qty - item.qty;
-        // if (item.po_remaining_qty <= 0) {
-        //     frappe.msgprint(__('All qty are used, no more rows can be added.'));
-        //     return; 
-        // }
 
         let row_index = frm.doc.supplier_packing_slip_item.findIndex(row => row.name === item.name);
 
-        let new_row = frm.fields_dict.supplier_packing_slip_item.grid.add_new_row(row_index +2);
+        let new_row = frm.fields_dict.supplier_packing_slip_item.grid.add_new_row(row_index + 2);
 
-        
         new_row.item_code = item.item_code;
-        new_row.qty = 0
+        new_row.qty = 0;
         new_row.uom = item.uom;
         new_row.po_ref = item.po_ref;
         new_row.po_actual_qty = item.po_remaining_qty;
         new_row.purchase_order_item = item.purchase_order_item;
         new_row.lot_no = item.lot_no;
-    
+
         frm.refresh_field('supplier_packing_slip_item');
         frappe.model.set_value(cdt, cdn, 'po_remaining_qty', item.po_remaining_qty);
-        
     },
+
     qty: function(frm, cdt, cdn) {
-        set_remaining_qty(frm, cdt, cdn)
+        set_remaining_qty(frm, cdt, cdn);
     },
+
     pcs: function(frm, cdt, cdn) {
-        update_net_qty(frm, cdt, cdn)
+        update_net_qty(frm, cdt, cdn);
     },
+
     custom_qty: function(frm, cdt, cdn) {
-        update_net_qty(frm, cdt, cdn)
+        update_net_qty(frm, cdt, cdn);
     },
-})
-function set_remaining_qty(frm,cdt,cdn){
-    var child = locals[cdt][cdn]
-    var po_remaining_qty = 0;
-    po_remaining_qty = child.po_actual_qty - child.qty
+});
+
+function set_remaining_qty(frm, cdt, cdn) {
+    var child = locals[cdt][cdn];
+    var po_remaining_qty = child.po_actual_qty - child.qty;
     frappe.model.set_value(child.doctype, child.name, 'po_remaining_qty', po_remaining_qty);
 }
 
-function update_net_qty(frm,cdt,cdn){
-    var child = locals[cdt][cdn]
-    var qty = 0;
-    qty = child.pcs * child.custom_qty
-    frappe.model.set_value(child.doctype, child.name, 'qty', qty);
+function update_net_qty(frm, cdt, cdn) {
+    let current_row = locals[cdt][cdn];
+    let new_qty = current_row.pcs * current_row.custom_qty;
+    frappe.model.set_value(current_row.doctype, current_row.name, 'qty', new_qty);
+
+    // Delay to ensure 'qty' value is updated before recalculating remaining quantities
+    setTimeout(() => {
+        update_remaining_quantities(frm);
+    }, 100);
+}
+
+function update_remaining_quantities(frm) {
+    let rows = frm.doc.supplier_packing_slip_item;
+    let po_actual_qty_map = {};
+    let used_qty_map = {};
+
+    // Step 1: Prepare map of original po_actual_qty for each PO Item
+    rows.forEach(row => {
+        if (!po_actual_qty_map[row.purchase_order_item]) {
+            po_actual_qty_map[row.purchase_order_item] = row.po_actual_qty;
+        }
+    });
+
+    // Step 2: Recalculate and update po_remaining_qty for all rows
+    rows.forEach((row, idx) => {
+        let po_item = row.purchase_order_item;
+
+        if (!used_qty_map[po_item]) {
+            used_qty_map[po_item] = 0;
+        }
+
+        // Remaining qty before this row
+        let remaining_qty = po_actual_qty_map[po_item] - used_qty_map[po_item];
+
+        // Update this row's po_actual_qty (in case it needs correction)
+        frappe.model.set_value(row.doctype, row.name, 'po_actual_qty', remaining_qty);
+
+        // Calculate po_remaining_qty after using this row's qty
+        let row_qty = row.qty || 0;
+        let po_remaining_qty = remaining_qty - row_qty;
+        frappe.model.set_value(row.doctype, row.name, 'po_remaining_qty', po_remaining_qty);
+
+        // Update used qty for next rows
+        used_qty_map[po_item] += row_qty;
+    });
 }
