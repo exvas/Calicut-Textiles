@@ -43,7 +43,7 @@ def make_purchase_receipt(packing_slip):
         pr_item.item_group = po_item.item_group
         pr_item.rate = po_item.rate
         pr_item.purchase_order = item.po_ref
-        pr_item.custom_supplier_packing_slip = item.parentz
+        pr_item.custom_supplier_packing_slip = item.parent
         pr_item.custom_supplier_packing_slip_item = item.name
         pr_item.purchase_order_item = item.purchase_order_item
         
