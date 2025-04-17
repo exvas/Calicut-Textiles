@@ -47,9 +47,16 @@ def scan_barcode(search_value: str) -> BarcodeScanResult:
 	batch_no_data = frappe.db.get_value(
 		"Batch",
 		search_value,
-		["name as batch_no", "item as item_code", "batch_qty as qty"],
+		["name as batch_no", "item as item_code", "batch_qty as qty", "custom_alternative_batch"],
 		as_dict=True,
 	)
+	if not batch_no_data:
+		batch_no_data = frappe.db.get_value(
+			"Batch",
+			{"custom_alternative_batch": search_value},
+			["name as batch_no", "item as item_code", "batch_qty as qty", "custom_alternative_batch"],
+			as_dict=True,
+		)
 	print(batch_no_data)
 	if batch_no_data:
 		if frappe.get_cached_value("Item", batch_no_data.item_code, "has_serial_no"):
