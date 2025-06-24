@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "pd-.YY.-.MM.-.##",
  "creation": "2025-06-23 17:36:56.683857",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -8,9 +9,11 @@
   "product_name",
   "quantity",
   "rate",
+  "column_break_jhiv",
   "amount",
   "color",
   "uom",
+  "section_break_ttxw",
   "image_1",
   "image_2",
   "image_3"
@@ -61,15 +64,25 @@
    "fieldname": "image_3",
    "fieldtype": "Attach",
    "label": "Image 3"
+  },
+  {
+   "fieldname": "section_break_ttxw",
+   "fieldtype": "Section Break",
+   "label": "images"
+  },
+  {
+   "fieldname": "column_break_jhiv",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-23 17:41:12.103772",
+ "modified": "2025-06-24 15:54:46.823656",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Product",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {
