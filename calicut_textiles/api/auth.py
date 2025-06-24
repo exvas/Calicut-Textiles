@@ -1,3 +1,4 @@
+import json
 import frappe
 
 
@@ -98,6 +99,7 @@ def generate_device_id(user, device_id):
         user_deveice_id = user_details.device_id
     return user_deveice_id
 
+from frappe.utils import nowdate
 from frappe.utils.password import set_encrypted_password
 
 def generate_keys(user):
@@ -436,3 +438,109 @@ def get_all_products():
             "message": "Failed to fetch product list",
             "error": str(e)
         }
+
+
+
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def create_supplier_order():
+    try:
+        # 1. Get API key from header or form
+        api_key = frappe.get_request_header("api_key") or frappe.form_dict.get("api_key")
+        if not api_key:
+            frappe.throw("API Key required")
+
+        # 2. Validate API key and get user
+        user = frappe.db.get_value("User", {"api_key": api_key}, "name")
+        if not user:
+            frappe.throw("Invalid API Key")
+
+        # 3. Check permission (optional but recommended)
+        if not frappe.has_permission("Supplier Order", "create", user=user):
+            frappe.throw("You do not have permission to create Supplier Order")
+
+        # 4. Parse JSON from request body
+        data = frappe.request.get_json()
+        supplier = data.get("supplier")
+        order_date = data.get("order_date")
+        products = data.get("products", [])
+        grand_total = data.get("grand_total")
+
+        if not supplier or not order_date or not products:
+            frappe.throw("Missing required fields")
+
+        # 5. Create Supplier Order
+        doc = frappe.new_doc("Supplier Order")
+        doc.supplier = supplier
+        doc.order_date = order_date
+        doc.grand_total = grand_total
+
+        for item in products:
+            doc.append("products", {
+                "product": item.get("product"),
+                "quantity": item.get("qty"),
+                "uom": item.get("uom"),
+                "rate": item.get("rate"),
+                "amount": item.get("amount"),
+                "required_by": item.get("required_date"),
+            })
+
+        doc.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "success": True,
+            "message": "Supplier Order created successfully",
+            "docname": doc.name
+        }
+
+    except Exception as e:
+        frappe.log_error(title="Supplier Order API Error", message=frappe.get_traceback())
+        return {
+            "success": False,
+            "message": "Error creating supplier order",
+            "error": str(e)
+        }
+@frappe.whitelist(allow_guest=True)
+def get_all_supplier_orders():
+    page = int(frappe.form_dict.get("page", 1))
+    page_size = int(frappe.form_dict.get("page_size", 50))
+
+    offset = (page - 1) * page_size
+
+    # Fetch supplier orders with basic fields
+    supplier_orders = frappe.get_all(
+        "Supplier Order",
+        fields=["name", "supplier", "order_date", "grand_total", "status", "creation"],
+        limit_start=offset,
+        limit_page_length=page_size,
+        order_by="creation desc"
+    )
+
+    result = []
+
+    for order in supplier_orders:
+        # Fetch child table (products)
+        products = frappe.get_all(
+            "Supplier Order Product",
+            filters={"parent": order.name},
+            fields=["product", "quantity", "uom", "rate", "amount", "required_by"]
+        )
+
+        result.append({
+            "order_id": order.name,
+            "supplier": order.supplier,
+            "order_date": order.order_date,
+            "grand_total": order.grand_total,
+            "status": order.status,
+            "products": products,
+        })
+
+    total_orders = frappe.db.count("Supplier Order")
+
+    return {
+        "orders": result,
+        "page": page,
+        "page_size": page_size,
+        "total_orders": total_orders,
+        "total_pages": (total_orders + page_size - 1) // page_size
+    }

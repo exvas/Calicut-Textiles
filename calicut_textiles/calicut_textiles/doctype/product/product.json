@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "pd-.YY.-.MM.-.##",
+ "autoname": "field:product_name",
  "creation": "2025-06-23 17:36:56.683857",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -22,7 +22,8 @@
   {
    "fieldname": "product_name",
    "fieldtype": "Data",
-   "label": "Product Name"
+   "label": "Product Name",
+   "unique": 1
   },
   {
    "fieldname": "quantity",
@@ -78,11 +79,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-24 15:54:46.823656",
+ "modified": "2025-06-24 16:56:06.036440",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Product",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
