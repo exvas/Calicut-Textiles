@@ -50,17 +50,18 @@ def user_login(usr, pwd, device_id=None):
         # Optionally handle device_id
 
         # Generate API key/secret
-        api_generate = generate_keys(user.name)
+        api_key, api_secret = generate_keys(user.name)
         frappe.response["message"] = {
             "success_key": 1,
             "message": "Authentication success",
             "sid": frappe.session.sid,
-            "api_key": user.api_key,
-            "api_secret": api_generate,
+            "api_key": api_key,
+            "api_secret": api_secret,
             "username": user.username,
             "email": user.email,
             "mobile_no": user.mobile_no,
-        }
+}
+
     except frappe.exceptions.AuthenticationError:
         frappe.clear_messages()
         frappe.local.response["message"] = {
@@ -97,21 +98,24 @@ def generate_device_id(user, device_id):
         user_deveice_id = user_details.device_id
     return user_deveice_id
 
-def generate_keys(user):
-    user_details = frappe.get_doc("User", user)
-    api_secret = frappe.generate_hash(length=15)
+from frappe.utils.password import set_encrypted_password
 
-    # if not user_details.api_key:
-    #     api_key = frappe.generate_hash(length=15)
-    #     user_details.api_key = api_key
-    api_key = frappe.generate_hash(length=15)
-    user_details.api_key = api_key if not user_details.api_key else user_details.api_key
-    user_details.api_secret = api_secret
-    user_details.save(ignore_permissions=True)
+def generate_keys(user):
+    user_doc = frappe.get_doc("User", user)
+
+    # Always generate new API secret
+    new_api_secret = frappe.generate_hash(length=15)
+    set_encrypted_password("User", user, new_api_secret, fieldname="api_secret")
+
+    # Generate API key if not already set
+    if not user_doc.api_key:
+        user_doc.api_key = frappe.generate_hash(length=15)
+
+    user_doc.save(ignore_permissions=True)
     frappe.db.commit()
 
-    return api_secret
-
+    return user_doc.api_key, new_api_secret
+ # Return both!
 
 @frappe.whitelist(methods=["GET", "POST"], allow_guest=True)
 def logout(usr):
@@ -334,37 +338,101 @@ def search_suppliers():
 
     return result
 
-# import frappe
-# import base64
-# import os
-# from frappe.utils.file_manager import save_file
+import frappe
+
+@frappe.whitelist(allow_guest=True)
+def create_product():
+    try:
+        api_key = frappe.get_request_header("api_key") or frappe.form_dict.get("api_key")
+        if not api_key:
+            frappe.throw("API Key required")
+
+        user = frappe.db.get_value("User", {"api_key": api_key}, "name")
+        if not user:
+            frappe.throw("Invalid API Key")
+
+        if not frappe.has_permission("Product", "create", user=user):
+            frappe.throw("You do not have permission to create Product")
+
+        # Create the Product Doc
+        product_name = frappe.form_dict.get("product_name") or frappe.throw("Product name is required")
+        doc = frappe.new_doc("Product")
+        doc.product_name = product_name
+        doc.quantity     = frappe.form_dict.get("qty")
+        doc.rate         = frappe.form_dict.get("rate")
+        doc.amount       = frappe.form_dict.get("amount")
+        doc.color        = frappe.form_dict.get("color")
+        doc.uom          = frappe.form_dict.get("uom")
+        doc.save(ignore_permissions=True)
+
+        # Handle image uploads
+        file_fields = {
+            "image_1": "image_1",
+            "image_2": "image_2",
+            "image_3": "image_3"
+        }
+
+        for form_fieldname, doctype_fieldname in file_fields.items():
+            if form_fieldname in frappe.request.files:
+                file = frappe.request.files[form_fieldname]
+                uploaded_file = frappe.utils.file_manager.save_file(
+                    fname=file.filename,
+                    content=file.stream.read(),
+                    dt="Product",
+                    dn=doc.name,
+                    is_private=0
+                )
+                setattr(doc, doctype_fieldname, uploaded_file.file_url)
+
+        # Save again after assigning images
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "success": True,
+            "message": "Product created successfully",
+            "product_id": doc.name
+        }
+
+    except Exception as e:
+        frappe.db.rollback()
+        frappe.log_error(str(e), "Create Product Failed")
+        return {
+            "success": False,
+            "message": "Failed to create product",
+            "error": str(e)
+        }
 
 
-# @frappe.whitelist(allow_guest=True)
-# def create_product():
-#     try:
-#         product_name = frappe.form_dict.get("product_name")
-#         if not product_name:
-#             frappe.throw("product name is required")
+@frappe.whitelist(allow_guest=True)
+def get_all_products():
+    try:
+        products = frappe.get_all("Product",
+            fields=[
+                "name",
+                "product_name",
+                "rate",
+                "quantity",
+                "amount",
+                "color",
+                "uom",
+                "image_1",
+                "image_2",
+                "image_3"
+            ],
+            order_by="creation desc"
+        )
 
-#         doc = frappe.new_doc("Product")
-#         doc.product_name = product_name
-#         doc.qty = frappe.form_dict.get("qty")
-#         doc.rate = frappe.form_dict.get("rate")
-#         doc.amount = frappe.form_dict.get("amount")
-#         doc.color = frappe.form_dict.get("color")
-#         doc.uom = frappe.form_dict.get("uom")
-#         doc.insert()
-#         frappe.db.commit()
+        return {
+            "success": True,
+            "message": "Product list fetched successfully",
+            "data": products
+        }
 
-#         return {
-#             "success": True,
-#             "message": "Product created successfully",
-#             "product_id": doc.name
-#         }
-#     except Exception as e:
-#         return {
-#             "success": False,
-#             "message": "Failed to create product",
-#             "error": str(e)
-#         }
+    except Exception as e:
+        frappe.log_error(str(e), "Get All Products Error")
+        return {
+            "success": False,
+            "message": "Failed to fetch product list",
+            "error": str(e)
+        }
