@@ -544,3 +544,48 @@ def get_all_supplier_orders():
         "total_orders": total_orders,
         "total_pages": (total_orders + page_size - 1) // page_size
     }
+@frappe.whitelist(methods=["POST"])
+def update_supplier_order():
+    try:
+        data = frappe.request.get_json()
+        name = data.get("name")  # Supplier Order name (e.g., SUP-ORD-0001)
+
+        if not name:
+            frappe.throw("Supplier Order name is required")
+
+        supplier_order = frappe.get_doc("Supplier Order", name)
+
+        # Update parent fields
+        supplier_order.supplier = data.get("supplier", supplier_order.supplier)
+        supplier_order.order_date = data.get("order_date", supplier_order.order_date)
+        supplier_order.grand_total = data.get("grand_total", supplier_order.grand_total)
+
+        # Optional: clear and update child table
+        if "products" in data:
+            supplier_order.set("products", [])  # Clear existing
+            for item in data.get("products", []):
+                supplier_order.append("products", {
+                    "item_code": item.get("item_code"),
+                    "quantity": item.get("qty"),
+                    "uom": item.get("uom"),
+                    "rate": item.get("rate"),
+                    "amount": item.get("amount"),
+                    "required_by": item.get("required_date"),
+                })
+
+        supplier_order.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        return {
+            "success": True,
+            "message": "Supplier Order updated successfully",
+            "docname": supplier_order.name
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Update Supplier Order Error")
+        return {
+            "success": False,
+            "message": "Failed to update Supplier Order",
+            "error": str(e)
+        }
