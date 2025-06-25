@@ -441,6 +441,65 @@ def get_all_products():
 
 
 
+# @frappe.whitelist(methods=["POST"], allow_guest=True)
+# def create_supplier_order():
+#     try:
+#         # 1. Get API key from header or form
+#         api_key = frappe.get_request_header("api_key") or frappe.form_dict.get("api_key")
+#         if not api_key:
+#             frappe.throw("API Key required")
+
+#         # 2. Validate API key and get user
+#         user = frappe.db.get_value("User", {"api_key": api_key}, "name")
+#         if not user:
+#             frappe.throw("Invalid API Key")
+
+#         # 3. Check permission (optional but recommended)
+#         if not frappe.has_permission("Supplier Order", "create", user=user):
+#             frappe.throw("You do not have permission to create Supplier Order")
+
+#         # 4. Parse JSON from request body
+#         data = frappe.request.get_json()
+#         supplier = data.get("supplier")
+#         order_date = data.get("order_date")
+#         products = data.get("products", [])
+#         grand_total = data.get("grand_total")
+
+#         if not supplier or not order_date or not products:
+#             frappe.throw("Missing required fields")
+
+#         # 5. Create Supplier Order
+#         doc = frappe.new_doc("Supplier Order")
+#         doc.supplier = supplier
+#         doc.order_date = order_date
+#         doc.grand_total = grand_total
+
+#         for item in products:
+#             doc.append("products", {
+#                 "product": item.get("product"),
+#                 "quantity": item.get("qty"),
+#                 "uom": item.get("uom"),
+#                 "rate": item.get("rate"),
+#                 "amount": item.get("amount"),
+#                 "required_by": item.get("required_date"),
+#             })
+
+#         doc.insert(ignore_permissions=True)
+#         frappe.db.commit()
+
+#         return {
+#             "success": True,
+#             "message": "Supplier Order created successfully",
+#             "docname": doc.name
+#         }
+
+#     except Exception as e:
+#         frappe.log_error(title="Supplier Order API Error", message=frappe.get_traceback())
+#         return {
+#             "success": False,
+#             "message": "Error creating supplier order",
+#             "error": str(e)
+#         }
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def create_supplier_order():
     try:
@@ -449,16 +508,21 @@ def create_supplier_order():
         if not api_key:
             frappe.throw("API Key required")
 
-        # 2. Validate API key and get user
+        # 2. Get user from User table
         user = frappe.db.get_value("User", {"api_key": api_key}, "name")
         if not user:
             frappe.throw("Invalid API Key")
 
-        # 3. Check permission (optional but recommended)
+        # 3. Get Employee ID linked to the user
+        employee_id = frappe.db.get_value("Employee", {"user_id": user}, "name")
+        if not employee_id:
+            frappe.throw("No employee linked to this user")
+
+        # 4. Check create permission
         if not frappe.has_permission("Supplier Order", "create", user=user):
             frappe.throw("You do not have permission to create Supplier Order")
 
-        # 4. Parse JSON from request body
+        # 5. Parse request JSON
         data = frappe.request.get_json()
         supplier = data.get("supplier")
         order_date = data.get("order_date")
@@ -466,13 +530,14 @@ def create_supplier_order():
         grand_total = data.get("grand_total")
 
         if not supplier or not order_date or not products:
-            frappe.throw("Missing required fields")
+            frappe.throw("Missing required fields: supplier, order_date, or products")
 
-        # 5. Create Supplier Order
+        # 6. Create new Supplier Order
         doc = frappe.new_doc("Supplier Order")
         doc.supplier = supplier
         doc.order_date = order_date
         doc.grand_total = grand_total
+        doc.sales_person = employee_id  # ✅ Set link to Employee ID
 
         for item in products:
             doc.append("products", {
@@ -489,17 +554,20 @@ def create_supplier_order():
 
         return {
             "success": True,
-            "message": "Supplier Order created successfully",
-            "docname": doc.name
+            "message": f"Supplier Order created by employee {employee_id}",
+            "docname": doc.name,
+            "employee_id": employee_id
         }
 
     except Exception as e:
-        frappe.log_error(title="Supplier Order API Error", message=frappe.get_traceback())
+        frappe.log_error(frappe.get_traceback(), "Supplier Order API Error")
         return {
             "success": False,
             "message": "Error creating supplier order",
             "error": str(e)
         }
+
+
 @frappe.whitelist(allow_guest=True)
 def get_all_supplier_orders():
     page = int(frappe.form_dict.get("page", 1))
@@ -544,6 +612,7 @@ def get_all_supplier_orders():
         "total_orders": total_orders,
         "total_pages": (total_orders + page_size - 1) // page_size
     }
+
 @frappe.whitelist(methods=["POST"])
 def update_supplier_order():
     try:
@@ -553,12 +622,28 @@ def update_supplier_order():
         if not name:
             frappe.throw("Supplier Order name is required")
 
+        api_key = data.get("api_key")
+        if not api_key:
+            frappe.throw("API key is required")
+
+        # Step 1: Get user linked to api_key
+        user = frappe.db.get_value("User API Key", {"api_key": api_key}, "parent")
+        if not user:
+            frappe.throw("Invalid API Key")
+        print("userrrrrrr",user)
+        # Step 2: Get employee name linked to user
+        employee_name = frappe.db.get_value("Employee", {"user_id": user}, "employee_name")
+        print("employeeeeeeeeeeee",employee_name)
+        if not employee_name:
+            frappe.throw("No employee linked to this user")
+
         supplier_order = frappe.get_doc("Supplier Order", name)
 
         # Update parent fields
         supplier_order.supplier = data.get("supplier", supplier_order.supplier)
         supplier_order.order_date = data.get("order_date", supplier_order.order_date)
         supplier_order.grand_total = data.get("grand_total", supplier_order.grand_total)
+        supplier_order.sales_person = employee_name  # ✅ Set employee as sales person
 
         # Optional: clear and update child table
         if "products" in data:
@@ -578,8 +663,9 @@ def update_supplier_order():
 
         return {
             "success": True,
-            "message": "Supplier Order updated successfully",
-            "docname": supplier_order.name
+            "message": f"Supplier Order updated by {employee_name}",
+            "docname": supplier_order.name,
+            "employee_name": employee_name
         }
 
     except Exception as e:
