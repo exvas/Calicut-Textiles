@@ -17,6 +17,7 @@ def create_purchase_order_from_supplier_order(supplier_order):
     po.custom_sales_person = supplier_order.sales_person
     po.schedule_date = supplier_order.order_date or frappe.utils.nowdate()
     po.set_warehouse = frappe.db.get_single_value("Stock Settings", "default_warehouse")
+    po.supplier_order_id = supplier_order.name
 
     for product in supplier_order.products:
         po.append("items", {
