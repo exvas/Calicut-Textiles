@@ -583,7 +583,7 @@ def get_all_supplier_orders():
         products = frappe.get_all(
             "Supplier Order Product",
             filters={"parent": order.name},
-            fields=["product", "quantity", "uom", "rate", "amount", "required_by"]
+            fields=["product", "quantity", "uom", "rate", "amount", "required_by","net_qty","pcs"]
         )
 
         result.append({
