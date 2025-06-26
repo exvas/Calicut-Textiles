@@ -9,10 +9,12 @@
   "product_name",
   "quantity",
   "rate",
+  "pcs",
   "column_break_jhiv",
   "amount",
   "color",
   "uom",
+  "net_qty",
   "section_break_ttxw",
   "image_1",
   "image_2",
@@ -77,12 +79,22 @@
   {
    "fieldname": "column_break_jhiv",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "pcs",
+   "fieldtype": "Float",
+   "label": "PCS"
+  },
+  {
+   "fieldname": "net_qty",
+   "fieldtype": "Float",
+   "label": "Net Qty"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-26 10:42:08.901482",
+ "modified": "2025-06-26 11:40:25.759704",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Product",

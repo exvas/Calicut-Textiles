@@ -345,16 +345,7 @@ import frappe
 @frappe.whitelist(allow_guest=True)
 def create_product():
     try:
-        api_key = frappe.get_request_header("api_key") or frappe.form_dict.get("api_key")
-        if not api_key:
-            frappe.throw("API Key required")
-
-        user = frappe.db.get_value("User", {"api_key": api_key}, "name")
-        if not user:
-            frappe.throw("Invalid API Key")
-
-        if not frappe.has_permission("Product", "create", user=user):
-            frappe.throw("You do not have permission to create Product")
+       
 
         # Create the Product Doc
         product_name = frappe.form_dict.get("product_name") or frappe.throw("Product name is required")
@@ -365,6 +356,8 @@ def create_product():
         doc.amount       = frappe.form_dict.get("amount")
         doc.color        = frappe.form_dict.get("color")
         doc.uom          = frappe.form_dict.get("uom")
+        doc.pcs          =frappe.form_dict.get("pcs")
+        doc.net_qty      =frappe.form_dict.get("net_qty")
         doc.save(ignore_permissions=True)
 
         # Handle image uploads
@@ -503,16 +496,12 @@ def get_all_products():
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def create_supplier_order():
     try:
-        # 1. Get API key from header or form
-        api_key = frappe.get_request_header("api_key") or frappe.form_dict.get("api_key")
-        if not api_key:
-            frappe.throw("API Key required")
-
-        # 2. Get user from User table
-        user = frappe.db.get_value("User", {"api_key": api_key}, "name")
+       
+        user = frappe.session.user
         if not user:
-            frappe.throw("Invalid API Key")
+            frappe.throw("there is no user")
 
+        
         # 3. Get Employee ID linked to the user
         employee_id = frappe.db.get_value("Employee", {"user_id": user}, "name")
         if not employee_id:
@@ -621,35 +610,37 @@ def get_all_supplier_orders():
 def update_supplier_order():
     try:
         data = frappe.request.get_json()
-        name = data.get("name")  # Supplier Order name (e.g., SUP-ORD-0001)
+        name = data.get("so_name")  # Supplier Order name (e.g., SUP-ORD-0001)
 
         if not name:
             frappe.throw("Supplier Order name is required")
 
-        api_key = data.get("api_key")
-        if not api_key:
-            frappe.throw("API key is required")
-
-        # Step 1: Get user linked to api_key
-        user = frappe.db.get_value("User API Key", {"api_key": api_key}, "parent")
+        user = frappe.session.user
         if not user:
-            frappe.throw("Invalid API Key")
-        print("userrrrrrr",user)
-        # Step 2: Get employee name linked to user
-        employee_name = frappe.db.get_value("Employee", {"user_id": user}, "employee_name")
-        print("employeeeeeeeeeeee",employee_name)
-        if not employee_name:
+            frappe.throw("there is no user")
+
+        
+        # 3. Get Employee ID linked to the user
+        employee_id = frappe.db.get_value("Employee", {"user_id": user}, "name")
+        if not employee_id:
             frappe.throw("No employee linked to this user")
 
         supplier_order = frappe.get_doc("Supplier Order", name)
 
-        # Update parent fields
+        # ✅ Check if the order is in draft
+        if supplier_order.docstatus != 0:
+            return {
+                "success": False,
+                "message": "Cannot update. Supplier Order has been submitted."
+            }
+
+        # ✅ Update parent fields
         supplier_order.supplier = data.get("supplier", supplier_order.supplier)
         supplier_order.order_date = data.get("order_date", supplier_order.order_date)
         supplier_order.grand_total = data.get("grand_total", supplier_order.grand_total)
-        supplier_order.sales_person = employee_name  # ✅ Set employee as sales person
+        supplier_order.sales_person = employee_id 
 
-        # Optional: clear and update child table
+        # ✅ Update child table with pcs and net_qty
         if "products" in data:
             supplier_order.set("products", [])  # Clear existing
             for item in data.get("products", []):
@@ -660,6 +651,8 @@ def update_supplier_order():
                     "rate": item.get("rate"),
                     "amount": item.get("amount"),
                     "required_by": item.get("required_date"),
+                    "pcs": item.get("pcs", 0),             # ✅ Add pcs field
+                    "net_qty": item.get("net_qty", 0),     # ✅ Add net_qty field
                 })
 
         supplier_order.save(ignore_permissions=True)
@@ -667,9 +660,9 @@ def update_supplier_order():
 
         return {
             "success": True,
-            "message": f"Supplier Order updated by {employee_name}",
+            "message": f"Supplier Order updated by {employee_id}",
             "docname": supplier_order.name,
-            "employee_name": employee_name
+            "employee_name": employee_id
         }
 
     except Exception as e:
