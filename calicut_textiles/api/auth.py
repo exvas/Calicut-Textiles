@@ -572,10 +572,8 @@ def create_supplier_order():
 def get_all_supplier_orders():
     page = int(frappe.form_dict.get("page", 1))
     page_size = int(frappe.form_dict.get("page_size", 50))
-
     offset = (page - 1) * page_size
 
-    # Fetch supplier orders with basic fields
     supplier_orders = frappe.get_all(
         "Supplier Order",
         fields=["name", "supplier", "order_date", "grand_total", "status", "creation"],
@@ -587,6 +585,9 @@ def get_all_supplier_orders():
     result = []
 
     for order in supplier_orders:
+        # Fetch supplier name
+        supplier_name = frappe.db.get_value("Supplier", order.supplier, "supplier_name")
+
         # Fetch child table (products)
         products = frappe.get_all(
             "Supplier Order Product",
@@ -596,7 +597,8 @@ def get_all_supplier_orders():
 
         result.append({
             "order_id": order.name,
-            "supplier": order.supplier,
+            "supplier_id": order.supplier,
+            "supplier_name": supplier_name,
             "order_date": order.order_date,
             "grand_total": order.grand_total,
             "status": order.status,
