@@ -7,12 +7,14 @@
  "engine": "InnoDB",
  "field_order": [
   "product",
-  "quantity",
+  "item",
   "rate",
   "amount",
   "uom",
   "required_by",
-  "item"
+  "quantity",
+  "pcs",
+  "net_qty"
  ],
  "fields": [
   {
@@ -57,20 +59,33 @@
    "fieldname": "item",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "item",
+   "label": "Item",
    "options": "Item"
+  },
+  {
+   "fieldname": "pcs",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "PCS"
+  },
+  {
+   "fieldname": "net_qty",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Net Qty"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-06-24 16:22:25.264293",
+ "modified": "2025-06-26 10:37:42.329393",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Order Product",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

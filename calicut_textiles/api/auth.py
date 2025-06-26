@@ -545,6 +545,8 @@ def create_supplier_order():
                 "quantity": item.get("qty"),
                 "uom": item.get("uom"),
                 "rate": item.get("rate"),
+                "pcs":item.get("pcs"),
+                "net_qty":item.get("net_qty"),
                 "amount": item.get("amount"),
                 "required_by": item.get("required_date"),
             })
