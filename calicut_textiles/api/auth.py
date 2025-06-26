@@ -645,7 +645,7 @@ def update_supplier_order():
             supplier_order.set("products", [])  # Clear existing
             for item in data.get("products", []):
                 supplier_order.append("products", {
-                    "item_code": item.get("item_code"),
+                    "product": item.get("product"),
                     "quantity": item.get("qty"),
                     "uom": item.get("uom"),
                     "rate": item.get("rate"),
