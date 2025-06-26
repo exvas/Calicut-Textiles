@@ -21,7 +21,9 @@ def create_purchase_order_from_supplier_order(supplier_order):
     for product in supplier_order.products:
         po.append("items", {
             "item_code": product.item,
-            "qty": product.quantity,
+            "custom_net_qty": product.quantity,
+            "qty":product.net_qty,
+            "custom_pcs":product.pcs,
             "uom": product.uom or "Nos",
             "rate": product.rate,
             "schedule_date": product.required_by or frappe.utils.nowdate(),
