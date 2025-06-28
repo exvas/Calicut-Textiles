@@ -7,18 +7,12 @@
  "engine": "InnoDB",
  "field_order": [
   "product_name",
-  "quantity",
-  "rate",
-  "pcs",
-  "column_break_jhiv",
-  "amount",
-  "color",
   "uom",
-  "net_qty",
-  "section_break_ttxw",
-  "image_1",
-  "image_2",
-  "image_3"
+  "quantity",
+  "column_break_jhiv",
+  "rate",
+  "amount",
+  "column_break_vexz"
  ],
  "fields": [
   {
@@ -30,24 +24,23 @@
   {
    "fieldname": "quantity",
    "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Quantity"
+   "hidden": 1,
+   "label": "Quantity",
+   "read_only": 1
   },
   {
    "fieldname": "rate",
    "fieldtype": "Currency",
-   "label": "Rate"
+   "hidden": 1,
+   "label": "Rate",
+   "read_only": 1
   },
   {
    "fieldname": "amount",
    "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Amount"
-  },
-  {
-   "fieldname": "color",
-   "fieldtype": "Data",
-   "label": "Color"
+   "hidden": 1,
+   "label": "Amount",
+   "read_only": 1
   },
   {
    "fieldname": "uom",
@@ -57,44 +50,18 @@
    "options": "UOM"
   },
   {
-   "fieldname": "image_1",
-   "fieldtype": "Attach",
-   "label": "Image 1"
-  },
-  {
-   "fieldname": "image_2",
-   "fieldtype": "Attach",
-   "label": "Image 2"
-  },
-  {
-   "fieldname": "image_3",
-   "fieldtype": "Attach",
-   "label": "Image 3"
-  },
-  {
-   "fieldname": "section_break_ttxw",
-   "fieldtype": "Section Break",
-   "label": "images"
-  },
-  {
    "fieldname": "column_break_jhiv",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "pcs",
-   "fieldtype": "Float",
-   "label": "PCS"
-  },
-  {
-   "fieldname": "net_qty",
-   "fieldtype": "Float",
-   "label": "Net Qty"
+   "fieldname": "column_break_vexz",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-26 11:40:25.759704",
+ "modified": "2025-06-28 15:52:50.303235",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Product",

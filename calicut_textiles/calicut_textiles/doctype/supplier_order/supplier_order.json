@@ -9,7 +9,9 @@
   "details_tab",
   "section_break_iuvv",
   "amended_from",
+  "supplier_name",
   "supplier",
+  "column_break_rkar",
   "order_date",
   "verified_by",
   "sales_person",
@@ -37,12 +39,16 @@
   {
    "fieldname": "supplier",
    "fieldtype": "Link",
-   "label": "Supplier",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Supplier Id",
    "options": "Supplier"
   },
   {
    "fieldname": "order_date",
    "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Order Date"
   },
   {
@@ -80,20 +86,36 @@
   {
    "fieldname": "grand_total",
    "fieldtype": "Currency",
-   "label": "Grand Total"
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Grand Total",
+   "read_only": 1
   },
   {
    "fieldname": "sales_person",
    "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Sales person",
    "options": "Employee"
+  },
+  {
+   "fieldname": "supplier_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Supplier name"
+  },
+  {
+   "fieldname": "column_break_rkar",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-25 16:19:59.857929",
+ "modified": "2025-06-28 15:38:11.544114",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Order",
