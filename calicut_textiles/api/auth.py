@@ -217,25 +217,41 @@ def get_cookie_options():
     return options
 
 
+
+
 @frappe.whitelist(allow_guest=True)
-def get_all_supplier_details():
+def get_all_supplier_details_with_searh():
     page = int(frappe.form_dict.get("page", 1))
     page_size = int(frappe.form_dict.get("page_size", 50))
+    supplier_name = frappe.form_dict.get("supplier_name")
+    supplier_group = frappe.form_dict.get("supplier_group")
+    supplier_id = frappe.form_dict.get("supplier_id")
 
-    # Calculate offset for SQL query
+    # Build filters dynamically
+    filters = {}
+    if supplier_id:
+        filters["name"] = ["like", f"%{supplier_id}%"]
+    if supplier_name:
+        filters["supplier_name"] = ["like", f"%{supplier_name}%"]
+    if supplier_group:
+        filters["supplier_group"] = supplier_group
+
+    # Get full filtered list without limit
+    all_suppliers = frappe.get_all(
+        "Supplier",
+        filters=filters,
+        fields=["name", "supplier_name", "supplier_group"]
+    )
+
+    total_suppliers = len(all_suppliers)
+    total_pages = (total_suppliers + page_size - 1) // page_size
+
+    # Slice manually for pagination
     offset = (page - 1) * page_size
-
-    suppliers = frappe.get_all("Supplier",
-                              fields=["name", "supplier_name"],
-                              limit_start=offset,
-                              limit_page_length=page_size)
+    paginated_suppliers = all_suppliers[offset:offset + page_size]
 
     result = []
-
-    for supplier in suppliers:
-        # (same address fetching code here...)
-
-        # Example for address fetching as before:
+    for supplier in paginated_suppliers:
         address_name = frappe.db.sql("""
             SELECT a.name FROM `tabAddress` a
             INNER JOIN `tabDynamic Link` dl ON dl.parent = a.name
@@ -258,8 +274,8 @@ def get_all_supplier_details():
         address_doc = None
         if address_name:
             address_doc = frappe.get_value("Address", address_name,
-                                           ["address_line1", "address_line2", "city", "state", "pincode", "country", "phone"],
-                                           as_dict=True)
+                ["address_line1", "address_line2", "city", "state", "pincode", "country", "phone"],
+                as_dict=True)
 
         full_address = None
         if address_doc:
@@ -276,18 +292,18 @@ def get_all_supplier_details():
         result.append({
             "supplier_id": supplier.name,
             "supplier_name": supplier.supplier_name,
+            "supplier_group": supplier.supplier_group,
             "address": full_address
         })
-
-    total_suppliers = frappe.db.count("Supplier")
 
     return {
         "suppliers": result,
         "page": page,
         "page_size": page_size,
         "total_suppliers": total_suppliers,
-        "total_pages": (total_suppliers + page_size - 1) // page_size
+        "total_pages": total_pages
     }
+
 
 
 @frappe.whitelist(allow_guest=True)
@@ -340,7 +356,7 @@ def search_suppliers():
 
     return result
 
-import frappe
+
 
 @frappe.whitelist(allow_guest=True)
 def create_product():
@@ -356,32 +372,10 @@ def create_product():
         doc.amount       = frappe.form_dict.get("amount")
         doc.uom          = frappe.form_dict.get("uom")
 
-        # doc.color        = frappe.form_dict.get("color")
-        # doc.uom          = frappe.form_dict.get("uom")
-        # doc.pcs          =frappe.form_dict.get("pcs")
-        # doc.net_qty      =frappe.form_dict.get("net_qty")
+       
         doc.save(ignore_permissions=True)
 
-        # # Handle image uploads
-        # file_fields = {
-        #     "image_1": "image_1",
-        #     "image_2": "image_2",
-        #     "image_3": "image_3"
-        # }
-
-        # for form_fieldname, doctype_fieldname in file_fields.items():
-        #     if form_fieldname in frappe.request.files:
-        #         file = frappe.request.files[form_fieldname]
-        #         uploaded_file = frappe.utils.file_manager.save_file(
-        #             fname=file.filename,
-        #             content=file.stream.read(),
-        #             dt="Product",
-        #             dn=doc.name,
-        #             is_private=0
-        #         )
-        #         setattr(doc, doctype_fieldname, uploaded_file.file_url)
-
-        # Save again after assigning images
+        
         doc.save(ignore_permissions=True)
         frappe.db.commit()
 
@@ -436,129 +430,6 @@ def get_all_products():
 
 
 
-# @frappe.whitelist(methods=["POST"], allow_guest=True)
-# def create_supplier_order():
-#     try:
-#         # 1. Get API key from header or form
-#         api_key = frappe.get_request_header("api_key") or frappe.form_dict.get("api_key")
-#         if not api_key:
-#             frappe.throw("API Key required")
-
-#         # 2. Validate API key and get user
-#         user = frappe.db.get_value("User", {"api_key": api_key}, "name")
-#         if not user:
-#             frappe.throw("Invalid API Key")
-
-#         # 3. Check permission (optional but recommended)
-#         if not frappe.has_permission("Supplier Order", "create", user=user):
-#             frappe.throw("You do not have permission to create Supplier Order")
-
-#         # 4. Parse JSON from request body
-#         data = frappe.request.get_json()
-#         supplier = data.get("supplier")
-#         order_date = data.get("order_date")
-#         products = data.get("products", [])
-#         grand_total = data.get("grand_total")
-
-#         if not supplier or not order_date or not products:
-#             frappe.throw("Missing required fields")
-
-#         # 5. Create Supplier Order
-#         doc = frappe.new_doc("Supplier Order")
-#         doc.supplier = supplier
-#         doc.order_date = order_date
-#         doc.grand_total = grand_total
-
-#         for item in products:
-#             doc.append("products", {
-#                 "product": item.get("product"),
-#                 "quantity": item.get("qty"),
-#                 "uom": item.get("uom"),
-#                 "rate": item.get("rate"),
-#                 "amount": item.get("amount"),
-#                 "required_by": item.get("required_date"),
-#             })
-
-#         doc.insert(ignore_permissions=True)
-#         frappe.db.commit()
-
-#         return {
-#             "success": True,
-#             "message": "Supplier Order created successfully",
-#             "docname": doc.name
-#         }
-
-#     except Exception as e:
-#         frappe.log_error(title="Supplier Order API Error", message=frappe.get_traceback())
-#         return {
-#             "success": False,
-#             "message": "Error creating supplier order",
-#             "error": str(e)
-#         }
-# @frappe.whitelist(methods=["POST"], allow_guest=True)
-# def create_supplier_order():
-#     try:
-       
-#         user = frappe.session.user
-#         if not user:
-#             frappe.throw("there is no user")
-
-        
-#         # 3. Get Employee ID linked to the user
-#         employee_id = frappe.db.get_value("Employee", {"user_id": user}, "name")
-#         if not employee_id:
-#             frappe.throw("No employee linked to this user")
-
-#         # 4. Check create permission
-#         if not frappe.has_permission("Supplier Order", "create", user=user):
-#             frappe.throw("You do not have permission to create Supplier Order")
-
-#         # 5. Parse request JSON
-#         data = frappe.request.get_json()
-#         supplier = data.get("supplier")
-#         order_date = data.get("order_date")
-#         products = data.get("products", [])
-#         grand_total = data.get("grand_total")
-
-#         if not supplier or not order_date or not products:
-#             frappe.throw("Missing required fields: supplier, order_date, or products")
-
-#         # 6. Create new Supplier Order
-#         doc = frappe.new_doc("Supplier Order")
-#         doc.supplier = supplier
-#         doc.order_date = order_date
-#         doc.grand_total = grand_total
-#         doc.sales_person = employee_id  # ✅ Set link to Employee ID
-
-#         for item in products:
-#             doc.append("products", {
-#                 "product": item.get("product"),
-#                 "quantity": item.get("qty"),
-#                 "uom": item.get("uom"),
-#                 "rate": item.get("rate"),
-#                 "pcs":item.get("pcs"),
-#                 "net_qty":item.get("net_qty"),
-#                 "amount": item.get("amount"),
-#                 "required_by": item.get("required_date"),
-#             })
-
-#         doc.insert(ignore_permissions=True)
-#         frappe.db.commit()
-
-#         return {
-#             "success": True,
-#             "message": f"Supplier Order created by employee {employee_id}",
-#             "docname": doc.name,
-#             "employee_id": employee_id
-#         }
-
-#     except Exception as e:
-#         frappe.log_error(frappe.get_traceback(), "Supplier Order API Error")
-#         return {
-#             "success": False,
-#             "message": "Error creating supplier order",
-#             "error": str(e)
-#         }
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def create_supplier_order():
