@@ -767,3 +767,26 @@ def update_supplier_order():
             "message": "Failed to update Supplier Order",
             "error": str(e)
         }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_supplier_groups():
+    try:
+        supplier_groups = frappe.get_all(
+            "Supplier Group",
+            filters={},
+            fields=["name", "parent_supplier_group"]
+        )
+
+        return {
+            "success": True,
+            "data": supplier_groups
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Supplier Group API Error")
+        return {
+            "success": False,
+            "message": "Failed to fetch supplier groups",
+            "error": str(e)
+        }
