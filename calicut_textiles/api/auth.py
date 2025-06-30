@@ -774,7 +774,7 @@ def get_supplier_groups():
     try:
         supplier_groups = frappe.get_all(
             "Supplier Group",
-            filters={},
+            filters={"is_group": 0},  # Only non-group (leaf) entries
             fields=["name", "parent_supplier_group"]
         )
 
