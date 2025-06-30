@@ -398,36 +398,58 @@ def create_product():
 @frappe.whitelist(allow_guest=True)
 def get_all_products():
     try:
-        products = frappe.get_all("Product",
+        # Parse pagination and search parameters
+        page = int(frappe.form_dict.get("page", 1))
+        page_size = int(frappe.form_dict.get("page_size", 20))
+        search = frappe.form_dict.get("product_name", "").strip()
+
+        # Calculate offset
+        offset = (page - 1) * page_size
+
+        # Build filters
+        filters = {}
+        if search:
+            filters["product_name"] = ["like", f"%{search}%"]
+
+        # Fetch filtered and paginated products
+        products = frappe.get_all(
+            "Product",
+            filters=filters,
             fields=[
                 "name",
                 "product_name",
                 "rate",
                 "quantity",
                 "amount",
-                "color",
-                "uom",
-                "image_1",
-                "image_2",
-                "image_3"
             ],
-            order_by="creation desc"
+            order_by="creation desc",
+            limit_start=offset,
+            limit_page_length=page_size
         )
+
+        # Get total count for pagination
+        total_count = frappe.db.count("Product", filters=filters)
+        total_pages = (total_count + page_size - 1) // page_size
 
         return {
             "success": True,
             "message": "Product list fetched successfully",
-            "data": products
+            "data": products,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total_products": total_count,
+                "total_pages": total_pages
+            }
         }
 
     except Exception as e:
-        frappe.log_error(str(e), "Get All Products Error")
+        frappe.log_error(frappe.get_traceback(), "Get All Products Error")
         return {
             "success": False,
             "message": "Failed to fetch product list",
             "error": str(e)
         }
-
 
 
 
