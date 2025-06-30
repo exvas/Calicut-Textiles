@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:product_name",
  "creation": "2025-06-23 17:36:56.683857",
@@ -61,7 +62,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-06-28 15:52:50.303235",
+ "modified": "2025-06-30 11:11:08.998488",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Product",
