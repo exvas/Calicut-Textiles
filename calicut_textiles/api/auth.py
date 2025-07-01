@@ -421,6 +421,7 @@ def get_all_products():
                 "rate",
                 "quantity",
                 "amount",
+                "uom"
             ],
             order_by="creation desc",
             limit_start=offset,
@@ -547,52 +548,153 @@ def create_supplier_order():
 
 
 
+# @frappe.whitelist(allow_guest=True)
+# def get_all_supplier_orders():
+#     page = int(frappe.form_dict.get("page", 1))
+#     page_size = int(frappe.form_dict.get("page_size", 50))
+#     supplier_name = frappe.form_dict.get("supplier_name")
+#     supplier_id = frappe.form_dict.get("supplier_id")
+
+#     # Build filters dynamically
+#     filters = {}
+#     if supplier_id:
+#         filters["name"] = ["like", f"%{supplier_id}%"]
+#     if supplier_name:
+#         filters["supplier_name"] = ["like", f"%{supplier_name}%"]
+    
+
+#     offset = (page - 1) * page_size
+
+#     supplier_orders = frappe.get_all(
+#         "Supplier Order",
+#         fields=["name", "supplier", "order_date", "grand_total", "status", "creation"],
+#         limit_start=offset,
+#         limit_page_length=page_size,
+#         order_by="creation desc"
+#     )
+
+#     result = []
+
+#     for order in supplier_orders:
+#         # Fetch supplier name
+#         supplier_name = frappe.db.get_value("Supplier", order.supplier, "supplier_name")
+
+#         # Fetch child table (products)
+#         products = frappe.get_all(
+#             "Supplier Order Product",
+#             filters={"parent": order.name},
+#             fields=["product", "quantity", "uom", "rate", "amount", "required_by","net_qty","pcs"]
+#         )
+
+#         result.append({
+#             "order_id": order.name,
+#             "supplier_id": order.supplier,
+#             "supplier_name": supplier_name,
+#             "order_date": order.order_date,
+#             "grand_total": order.grand_total,
+#             "status": order.status,
+#             "products": products,
+#         })
+
+#     total_orders = frappe.db.count("Supplier Order")
+
+#     return {
+#         "orders": result,
+#         "page": page,
+#         "page_size": page_size,
+#         "total_orders": total_orders,
+#         "total_pages": (total_orders + page_size - 1) // page_size
+#     }
+
 @frappe.whitelist(allow_guest=True)
 def get_all_supplier_orders():
-    page = int(frappe.form_dict.get("page", 1))
-    page_size = int(frappe.form_dict.get("page_size", 50))
-    offset = (page - 1) * page_size
+    try:
+        # Get pagination + search filters
+        page = int(frappe.form_dict.get("page", 1))
+        page_size = int(frappe.form_dict.get("page_size", 20))
+        order_id_filter = frappe.form_dict.get("supplier_order_id", "").strip()
+        supplier_name_filter = frappe.form_dict.get("supplier_name", "").strip()
 
-    supplier_orders = frappe.get_all(
-        "Supplier Order",
-        fields=["name", "supplier", "order_date", "grand_total", "status", "creation"],
-        limit_start=offset,
-        limit_page_length=page_size,
-        order_by="creation desc"
-    )
+        # Build SQL conditions and values
+        conditions = "WHERE 1=1"
+        values = {}
 
-    result = []
+        if order_id_filter:
+            conditions += " AND so.name LIKE %(order_id)s"
+            values["order_id"] = f"%{order_id_filter}%"
 
-    for order in supplier_orders:
-        # Fetch supplier name
-        supplier_name = frappe.db.get_value("Supplier", order.supplier, "supplier_name")
+        if supplier_name_filter:
+            conditions += " AND so.supplier_name LIKE %(supplier_name)s"
+            values["supplier_name"] = f"%{supplier_name_filter}%"
 
-        # Fetch child table (products)
-        products = frappe.get_all(
-            "Supplier Order Product",
-            filters={"parent": order.name},
-            fields=["product", "quantity", "uom", "rate", "amount", "required_by","net_qty","pcs"]
-        )
+        # Count total matching records using raw SQL
+        count_query = f"""
+            SELECT COUNT(*) AS total
+            FROM `tabSupplier Order` so
+            {conditions}
+        """
+        total_orders = frappe.db.sql(count_query, values)[0][0]
+        total_pages = (total_orders + page_size - 1) // page_size
 
-        result.append({
-            "order_id": order.name,
-            "supplier_id": order.supplier,
-            "supplier_name": supplier_name,
-            "order_date": order.order_date,
-            "grand_total": order.grand_total,
-            "status": order.status,
-            "products": products,
-        })
+        # Adjust page number if necessary
+        if page > total_pages and total_pages > 0:
+            page = total_pages
+        elif total_pages == 0:
+            page = 1
 
-    total_orders = frappe.db.count("Supplier Order")
+        offset = (page - 1) * page_size
 
-    return {
-        "orders": result,
-        "page": page,
-        "page_size": page_size,
-        "total_orders": total_orders,
-        "total_pages": (total_orders + page_size - 1) // page_size
-    }
+        # Fetch paginated data
+        data_query = f"""
+            SELECT so.name, so.supplier, so.supplier_name, so.order_date,
+                   so.grand_total, so.status, so.creation
+            FROM `tabSupplier Order` so
+            {conditions}
+            ORDER BY so.creation DESC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """
+        values.update({"limit": page_size, "offset": offset})
+
+        supplier_orders = frappe.db.sql(data_query, values, as_dict=True)
+
+        # Process each order
+        result = []
+        for order in supplier_orders:
+            products = frappe.get_all(
+                "Supplier Order Product",
+                filters={"parent": order.name},
+                fields=["product", "quantity", "uom", "rate", "amount", "required_by", "net_qty", "pcs"]
+            )
+
+            result.append({
+                "order_id": order.name,
+                "supplier_name": order.supplier_name or "",
+                "order_date": order.order_date,
+                "grand_total": order.grand_total,
+                "status": order.status,
+                "products": products,
+            })
+
+        return {
+            "success": True,
+            "message": "Supplier Orders fetched successfully",
+            "orders": result,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total_orders": total_orders,
+                "total_pages": total_pages
+            }
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get All Supplier Orders Error")
+        return {
+            "success": False,
+            "message": "Failed to fetch supplier orders",
+            "error": str(e)
+        }
+
 
 @frappe.whitelist(methods=["POST"])
 def update_supplier_order():
