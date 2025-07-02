@@ -136,15 +136,15 @@ doc_events = {
         "before_insert":["calicut_textiles.calicut_textiles.item.update_item_code"],
         "validate": ["calicut_textiles.calicut_textiles.item.update_batch_number_series",
                     "calicut_textiles.calicut_textiles.item.item_name_unique", ]
-       
+
 	},
     "Item Price": {
         "validate":["calicut_textiles.calicut_textiles.item_price.update_custom_rate_code"]
 	},
     "Purchase Receipt": {
         "validate":["calicut_textiles.calicut_textiles.purchase_receipt.custom_date_code"],
-        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"], 
-        "on_cancel":"calicut_textiles.calicut_textiles.purchase_receipt.delete_item_prices" 
+        "before_submit": ["calicut_textiles.calicut_textiles.purchase_receipt.update_supplier_packing_slip"],
+        "on_cancel":"calicut_textiles.calicut_textiles.purchase_receipt.delete_item_prices"
 	},
     "Salary Slip": {
         "before_insert": "calicut_textiles.calicut_textiles.events.salary_slip.before_save",
@@ -162,7 +162,7 @@ doc_events = {
     "Serial and Batch Bundle": {
         "before_save":["calicut_textiles.calicut_textiles.events.event.custom_date_code"],
         "on_submit": "calicut_textiles.calicut_textiles.events.batch.update_qty"
-                          
+
     },
     "Employee Advance": {
         "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_advance"],
@@ -170,29 +170,29 @@ doc_events = {
      "Additional Salary": {
         "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_additional"],
     },
-   
+
 }
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"calicut_textiles.tasks.all"
-# 	],
-# 	"daily": [
-# 		"calicut_textiles.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"calicut_textiles.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"calicut_textiles.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"calicut_textiles.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	# "all": [
+	# 	"calicut_textiles.tasks.all"
+	# ],
+	"daily": [
+		"calicut_textiles.calicut_textiles.events.encashment.process_monthly_leave_encashment"
+	]
+	# "hourly": [
+	# 	"calicut_textiles.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"calicut_textiles.tasks.weekly"
+	# ],
+	# "monthly": [
+	# 	"calicut_textiles.tasks.monthly"
+	# ],
+}
 
 # Testing
 # -------
@@ -275,4 +275,3 @@ fixtures =[
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
