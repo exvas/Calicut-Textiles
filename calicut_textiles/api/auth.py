@@ -547,7 +547,7 @@ def get_all_products():
 #         }
 
 
-
+from frappe import _
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def create_supplier_order():
@@ -722,7 +722,7 @@ def get_all_supplier_orders():
             products = frappe.get_all(
                 "Supplier Order Product",
                 filters={"parent": order.name},
-                fields=["product", "quantity", "uom", "rate", "amount", "required_by", "net_qty", "pcs"]
+                fields=["product", "quantity", "uom", "rate", "amount", "required_by", "net_qty", "pcs","color","design","type"]
             )
 
             result.append({
@@ -865,9 +865,7 @@ def get_supplier_groups():
             "error": str(e)
         }
 
-import frappe
 
-import frappe
 
 @frappe.whitelist(allow_guest=True)
 def get_attribute_values_by_parent(parent_name):
