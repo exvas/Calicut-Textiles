@@ -198,7 +198,7 @@ def process_monthly_leave_encashment():
                     current_date,
                     to_date=allocation.to_date
                 )
-				
+
                 if frappe.db.exists("Leave Encashment", {
                     "employee": allocation.employee,
                     "leave_type": leave_type,
@@ -229,6 +229,10 @@ def process_monthly_leave_encashment():
                     leave_encashment.encashment_date = encashment_date
                     leave_encashment.leave_balance = leave_balance
                     leave_encashment.encashment_days = encashment_days
-                    leave_encashment.insert(ignore_permissions=True)
+                    leave_encashment.status = "Submitted"
+                    leave_encashment.save(ignore_permissions=True)
+                    leave_encashment.submit()
+                    frappe.db.commit()
+
                 else:
                     frappe.log_error(f"Unable to create Auto Leave Encashment for employee: {allocation.employee}")
