@@ -548,9 +548,6 @@ def get_all_products():
 
 
 
-import frappe
-import json
-from frappe import _
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def create_supplier_order():
@@ -758,53 +755,72 @@ def get_all_supplier_orders():
         }
 
 
+
 @frappe.whitelist(methods=["POST"])
 def update_supplier_order():
     try:
         data = frappe.request.get_json()
-        name = data.get("so_name")  # Supplier Order name (e.g., SUP-ORD-0001)
+        name = data.get("so_name")  # Supplier Order name
 
         if not name:
             frappe.throw("Supplier Order name is required")
 
         user = frappe.session.user
         if not user:
-            frappe.throw("there is no user")
+            frappe.throw("No active user session")
 
-        
-        # 3. Get Employee ID linked to the user
+        # Get Employee ID linked to the user
         employee_id = frappe.db.get_value("Employee", {"user_id": user}, "name")
         if not employee_id:
             frappe.throw("No employee linked to this user")
 
         supplier_order = frappe.get_doc("Supplier Order", name)
 
-        # ✅ Check if the order is in draft
+        # Ensure it's not submitted
         if supplier_order.docstatus != 0:
             return {
                 "success": False,
                 "message": "Cannot update. Supplier Order has been submitted."
             }
 
-        # ✅ Update parent fields
+        # Update parent fields
         supplier_order.supplier = data.get("supplier", supplier_order.supplier)
         supplier_order.order_date = data.get("order_date", supplier_order.order_date)
         supplier_order.grand_total = data.get("grand_total", supplier_order.grand_total)
-        supplier_order.sales_person = employee_id 
+        supplier_order.sales_person = employee_id
 
-        # ✅ Update child table with pcs and net_qty
+        # Update child table if provided
         if "products" in data:
             supplier_order.set("products", [])  # Clear existing
+
             for item in data.get("products", []):
+                color  = (item.get("color")  or "").strip()
+                typ    = (item.get("type")   or "").strip()
+                design = (item.get("design") or "").strip()
+
+                # Build product_name: product-type-design-color
+                parts = [
+                    item.get("product"),  # required
+                    typ,
+                    design,
+                    color
+                ]
+                parts = [p for p in parts if p]
+                product_name = "-".join(parts)
+
                 supplier_order.append("products", {
-                    "product": item.get("product"),
-                    "quantity": item.get("qty"),
-                    "uom": item.get("uom"),
-                    "rate": item.get("rate"),
-                    "amount": item.get("amount"),
-                    "required_by": item.get("required_date"),
-                    "pcs": item.get("pcs", 0),             # ✅ Add pcs field
-                    "net_qty": item.get("net_qty", 0),     # ✅ Add net_qty field
+                    "product":      item.get("product"),
+                    "product_name": product_name,
+                    "quantity":     item.get("qty"),
+                    "uom":          item.get("uom"),
+                    "rate":         item.get("rate"),
+                    "amount":       item.get("amount"),
+                    "required_by":  item.get("required_date"),
+                    "pcs":          item.get("pcs", 0),
+                    "net_qty":      item.get("net_qty", 0),
+                    "color":        color,
+                    "type":         typ,
+                    "design":       design
                 })
 
         supplier_order.save(ignore_permissions=True)
@@ -812,12 +828,13 @@ def update_supplier_order():
 
         return {
             "success": True,
-            "message": f"Supplier Order updated by {employee_id}",
+            "message": f"Supplier Order {name} updated by {employee_id}",
             "docname": supplier_order.name,
             "employee_name": employee_id
         }
 
     except Exception as e:
+        frappe.db.rollback()
         frappe.log_error(frappe.get_traceback(), "Update Supplier Order Error")
         return {
             "success": False,
