@@ -1,0 +1,82 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-07-03 13:13:08.366701",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "employee",
+  "shift_type",
+  "total_hours",
+  "salary",
+  "column_break_orpp",
+  "min_salary",
+  "consolidat_hour_cutting",
+  "consolidate_amt_cutting"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "shift_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Shift Type",
+   "options": "Shift Type"
+  },
+  {
+   "fieldname": "total_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Shift Hours"
+  },
+  {
+   "fieldname": "salary",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Salary"
+  },
+  {
+   "fieldname": "min_salary",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Minute Salary"
+  },
+  {
+   "fieldname": "column_break_orpp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "consolidat_hour_cutting",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Consolidat Hour Cutting"
+  },
+  {
+   "fieldname": "consolidate_amt_cutting",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Consolidate Amt Cutting"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-07-03 14:49:05.694353",
+ "modified_by": "Administrator",
+ "module": "Calicut Textiles",
+ "name": "Consolidate Late Entry Details",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
