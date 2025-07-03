@@ -46,6 +46,10 @@ frappe.ui.form.on('Employee Checkin', {
             }
             if (frm.doc.log_type === 'OUT' && frm.shift_end) {
                 calculate_early_going(frm, frm.shift_end);
+                frm.set_value(
+                    "custom_late_early",
+                    flt(frm.doc.custom_late_coming_minutes) + flt(frm.doc.custom_early_going_minutes)
+                );
             }
         }
     },
@@ -56,6 +60,18 @@ frappe.ui.form.on('Employee Checkin', {
         }
         if (frm.doc.log_type === 'OUT' && frm.shift_end) {
             calculate_early_going(frm, frm.shift_end);
+        }
+    },
+    validate: function (frm) {
+        if (
+            frm.doc.log_type === "OUT" &&
+            frm.doc.custom_late_coming_minutes &&
+            frm.doc.custom_early_going_minutes
+        ) {
+            frm.set_value(
+                "custom_late_early",
+                flt(frm.doc.custom_late_coming_minutes) + flt(frm.doc.custom_early_going_minutes)
+            );
         }
     }
 });
