@@ -454,87 +454,208 @@ def get_all_products():
 
 
 
+# @frappe.whitelist(methods=["POST"], allow_guest=True)
+# def create_supplier_order():
+#     try:
+#         user = frappe.session.user
+#         if not user:
+#             frappe.throw("No user session")
+
+#         # Get Employee ID linked to user
+#         employee_id = frappe.db.get_value("Employee", {"user_id": user}, "name")
+#         if not employee_id:
+#             frappe.throw("No employee linked to this user")
+
+#         # Check permission
+#         if not frappe.has_permission("Supplier Order", "create", user=user):
+#             frappe.throw("You do not have permission to create Supplier Order")
+
+#         # Parse form-data fields
+#         supplier = frappe.form_dict.get("supplier")
+#         order_date = frappe.form_dict.get("order_date")
+#         grand_total = frappe.form_dict.get("grand_total")
+#         products_json = frappe.form_dict.get("products")  # JSON string
+
+#         if not supplier or not order_date or not products_json:
+#             frappe.throw("Missing required fields: supplier, order_date, or products")
+
+#         import json
+#         products = json.loads(products_json)
+#         supplier_name = frappe.db.get_value("Supplier", supplier, "supplier_name")
+#         print("supplier_name",supplier_name)
+#         # Step 1: Create Supplier Order and insert it to get doc.name
+#         doc = frappe.new_doc("Supplier Order")
+#         doc.supplier = supplier
+#         doc.order_date = order_date
+#         doc.grand_total = grand_total
+#         doc.sales_person = employee_id
+#         doc.supplier_name=supplier_name
+#         doc.insert(ignore_permissions=True)  # Insert first to get doc.name
+
+#         # Step 2: Handle child rows and image uploads
+#         for idx, item in enumerate(products):
+#             images = {}
+
+#             for image_field in ["image_1", "image_2", "image_3"]:
+#                 file_key = f"{image_field}_{idx}"
+#                 if file_key in frappe.request.files:
+#                     file = frappe.request.files[file_key]
+#                     uploaded_file = frappe.utils.file_manager.save_file(
+#                         fname=file.filename,
+#                         content=file.stream.read(),
+#                         dt="Supplier Order",
+#                         dn=doc.name,
+#                         is_private=0
+#                     )
+#                     images[image_field] = uploaded_file.file_url
+#                 else:
+#                     images[image_field] = ""
+
+#             doc.append("products", {
+#                 "product": item.get("product"),
+#                 "quantity": item.get("qty"),
+#                 "uom": item.get("uom"),
+#                 "rate": item.get("rate"),
+#                 "pcs": item.get("pcs"),
+#                 "net_qty": item.get("net_qty"),
+#                 "amount": item.get("amount"),
+#                 "required_by": item.get("required_date"),
+#                 "color": item.get("color"),
+#                 "image_1": images["image_1"],
+#                 "image_2": images["image_2"],
+#                 "image_3": images["image_3"],
+#             })
+
+#         # Step 3: Save final document with child rows
+#         doc.save(ignore_permissions=True)
+#         frappe.db.commit()
+
+#         return {
+#             "success": True,
+#             "message": f"Supplier Order created by employee {employee_id}",
+#             "docname": doc.name,
+#             "employee_id": employee_id
+#         }
+
+#     except Exception as e:
+#         frappe.db.rollback()
+#         frappe.log_error(frappe.get_traceback(), "Supplier Order API Error")
+#         return {
+#             "success": False,
+#             "message": "Error creating supplier order",
+#             "error": str(e)
+#         }
+
+
+
+import frappe
+import json
+from frappe import _
+
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def create_supplier_order():
     try:
         user = frappe.session.user
         if not user:
-            frappe.throw("No user session")
+            frappe.throw(_("No user session"))
 
         # Get Employee ID linked to user
         employee_id = frappe.db.get_value("Employee", {"user_id": user}, "name")
         if not employee_id:
-            frappe.throw("No employee linked to this user")
+            frappe.throw(_("No employee linked to this user"))
 
         # Check permission
         if not frappe.has_permission("Supplier Order", "create", user=user):
-            frappe.throw("You do not have permission to create Supplier Order")
+            frappe.throw(_("You do not have permission to create Supplier Order"))
 
-        # Parse form-data fields
-        supplier = frappe.form_dict.get("supplier")
-        order_date = frappe.form_dict.get("order_date")
-        grand_total = frappe.form_dict.get("grand_total")
+        # Parse form‑data fields
+        supplier      = frappe.form_dict.get("supplier")
+        order_date    = frappe.form_dict.get("order_date")
+        grand_total   = frappe.form_dict.get("grand_total")
         products_json = frappe.form_dict.get("products")  # JSON string
 
         if not supplier or not order_date or not products_json:
-            frappe.throw("Missing required fields: supplier, order_date, or products")
+            frappe.throw(_("Missing required fields: supplier, order_date, or products"))
 
-        import json
+        # Load the JSON into a Python list
         products = json.loads(products_json)
-        supplier_name = frappe.db.get_value("Supplier", supplier, "supplier_name")
-        print("supplier_name",supplier_name)
-        # Step 1: Create Supplier Order and insert it to get doc.name
+
+        # (Optional) Fetch supplier_name
+        supplier_name = frappe.db.get_value("Supplier", supplier, "supplier_name") or ""
+
+        # Create the new Supplier Order
         doc = frappe.new_doc("Supplier Order")
-        doc.supplier = supplier
-        doc.order_date = order_date
-        doc.grand_total = grand_total
-        doc.sales_person = employee_id
-        doc.supplier_name=supplier_name
-        doc.insert(ignore_permissions=True)  # Insert first to get doc.name
+        doc.supplier      = supplier
+        doc.supplier_name = supplier_name
+        doc.order_date    = order_date
+        doc.grand_total   = grand_total
+        doc.sales_person  = employee_id
+        doc.insert(ignore_permissions=True)
 
-        # Step 2: Handle child rows and image uploads
+        # Loop over each product line
         for idx, item in enumerate(products):
-            images = {}
+            # Front‑end provided values
+            color  = (item.get("color")  or "").strip()
+            typ    = (item.get("type")   or "").strip()
+            design = (item.get("design") or "").strip()
 
-            for image_field in ["image_1", "image_2", "image_3"]:
+            # Build product_name parts in the order: product–type–design–color
+            parts = [
+                item.get("product"),  # e.g. "skert"
+                typ,                  # e.g. "Cotton"
+                design,               # e.g. "Floral"
+                color                 # e.g. "Red"
+            ]
+            # Filter out any blank entries
+            parts = [p for p in parts if p]
+
+            # Join all parts with hyphens
+            product_name = "-".join(parts)
+
+            # Handle image uploads for this row
+            images = {}
+            for image_field in ("image_1", "image_2", "image_3"):
                 file_key = f"{image_field}_{idx}"
                 if file_key in frappe.request.files:
-                    file = frappe.request.files[file_key]
-                    uploaded_file = frappe.utils.file_manager.save_file(
-                        fname=file.filename,
-                        content=file.stream.read(),
-                        dt="Supplier Order",
-                        dn=doc.name,
-                        is_private=0
+                    f = frappe.request.files[file_key]
+                    uploaded = frappe.utils.file_manager.save_file(
+                        fname     = f.filename,
+                        content   = f.stream.read(),
+                        dt        = "Supplier Order",
+                        dn        = doc.name,
+                        is_private= 0
                     )
-                    images[image_field] = uploaded_file.file_url
+                    images[image_field] = uploaded.file_url
                 else:
                     images[image_field] = ""
 
+            # Append this line to the child table
             doc.append("products", {
-                "product": item.get("product"),
-                "quantity": item.get("qty"),
-                "uom": item.get("uom"),
-                "rate": item.get("rate"),
-                "pcs": item.get("pcs"),
-                "net_qty": item.get("net_qty"),
-                "amount": item.get("amount"),
-                "required_by": item.get("required_date"),
-                "color": item.get("color"),
-                "image_1": images["image_1"],
-                "image_2": images["image_2"],
-                "image_3": images["image_3"],
+                "product":      item.get("product"),
+                "product_name": product_name,
+                "quantity":     item.get("qty"),
+                "uom":          item.get("uom"),
+                "rate":         item.get("rate"),
+                "pcs":          item.get("pcs"),
+                "net_qty":      item.get("net_qty"),
+                "amount":       item.get("amount"),
+                "required_by":  item.get("required_date"),
+                "color":        color,
+                "type":         typ,
+                "design":       design,
+                "image_1":      images["image_1"],
+                "image_2":      images["image_2"],
+                "image_3":      images["image_3"],
             })
 
-        # Step 3: Save final document with child rows
+        # Save everything
         doc.save(ignore_permissions=True)
         frappe.db.commit()
 
         return {
             "success": True,
-            "message": f"Supplier Order created by employee {employee_id}",
-            "docname": doc.name,
-            "employee_id": employee_id
+            "message": _("Supplier Order {0} created by employee {1}").format(doc.name, employee_id),
+            "docname": doc.name
         }
 
     except Exception as e:
@@ -542,69 +663,10 @@ def create_supplier_order():
         frappe.log_error(frappe.get_traceback(), "Supplier Order API Error")
         return {
             "success": False,
-            "message": "Error creating supplier order",
+            "message": _("Error creating supplier order"),
             "error": str(e)
         }
 
-
-
-# @frappe.whitelist(allow_guest=True)
-# def get_all_supplier_orders():
-#     page = int(frappe.form_dict.get("page", 1))
-#     page_size = int(frappe.form_dict.get("page_size", 50))
-#     supplier_name = frappe.form_dict.get("supplier_name")
-#     supplier_id = frappe.form_dict.get("supplier_id")
-
-#     # Build filters dynamically
-#     filters = {}
-#     if supplier_id:
-#         filters["name"] = ["like", f"%{supplier_id}%"]
-#     if supplier_name:
-#         filters["supplier_name"] = ["like", f"%{supplier_name}%"]
-    
-
-#     offset = (page - 1) * page_size
-
-#     supplier_orders = frappe.get_all(
-#         "Supplier Order",
-#         fields=["name", "supplier", "order_date", "grand_total", "status", "creation"],
-#         limit_start=offset,
-#         limit_page_length=page_size,
-#         order_by="creation desc"
-#     )
-
-#     result = []
-
-#     for order in supplier_orders:
-#         # Fetch supplier name
-#         supplier_name = frappe.db.get_value("Supplier", order.supplier, "supplier_name")
-
-#         # Fetch child table (products)
-#         products = frappe.get_all(
-#             "Supplier Order Product",
-#             filters={"parent": order.name},
-#             fields=["product", "quantity", "uom", "rate", "amount", "required_by","net_qty","pcs"]
-#         )
-
-#         result.append({
-#             "order_id": order.name,
-#             "supplier_id": order.supplier,
-#             "supplier_name": supplier_name,
-#             "order_date": order.order_date,
-#             "grand_total": order.grand_total,
-#             "status": order.status,
-#             "products": products,
-#         })
-
-#     total_orders = frappe.db.count("Supplier Order")
-
-#     return {
-#         "orders": result,
-#         "page": page,
-#         "page_size": page_size,
-#         "total_orders": total_orders,
-#         "total_pages": (total_orders + page_size - 1) // page_size
-#     }
 
 @frappe.whitelist(allow_guest=True)
 def get_all_supplier_orders():
@@ -785,3 +847,117 @@ def get_supplier_groups():
             "message": "Failed to fetch supplier groups",
             "error": str(e)
         }
+
+import frappe
+
+import frappe
+
+@frappe.whitelist(allow_guest=True)
+def get_attribute_values_by_parent(parent_name):
+    try:
+        values = frappe.get_all(
+            "Item Attribute Value",  # ✅ Correct child doctype name
+            filters={"parent": parent_name},
+            fields=["attribute_value"],
+            order_by="attribute_value"
+        )
+
+        return {
+            "success": True,
+            "data": [v.attribute_value for v in values]
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get Attribute Values API Error")
+        return {
+            "success": False,
+            "message": "Failed to fetch attribute values",
+            "error": str(e)
+        }
+
+
+
+@frappe.whitelist(allow_guest=True)
+def get_all_colours():
+   
+    try:
+        rows = frappe.get_all(
+            "Item Attribute Value",
+            filters={"parent": "Colour"},
+            fields=["attribute_value"],
+            order_by="idx"
+        )
+        # extract the strings
+        colours = [r.attribute_value for r in rows]
+
+        return {
+            "success": True,
+            "data": colours
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get All Colours API Error")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@frappe.whitelist(allow_guest=True)
+def get_all_types():
+   
+    try:
+        rows = frappe.get_all(
+            "Item Attribute Value",
+            filters={"parent": "Type"},
+            fields=["attribute_value"],
+            order_by="idx"
+        )
+        # extract the strings
+        colours = [r.attribute_value for r in rows]
+
+        return {
+            "success": True,
+            "data": colours
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get All type API Error")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_all_designs():
+   
+    try:
+        rows = frappe.get_all(
+            "Item Attribute Value",
+            filters={"parent": "Design"},
+            fields=["attribute_value"],
+            order_by="idx"
+        )
+        # extract the strings
+        colours = [r.attribute_value for r in rows]
+
+        return {
+            "success": True,
+            "data": colours
+        }
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), "Get All type API Error")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+# @frappe.whitelist(allow_guest=True)
+# def get_all_designs():
+#     values = frappe.get_all(
+#         "Item Attribute Value",
+#         filters={"parent": "Design"},
+#         fields=["attribute_value"],
+#         order_by="attribute_value"
+#     )
+#     return [v.attribute_value for v in values]
