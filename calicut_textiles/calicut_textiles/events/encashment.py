@@ -143,7 +143,7 @@ class CustomLeaveEncashment(LeaveEncashment):
 
 def process_monthly_leave_encashment():
     """Function to be called by scheduler to process monthly encashments"""
-	
+
     if getdate() == get_last_day(getdate()):
         employees = frappe.get_all("Employee",
             filters={"status": "Active"},
@@ -198,7 +198,7 @@ def process_monthly_leave_encashment():
                     current_date,
                     to_date=allocation.to_date
                 )
-
+				
                 if frappe.db.exists("Leave Encashment", {
                     "employee": allocation.employee,
                     "leave_type": leave_type,
@@ -207,12 +207,28 @@ def process_monthly_leave_encashment():
                 }):
                     continue
 
+                from_date = encashment_date.replace(day=1)
+                monthly_entitlement = 3
+
+                leaves_taken = frappe.db.sql("""
+                    SELECT COALESCE(SUM(total_leave_days), 0)
+                    FROM `tabLeave Application`
+                    WHERE employee=%s AND leave_type=%s
+                    AND docstatus=1
+                    AND (from_date BETWEEN %s AND %s OR to_date BETWEEN %s AND %s)
+                """, (allocation.employee, leave_type, from_date, encashment_date, from_date, encashment_date))[0][0]
+
+                monthly_balance = max(monthly_entitlement - leaves_taken, 0)
+                encashment_days = min(monthly_balance, leave_balance)
+
                 if encashment_days > 0:
                     leave_encashment = frappe.new_doc("Leave Encashment")
                     leave_encashment.leave_period = leave_period.name
                     leave_encashment.employee = allocation.employee
                     leave_encashment.leave_type = allocation.leave_type
                     leave_encashment.encashment_date = encashment_date
+                    leave_encashment.leave_balance = leave_balance
+                    leave_encashment.encashment_days = encashment_days
                     leave_encashment.insert(ignore_permissions=True)
                 else:
                     frappe.log_error(f"Unable to create Auto Leave Encashment for employee: {allocation.employee}")
