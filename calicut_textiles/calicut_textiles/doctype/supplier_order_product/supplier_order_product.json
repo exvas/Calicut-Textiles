@@ -14,6 +14,8 @@
   "amount",
   "required_by",
   "uom",
+  "type",
+  "design",
   "column_break_9fxk",
   "color",
   "quantity",
@@ -100,6 +102,7 @@
   {
    "fieldname": "color",
    "fieldtype": "Data",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "Color"
   },
@@ -121,13 +124,25 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Product name"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Type"
+  },
+  {
+   "fieldname": "design",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Design"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-07-03 12:55:25.362497",
+ "modified": "2025-07-03 17:14:29.391547",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Order Product",
