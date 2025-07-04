@@ -686,7 +686,7 @@ def get_all_supplier_orders():
             conditions += " AND so.supplier_name LIKE %(supplier_name)s"
             values["supplier_name"] = f"%{supplier_name_filter}%"
 
-        # Count total matching records using raw SQL
+        # Count total matching records
         count_query = f"""
             SELECT COUNT(*) AS total
             FROM `tabSupplier Order` so
@@ -695,7 +695,7 @@ def get_all_supplier_orders():
         total_orders = frappe.db.sql(count_query, values)[0][0]
         total_pages = (total_orders + page_size - 1) // page_size
 
-        # Adjust page number if necessary
+        # Adjust page number
         if page > total_pages and total_pages > 0:
             page = total_pages
         elif total_pages == 0:
@@ -703,26 +703,31 @@ def get_all_supplier_orders():
 
         offset = (page - 1) * page_size
 
-        # Fetch paginated data
+        # Fetch paginated Supplier Orders
         data_query = f"""
             SELECT so.name, so.supplier, so.supplier_name, so.order_date,
-                   so.grand_total, so.status, so.creation
+                   so.grand_total, so.docstatus, so.creation
             FROM `tabSupplier Order` so
             {conditions}
             ORDER BY so.creation DESC
             LIMIT %(limit)s OFFSET %(offset)s
         """
         values.update({"limit": page_size, "offset": offset})
-
         supplier_orders = frappe.db.sql(data_query, values, as_dict=True)
 
-        # Process each order
         result = []
         for order in supplier_orders:
+            # Map docstatus to readable status
+            status_map = {0: "Draft", 1: "Submitted", 2: "Cancelled"}
+            readable_status = status_map.get(order.docstatus, "Unknown")
+
             products = frappe.get_all(
                 "Supplier Order Product",
                 filters={"parent": order.name},
-                fields=["product", "quantity", "uom", "rate", "amount", "required_by", "net_qty", "pcs","color","design","type"]
+                fields=[
+                    "product", "quantity", "uom", "rate", "amount",
+                    "required_by", "net_qty", "pcs", "color", "design", "type"
+                ]
             )
 
             result.append({
@@ -730,7 +735,7 @@ def get_all_supplier_orders():
                 "supplier_name": order.supplier_name or "",
                 "order_date": order.order_date,
                 "grand_total": order.grand_total,
-                "status": order.status,
+                "status": readable_status,
                 "products": products,
             })
 
@@ -753,7 +758,6 @@ def get_all_supplier_orders():
             "message": "Failed to fetch supplier orders",
             "error": str(e)
         }
-
 
 
 @frappe.whitelist(methods=["POST"])
