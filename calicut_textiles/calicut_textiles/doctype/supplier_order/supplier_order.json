@@ -17,9 +17,7 @@
   "sales_person",
   "section_break_uywd",
   "products",
-  "grand_total",
-  "tab_break_euhj",
-  "status"
+  "grand_total"
  ],
  "fields": [
   {
@@ -69,17 +67,6 @@
    "label": "Details"
   },
   {
-   "fieldname": "tab_break_euhj",
-   "fieldtype": "Tab Break",
-   "label": "Status"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "status",
-   "options": "Draft\nSubmitted"
-  },
-  {
    "fieldname": "section_break_uywd",
    "fieldtype": "Section Break"
   },
@@ -115,7 +102,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-28 16:01:12.745096",
+ "modified": "2025-07-04 11:56:25.712085",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Supplier Order",
@@ -123,6 +110,8 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
