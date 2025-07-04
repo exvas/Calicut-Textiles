@@ -788,7 +788,11 @@ def update_supplier_order():
             }
 
         # Update parent fields
-        supplier_order.supplier = data.get("supplier", supplier_order.supplier)
+        new_supplier = data.get("supplier")
+        if new_supplier:
+            supplier_order.supplier = new_supplier
+            supplier_order.supplier_name = frappe.db.get_value("Supplier", new_supplier, "supplier_name") or ""
+
         supplier_order.order_date = data.get("order_date", supplier_order.order_date)
         supplier_order.grand_total = data.get("grand_total", supplier_order.grand_total)
         supplier_order.sales_person = employee_id
