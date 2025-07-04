@@ -40,17 +40,36 @@ frappe.ui.form.on('Employee Checkin', {
     },
 
     log_type: function(frm) {
-        if (frm.doc.time) {
-            if (frm.doc.log_type === 'IN' && frm.shift_start) {
-                calculate_late_coming(frm, frm.shift_start);
-            }
-            if (frm.doc.log_type === 'OUT' && frm.shift_end) {
-                calculate_early_going(frm, frm.shift_end);
-                frm.set_value(
-                    "custom_late_early",
-                    flt(frm.doc.custom_late_coming_minutes) + flt(frm.doc.custom_early_going_minutes)
-                );
-            }
+        if (!frm.doc.time || !frm.doc.employee || !frm.doc.log_type) return;
+    
+        const date = frm.doc.time.split(" ")[0];
+    
+        if (frm.doc.log_type === 'IN' && frm.shift_start) {
+            calculate_late_coming(frm, frm.shift_start);
+        }
+    
+        if (frm.doc.log_type === 'OUT' && frm.shift_end) {
+            calculate_early_going(frm, frm.shift_end);
+    
+            // Fetch custom_late_coming_minutes from IN check-in of the same date
+            frappe.call({
+                method: "calicut_textiles.calicut_textiles.events.employee_checkin.get_late_minutes_from_in_log",
+                args: {
+                    employee: frm.doc.employee,
+                    date: date
+                },
+                callback: function (r) {
+                    if (r.message) {
+                        const late = flt(r.message.custom_late_coming_minutes);
+                        const early = flt(frm.doc.custom_early_going_minutes || 0);
+                        frm.set_value("custom_late_coming_minutes", late);
+                        frm.set_value("custom_late_early", late + early);
+                    } else {
+                        // No IN check-in found
+                        frm.set_value("custom_late_early", flt(frm.doc.custom_early_going_minutes || 0));
+                    }
+                }
+            });
         }
     },
 
@@ -60,18 +79,6 @@ frappe.ui.form.on('Employee Checkin', {
         }
         if (frm.doc.log_type === 'OUT' && frm.shift_end) {
             calculate_early_going(frm, frm.shift_end);
-        }
-    },
-    validate: function (frm) {
-        if (
-            frm.doc.log_type === "OUT" &&
-            frm.doc.custom_late_coming_minutes &&
-            frm.doc.custom_early_going_minutes
-        ) {
-            frm.set_value(
-                "custom_late_early",
-                flt(frm.doc.custom_late_coming_minutes) + flt(frm.doc.custom_early_going_minutes)
-            );
         }
     }
 });
