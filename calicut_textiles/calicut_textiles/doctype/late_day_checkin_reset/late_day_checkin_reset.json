@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "LDC-.#####",
+ "autoname": "naming_series:",
  "creation": "2025-07-05 14:28:21.241917",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -10,7 +10,9 @@
   "amended_from",
   "section_break_ekdl",
   "checkin_details",
-  "reset_checkin"
+  "reset_checkin",
+  "date",
+  "naming_series"
  ],
  "fields": [
   {
@@ -41,17 +43,31 @@
    "fieldname": "reset_checkin",
    "fieldtype": "Button",
    "label": "Reset Checkin"
+  },
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Date"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "LDC/.{date}./"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-07-05 15:55:54.711071",
+ "modified": "2025-07-05 17:06:56.163410",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Late Day Checkin Reset",
- "naming_rule": "Expression (old style)",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {

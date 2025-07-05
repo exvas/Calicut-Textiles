@@ -72,6 +72,7 @@
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
+   "hidden": 1,
    "label": "Naming Series",
    "options": "CLE/.YYYY./.{month}./"
   }
@@ -79,7 +80,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-03 15:23:05.263869",
+ "modified": "2025-07-05 17:10:23.237404",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Consolidate Late Entry",
