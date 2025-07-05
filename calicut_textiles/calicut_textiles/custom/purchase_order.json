@@ -493,7 +493,7 @@
    "name": "Purchase Order-custom_sales_person",
    "no_copy": 0,
    "non_negative": 0,
-   "options": "Employee",
+   "options": "Sales Person",
    "owner": "Administrator",
    "permlevel": 0,
    "placeholder": null,
