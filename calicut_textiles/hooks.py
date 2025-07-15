@@ -171,6 +171,9 @@ doc_events = {
      "Additional Salary": {
         "on_submit":["calicut_textiles.calicut_textiles.events.event.update_employee_additional"],
     },
+    "Employee Checkin": {
+        "before_save": "calicut_textiles.calicut_textiles.events.employee_checkin.update_employee_checkin_fields"
+    }
 
 }
 
