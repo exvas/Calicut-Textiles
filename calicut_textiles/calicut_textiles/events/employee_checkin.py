@@ -1,6 +1,10 @@
 import frappe
 from frappe.model.document import Document
-from datetime import datetime, timedelta, time as dtime
+from datetime import datetime, timedelta, time
+from frappe.utils import today, get_first_day, get_last_day, add_days, getdate, nowdate
+from datetime import datetime, timedelta, time
+from collections import defaultdict
+
 
 
 @frappe.whitelist()
@@ -79,8 +83,104 @@ def as_time(value):
         hours = total_seconds // 3600
         minutes = (total_seconds % 3600) // 60
         seconds = total_seconds % 60
-        return dtime(hour=hours, minute=minutes, second=seconds)
-    elif isinstance(value, dtime):
+        return time(hour=hours, minute=minutes, second=seconds)
+    elif isinstance(value, time):
         return value
     else:
         return datetime.strptime(value, "%H:%M:%S").time()
+
+
+def to_time(value):
+    """Convert timedelta to time if needed."""
+    if isinstance(value, timedelta):
+        total_seconds = int(value.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        return time(hour=hours, minute=minutes, second=seconds)
+    return value
+
+@frappe.whitelist()
+def process_monthly_overtime_additional_salary():
+    """Creates Additional Salary for Overtime only once per month per employee."""
+
+    today_date = today()
+    first_day = get_first_day(today_date)
+    last_day = get_last_day(today_date)
+
+    processing_last_day = getdate(today_date) if getdate(today_date) < last_day else last_day
+
+    settings = frappe.get_single("Calicut Textiles Settings")
+    threshold = settings.threshold_overtime_minutes or 0
+
+    employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "employee_name", "company"])
+
+    for emp in employees:
+        if frappe.db.exists("Additional Salary", {
+            "employee": emp.name,
+            "salary_component": "Over Time",
+            "payroll_date": last_day
+        }):
+            continue
+
+        total_overtime_minutes = 0
+
+        shift_type_name = frappe.get_value("Employee", emp.name, "default_shift")
+        if not shift_type_name:
+            continue
+
+        shift_type = frappe.get_doc("Shift Type", shift_type_name)
+        shift_start = to_time(shift_type.start_time)
+        shift_end = to_time(shift_type.end_time)
+
+        checkins = frappe.get_all("Employee Checkin", filters={
+            "employee": emp.name,
+            "time": ["between", [f"{first_day} 00:00:00", f"{processing_last_day} 23:59:59"]]
+        }, order_by="time asc", fields=["time"])
+
+        checkins_by_day = defaultdict(list)
+        for row in checkins:
+            checkins_by_day[row.time.date()].append(row.time)
+
+        for checkin_date, times in checkins_by_day.items():
+            filtered_checkins = []
+            last_time = None
+            for current_time in times:
+                if not last_time or (current_time - last_time).total_seconds() > 300:
+                    filtered_checkins.append(current_time)
+                    last_time = current_time
+
+            if len(filtered_checkins) >= 2:
+                in_time = filtered_checkins[0]
+                out_time = filtered_checkins[-1]
+                worked_minutes = (out_time - in_time).total_seconds() / 60
+
+                shift_start_dt = datetime.combine(checkin_date, shift_start)
+                shift_end_dt = datetime.combine(checkin_date, shift_end)
+                if shift_end_dt <= shift_start_dt:
+                    shift_end_dt += timedelta(days=1)
+
+                shift_minutes = (shift_end_dt - shift_start_dt).total_seconds() / 60
+                extra = worked_minutes - shift_minutes
+
+                if extra > threshold:
+                    overtime_today = extra - threshold
+                    total_overtime_minutes += overtime_today
+
+        if total_overtime_minutes > 0:
+            base = frappe.get_value("Salary Structure Assignment", {"employee": emp.name}, "base")
+            if not base:
+                continue
+
+            total_days = (datetime.strptime(str(last_day), "%Y-%m-%d") - datetime.strptime(str(first_day), "%Y-%m-%d")).days + 1
+            per_minute_rate = base / (total_days * 8 * 60)
+            overtime_amount = round(per_minute_rate * total_overtime_minutes, 2)
+
+            additional_salary = frappe.new_doc("Additional Salary")
+            additional_salary.employee = emp.name
+            additional_salary.company = emp.company
+            additional_salary.payroll_date = last_day
+            additional_salary.amount = overtime_amount
+            additional_salary.salary_component = "Over Time"
+            additional_salary.overwrite_salary_structure_amount = 1
+            additional_salary.submit()

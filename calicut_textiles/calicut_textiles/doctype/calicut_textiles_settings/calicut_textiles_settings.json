@@ -8,6 +8,7 @@
   "details_tab",
   "section_break_tuju",
   "ot_component",
+  "threshold_overtime_minutes",
   "column_break_0hrb",
   "early_component",
   "section_break_zjrq",
@@ -111,12 +112,19 @@
    "fieldtype": "Table",
    "label": "Set user series",
    "options": "Set user series"
+  },
+  {
+   "description": "Minimum extra minutes after shift end to consider as overtime.\n\n",
+   "fieldname": "threshold_overtime_minutes",
+   "fieldtype": "Int",
+   "label": "Threshold Overtime Minutes"
   }
  ],
+ "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-12-31 22:30:50.616200",
+ "modified": "2025-07-16 12:21:20.894802",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles Settings",
@@ -133,6 +141,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
