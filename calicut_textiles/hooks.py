@@ -35,7 +35,8 @@ doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
               "Sales Invoice" : "public/sales_invoice.js",
               "Sales Order" : "public/sales_order.js",
               "Purchase Invoice" : "public/purchase_invoice.js",
-              "Employee Checkin" : "public/employee_checkin.js",
+              "Employee Checkin" : "public/employee_checkin.js"
+              # "Quotation": "public/quotation.js",
               }
 
 doctype_list_js = {"Item" : "public/item_list.js"}
@@ -185,7 +186,8 @@ scheduler_events = {
 	# 	"calicut_textiles.tasks.all"
 	# ],
 	"daily": [
-		"calicut_textiles.calicut_textiles.events.encashment.process_monthly_leave_encashment"
+		"calicut_textiles.calicut_textiles.events.encashment.process_monthly_leave_encashment",
+        "calicut_textiles.calicut_textiles.events.employee_checkin.process_monthly_overtime_additional_salary"
 	]
 	# "hourly": [
 	# 	"calicut_textiles.tasks.hourly"
