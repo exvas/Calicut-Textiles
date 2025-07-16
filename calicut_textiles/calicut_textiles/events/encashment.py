@@ -144,7 +144,7 @@ class CustomLeaveEncashment(LeaveEncashment):
 def process_monthly_leave_encashment():
     """Function to be called by scheduler to process monthly encashments"""
 
-    if getdate() == get_last_day(getdate()):
+    if getdate() == get_last_day(getdate():
         employees = frappe.get_all("Employee",
             filters={"status": "Active"},
             fields=["name"]
@@ -230,6 +230,7 @@ def process_monthly_leave_encashment():
                     leave_encashment.leave_balance = leave_balance
                     leave_encashment.encashment_days = encashment_days
                     leave_encashment.status = "Submitted"
+                    leave_encashment.custom_is_system_generated = True
                     leave_encashment.save(ignore_permissions=True)
                     leave_encashment.submit()
                     frappe.db.commit()

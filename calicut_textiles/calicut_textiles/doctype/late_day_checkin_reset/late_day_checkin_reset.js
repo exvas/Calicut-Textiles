@@ -4,8 +4,13 @@
 frappe.ui.form.on("Late Day Checkin Reset", {
 	refresh: function(frm) {
 		if (frm.is_new()) {
-			frm.add_custom_button(__("Get Checkin Details"), function() {
-				const today = frappe.datetime.get_today();
+			frm.add_custom_button(__("Get Checkin Details"), function () {
+				const checkin_date = frm.doc.checkin_date;
+
+				if (!checkin_date) {
+					frappe.msgprint(__("Please select a Checkin Date first."));
+					return;
+				}
 
 				frappe.call({
 					method: "frappe.client.get_list",
@@ -13,13 +18,13 @@ frappe.ui.form.on("Late Day Checkin Reset", {
 						doctype: "Employee Checkin",
 						filters: {
 							log_type: "IN",
-							time: ["between", [today + " 00:00:00", today + " 23:59:59"]]
+							time: ["between", [checkin_date + " 00:00:00", checkin_date + " 23:59:59"]]
 						},
 						fields: ["name", "employee", "employee_name", "log_type", "time"]
 					},
-					callback: function(r) {
+					callback: function (r) {
 						if (r.message && r.message.length > 0) {
-							$.each(r.message, function(i, emp) {
+							$.each(r.message, function (i, emp) {
 								let child = frm.add_child("checkin_details");
 								child.employee_checkin = emp.name;
 								child.employee = emp.employee;
@@ -35,7 +40,7 @@ frappe.ui.form.on("Late Day Checkin Reset", {
 								indicator: 'green'
 							}, 3);
 						} else {
-							frappe.msgprint(__("No employee check-ins found for today."));
+							frappe.msgprint(__("No employee check-ins found for the selected date."));
 						}
 					}
 				});
@@ -54,7 +59,7 @@ frappe.ui.form.on("Late Day Checkin Reset", {
 			frappe.msgprint(__('Please select at least one row from the child table.'));
 			return;
 		}
-		
+
 		const d = new frappe.ui.Dialog({
 			title: 'Reset Check-in Time for Selected',
 			fields: [
