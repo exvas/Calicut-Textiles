@@ -4,37 +4,38 @@
 frappe.ui.form.on("Late Day Checkin Reset", {
 	refresh: function(frm) {
 		if (frm.is_new()) {
-			frm.add_custom_button(__("Get Checkin Details"), function () {
+
+			frm.add_custom_button(__("Get First Check-ins"), function () {
 				const checkin_date = frm.doc.checkin_date;
 
 				if (!checkin_date) {
 					frappe.msgprint(__("Please select a Checkin Date first."));
 					return;
 				}
+
 				frappe.call({
-					method: "frappe.client.get_list",
+					method: "calicut_textiles.calicut_textiles.doctype.late_day_checkin_reset.late_day_checkin_reset.get_first_checkins_by_date",
 					args: {
-						doctype: "Employee Checkin",
-						filters: {
-							time: ["between", [checkin_date + " 00:00:00", checkin_date + " 23:59:59"]]
-						},
-						fields: ["name", "employee", "employee_name", "log_type", "time"],
-						order_by: "time asc",
-						limit: 1
+						checkin_date: checkin_date
 					},
 					callback: function (r) {
 						if (r.message && r.message.length > 0) {
-							let emp = r.message[0];
-							let child = frm.add_child("checkin_details");
-							child.employee_checkin = emp.name;
-							child.employee = emp.employee;
-							child.employee_name = emp.employee_name;
-							child.log_type = emp.log_type;
-							child.time = emp.time;
+							// Clear old entries
+							frm.clear_table("checkin_details");
+
+							r.message.forEach(emp => {
+								let child = frm.add_child("checkin_details");
+								child.employee_checkin = emp.name;
+								child.employee = emp.employee;
+								child.employee_name = emp.employee_name;
+								child.log_type = emp.log_type;
+								child.time = emp.time;
+							});
+
 							frm.refresh_field("checkin_details");
 
 							frappe.show_alert({
-								message: __("First check-in record added."),
+								message: __("First check-in of each employee added."),
 								indicator: 'green'
 							}, 3);
 						} else {
@@ -43,6 +44,8 @@ frappe.ui.form.on("Late Day Checkin Reset", {
 					}
 				});
 			}).addClass("btn-primary");
+
+
 		}
 		if (frm.doc.docstatus === 1) {
 			frm.set_df_property("reset_checkin", "hidden", 1);
