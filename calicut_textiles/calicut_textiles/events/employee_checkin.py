@@ -47,11 +47,14 @@ def update_employee_checkin_fields(doc, method):
     total_hours = (shift_end - shift_start).seconds / 3600
     doc.custom_total_hours = round(total_hours, 2)
 
+    # Fetch all check-ins for the employee on this day, sorted by time
     checkins = frappe.db.get_all("Employee Checkin",
         filters={
             "employee": doc.employee,
-            "time": ["between", [time_obj.date().strftime('%Y-%m-%d') + " 00:00:00",
-                                 time_obj.date().strftime('%Y-%m-%d') + " 23:59:59"]],
+            "time": ["between", [
+                time_obj.date().strftime('%Y-%m-%d') + " 00:00:00",
+                time_obj.date().strftime('%Y-%m-%d') + " 23:59:59"
+            ]],
             "docstatus": ["<", 2]
         },
         fields=["name", "time"],
@@ -64,14 +67,20 @@ def update_employee_checkin_fields(doc, method):
     first_checkin = checkins[0]
     last_checkin = checkins[-1]
 
-    if doc.name == first_checkin.name:
+    # Consider only first and last entries
+    if doc.name == first_checkin.name or time_obj == first_checkin.time:
+        # Considered as IN
         diff_minutes = int((time_obj - shift_start).total_seconds() / 60)
         doc.custom_late_coming_minutes = diff_minutes if diff_minutes > 10 else 0
+        doc.log_type = "IN"  # Optional: auto-tag
 
-    if doc.name == last_checkin.name:
+    elif doc.name == last_checkin.name or time_obj == last_checkin.time:
+        # Considered as OUT
         diff_minutes = int((shift_end - time_obj).total_seconds() / 60)
         doc.custom_early_going_minutes = diff_minutes if diff_minutes > 20 else 0
+        doc.log_type = "OUT"  # Optional: auto-tag
 
+    # Final combined metric
     late = doc.custom_late_coming_minutes or 0
     early = doc.custom_early_going_minutes or 0
     doc.custom_late_early = float(late) + float(early)
@@ -140,8 +149,8 @@ def process_monthly_overtime_additional_salary():
         }, order_by="time asc", fields=["time"])
 
         checkins_by_day = defaultdict(list)
-        for row in checkins:
-            checkins_by_day[row.time.date()].append(row.time)
+        for checkin in checkins:
+            checkins_by_day[checkin.time.date()].append(checkin.time)
 
         for checkin_date, times in checkins_by_day.items():
             filtered_checkins = []
