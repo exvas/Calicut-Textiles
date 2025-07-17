@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, time
 from frappe.utils import today, get_first_day, get_last_day, add_days, getdate, nowdate
 from datetime import datetime, timedelta, time
 from collections import defaultdict
-from frappe.utils.data import get_time
 
 
 
@@ -15,6 +14,7 @@ def get_late_minutes_from_in_log(employee, date):
         "Employee Checkin",
         filters={
             "employee": employee,
+            "log_type": "IN",
             "time": ["between", [f"{date} 00:00:00", f"{date} 23:59:59"]]
         },
         fields=["custom_late_coming_minutes"],
@@ -24,65 +24,12 @@ def get_late_minutes_from_in_log(employee, date):
     return record[0] if record else {}
 
 
-
-@frappe.whitelist()
-def get_first_and_last_checkins(employee, date):
-    """Fetch first, last, and all check-ins of the day for an employee"""
-    records = frappe.db.get_all(
-        "Employee Checkin",
-        filters={
-            "employee": employee,
-            "time": ["between", [f"{date} 00:00:00", f"{date} 23:59:59"]]
-        },
-        fields=["name", "time", "custom_late_coming_minutes", "custom_early_going_minutes"],
-        order_by="time ASC"
-    )
-
-    if not records:
-        return {}
-
-    return {
-        "first": records[0],
-        "last": records[-1] if len(records) > 1 else None,
-        "all": records  # return full list for time comparison
-    }
-
-
 @frappe.whitelist()
 def update_employee_checkin_fields(doc, method):
-    """Calculate Late Entry and Early Going based on first and last check-ins of the day"""
+    """Calculate Late Entry and Early Going based on first and last checkin of the day"""
     if not doc.employee or not doc.time:
         return
 
-    # Fetch all check-ins for the day, sorted by time
-    checkins = frappe.db.get_all(
-        "Employee Checkin",
-        filters={
-            "employee": doc.employee,
-            "time": ["between", [doc.time.date().strftime('%Y-%m-%d') + " 00:00:00",
-                                 doc.time.date().strftime('%Y-%m-%d') + " 23:59:59"]],
-            "docstatus": ["<", 2]
-        },
-        fields=["name", "time", "custom_late_coming_minutes", "custom_early_going_minutes"],
-        order_by="time ASC"
-    )
-
-    if not checkins:
-        return
-
-    current_time = doc.time
-    first = checkins[0]
-    last = checkins[-1]
-
-    # Skip duplicate check-ins within 5 minutes of first or last
-    if first["name"] != doc.name and abs((current_time - first["time"]).total_seconds()) <= 300:
-        # Duplicate of IN
-        return
-    if last["name"] != doc.name and abs((current_time - last["time"]).total_seconds()) <= 300:
-        # Duplicate of OUT
-        return
-
-    # Load default shift
     default_shift = frappe.db.get_value("Employee", doc.employee, "default_shift")
     if not default_shift:
         return
@@ -91,38 +38,43 @@ def update_employee_checkin_fields(doc, method):
     if not shift.start_time or not shift.end_time:
         return
 
-    start_time = get_time(shift.start_time)
-    end_time = get_time(shift.end_time)
-
-
-    shift_start = datetime.combine(current_time.date(), start_time)
-    shift_end = datetime.combine(current_time.date(), end_time)
+    time_obj = doc.time
+    shift_start = datetime.combine(time_obj.date(), as_time(shift.start_time))
+    shift_end = datetime.combine(time_obj.date(), as_time(shift.end_time))
     if shift_end <= shift_start:
         shift_end += timedelta(days=1)
 
-    # Total shift hours
     total_hours = (shift_end - shift_start).seconds / 3600
     doc.custom_total_hours = round(total_hours, 2)
 
-    # Determine if this is first or last check-in
-    is_first = (first["name"] == doc.name)
-    is_last = (last["name"] == doc.name)
+    checkins = frappe.db.get_all("Employee Checkin",
+        filters={
+            "employee": doc.employee,
+            "time": ["between", [time_obj.date().strftime('%Y-%m-%d') + " 00:00:00",
+                                 time_obj.date().strftime('%Y-%m-%d') + " 23:59:59"]],
+            "docstatus": ["<", 2]
+        },
+        fields=["name", "time"],
+        order_by="time asc"
+    )
 
-    if is_first:
-        # Late coming logic
-        diff_minutes = int((current_time - shift_start).total_seconds() / 60)
+    if not checkins:
+        return
+
+    first_checkin = checkins[0]
+    last_checkin = checkins[-1]
+
+    if doc.name == first_checkin.name:
+        diff_minutes = int((time_obj - shift_start).total_seconds() / 60)
         doc.custom_late_coming_minutes = diff_minutes if diff_minutes > 10 else 0
 
-    if is_last:
-        # Early going logic
-        diff_minutes = int((shift_end - current_time).total_seconds() / 60)
+    if doc.name == last_checkin.name:
+        diff_minutes = int((shift_end - time_obj).total_seconds() / 60)
         doc.custom_early_going_minutes = diff_minutes if diff_minutes > 20 else 0
 
-        # Add total late+early
-        late = first.get("custom_late_coming_minutes") or 0
-        early = doc.custom_early_going_minutes or 0
-        doc.custom_late_coming_minutes = late
-        doc.custom_late_early = float(late) + float(early)
+    late = doc.custom_late_coming_minutes or 0
+    early = doc.custom_early_going_minutes or 0
+    doc.custom_late_early = float(late) + float(early)
 
 
 def as_time(value):
