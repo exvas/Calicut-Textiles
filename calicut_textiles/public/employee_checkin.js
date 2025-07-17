@@ -24,14 +24,39 @@ frappe.ui.form.on('Employee Checkin', {
                             const total_hours = `${hours}.${minutes.toString().padStart(2, '0')}`;
                             frm.set_value('custom_total_hours', total_hours);
 
-                            // Calculate late/early based on existing log_type
                             if (frm.doc.time) {
-                                if (frm.doc.log_type === 'IN') {
-                                    calculate_late_coming(frm, start);
-                                } else if (frm.doc.log_type === 'OUT') {
-                                    calculate_early_going(frm, end);
-                                }
-                            }
+                              const date = frm.doc.time.split(" ")[0];
+
+                              frappe.call({
+                                  method: "calicut_textiles.calicut_textiles.events.employee_checkin.get_first_and_last_checkins",
+                                  args: {
+                                      employee: frm.doc.employee,
+                                      date: date
+                                  },
+                                  callback: function (r) {
+                                      if (r.message) {
+                                          const current_time = moment(frm.doc.time);
+                                          const first_time = r.message.first ? moment(r.message.first.time) : null;
+                                          const last_time = r.message.last ? moment(r.message.last.time) : null;
+
+                                          if (first_time && current_time.isSame(first_time)) {
+                                              // Treat as IN
+                                              calculate_late_coming(frm, start);
+                                          }
+
+                                          if (last_time && current_time.isSame(last_time)) {
+                                              // Treat as OUT
+                                              calculate_early_going(frm, end);
+
+                                              const late = flt(r.message.first.custom_late_coming_minutes || 0);
+                                              const early = flt(frm.doc.custom_early_going_minutes || 0);
+                                              frm.set_value("custom_late_coming_minutes", late);
+                                              frm.set_value("custom_late_early", late + early);
+                                          }
+                                      }
+                                  }
+                              });
+                          }
                         }
                     });
                 }
@@ -41,16 +66,16 @@ frappe.ui.form.on('Employee Checkin', {
 
     log_type: function(frm) {
         if (!frm.doc.time || !frm.doc.employee || !frm.doc.log_type) return;
-    
+
         const date = frm.doc.time.split(" ")[0];
-    
+
         if (frm.doc.log_type === 'IN' && frm.shift_start) {
             calculate_late_coming(frm, frm.shift_start);
         }
-    
+
         if (frm.doc.log_type === 'OUT' && frm.shift_end) {
             calculate_early_going(frm, frm.shift_end);
-    
+
             // Fetch custom_late_coming_minutes from IN check-in of the same date
             frappe.call({
                 method: "calicut_textiles.calicut_textiles.events.employee_checkin.get_late_minutes_from_in_log",
@@ -74,13 +99,60 @@ frappe.ui.form.on('Employee Checkin', {
     },
 
     time: function(frm) {
-        if (frm.doc.log_type === 'IN' && frm.shift_start) {
-            calculate_late_coming(frm, frm.shift_start);
-        }
-        if (frm.doc.log_type === 'OUT' && frm.shift_end) {
-            calculate_early_going(frm, frm.shift_end);
-        }
+        if (!frm.doc.time || !frm.doc.employee || !frm.shift_start || !frm.shift_end) return;
+
+        const date = frm.doc.time.split(" ")[0];
+
+        frappe.call({
+            method: "calicut_textiles.calicut_textiles.events.employee_checkin.get_first_and_last_checkins",
+            args: {
+                employee: frm.doc.employee,
+                date: date
+            },
+            callback: function (r) {
+                if (!r.message) return;
+
+                const current_time = moment(frm.doc.time);
+                const first_time = r.message.first ? moment(r.message.first.time) : null;
+                const last_time = r.message.last ? moment(r.message.last.time) : null;
+
+                if (!first_time || !last_time) return;
+
+                const is_first = current_time.isSame(first_time);
+                const is_last = current_time.isSame(last_time);
+
+                // Check for duplicates within 5 minutes of first or last
+                const within_5_min_of_first = current_time.diff(first_time, 'minutes') <= 5 && current_time.diff(first_time, 'minutes') > 0;
+                const within_5_min_of_last = last_time.diff(current_time, 'minutes') <= 5 && last_time.diff(current_time, 'minutes') > 0;
+
+                if (is_first) {
+                    // IN logic
+                    calculate_late_coming(frm, frm.shift_start);
+                } else if (is_last) {
+                    // OUT logic
+                    calculate_early_going(frm, frm.shift_end);
+
+                    const late = flt(r.message.first.custom_late_coming_minutes || 0);
+                    const early = flt(frm.doc.custom_early_going_minutes || 0);
+                    frm.set_value("custom_late_coming_minutes", late);
+                    frm.set_value("custom_late_early", late + early);
+                } else if (within_5_min_of_first || within_5_min_of_last) {
+                    // Consider duplicate
+                    frappe.msgprint(__("This entry is within 5 minutes of the first or last check-in. It will be ignored for late/early calculation."));
+                    frm.set_value("custom_late_coming_minutes", 0);
+                    frm.set_value("custom_early_going_minutes", 0);
+                    frm.set_value("custom_late_early", 0);
+                } else {
+                    // Entry is neither first nor last nor duplicate → ignored
+                    frappe.msgprint(__("This is a middle check-in. No late/early calculation applied."));
+                    frm.set_value("custom_late_coming_minutes", 0);
+                    frm.set_value("custom_early_going_minutes", 0);
+                    frm.set_value("custom_late_early", 0);
+                }
+            }
+        });
     }
+
 });
 
 function calculate_late_coming(frm, start) {
