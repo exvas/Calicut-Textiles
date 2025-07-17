@@ -11,32 +11,30 @@ frappe.ui.form.on("Late Day Checkin Reset", {
 					frappe.msgprint(__("Please select a Checkin Date first."));
 					return;
 				}
-
 				frappe.call({
 					method: "frappe.client.get_list",
 					args: {
 						doctype: "Employee Checkin",
 						filters: {
-							log_type: "IN",
 							time: ["between", [checkin_date + " 00:00:00", checkin_date + " 23:59:59"]]
 						},
-						fields: ["name", "employee", "employee_name", "log_type", "time"]
+						fields: ["name", "employee", "employee_name", "log_type", "time"],
+						order_by: "time asc",
+						limit: 1
 					},
 					callback: function (r) {
 						if (r.message && r.message.length > 0) {
-							$.each(r.message, function (i, emp) {
-								let child = frm.add_child("checkin_details");
-								child.employee_checkin = emp.name;
-								child.employee = emp.employee;
-								child.employee_name = emp.employee_name;
-								child.log_type = emp.log_type;
-								child.time = emp.time;
-							});
-
+							let emp = r.message[0];
+							let child = frm.add_child("checkin_details");
+							child.employee_checkin = emp.name;
+							child.employee = emp.employee;
+							child.employee_name = emp.employee_name;
+							child.log_type = emp.log_type;
+							child.time = emp.time;
 							frm.refresh_field("checkin_details");
 
 							frappe.show_alert({
-								message: __("{0} check-in records added", [r.message.length]),
+								message: __("First check-in record added."),
 								indicator: 'green'
 							}, 3);
 						} else {
