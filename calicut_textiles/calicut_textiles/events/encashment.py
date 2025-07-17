@@ -144,7 +144,7 @@ class CustomLeaveEncashment(LeaveEncashment):
 def process_monthly_leave_encashment():
     """Function to be called by scheduler to process monthly encashments"""
 
-    if getdate() == get_last_day(getdate():
+    if getdate() == get_last_day(getdate()):
         employees = frappe.get_all("Employee",
             filters={"status": "Active"},
             fields=["name"]
