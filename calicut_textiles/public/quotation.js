@@ -147,7 +147,7 @@ function show_whatsapp_options_dialog(frm) {
                     fieldtype: 'Select',
                     options: print_formats,
                     default: current_print_format,
-                    description: 'Select print format for the PDF invoice'
+                    description: 'Select print format for the PDF quotation'
                 },
                 {
                     label: 'Letterhead',
@@ -155,7 +155,7 @@ function show_whatsapp_options_dialog(frm) {
                     fieldtype: 'Select',
                     options: letterheads,
                     default: current_letterhead,
-                    description: 'Select letterhead for the PDF invoice'
+                    description: 'Select letterhead for the PDF quotation'
                 },
                 {
                     label: 'WhatsApp Option',
@@ -471,7 +471,7 @@ function resend_saved_pdf(file_id, file_name, file_url) {
 function update_resend_preview(frm, dialog, file_name) {
     var mobile_number = dialog.get_value('mobile_number');
     var option = dialog.get_value('whatsapp_option');
-    var invoice = frm.doc;
+    var quotation = frm.doc;
 
     var message_lines = [
         "Good day! 👋",
@@ -589,7 +589,7 @@ function send_existing_pdf_via_whatsapp(frm, mobile_number, option, file_name, f
                         '</div>' +
                         '<div style="font-size: 12px; color: #666;">' +
                             '<a href="' + file_url + '" target="_blank" style="color: #666;">' +
-                                '📄 View PDF Invoice' +
+                                '📄 View PDF Quotation' +
                             '</a>' +
                         '</div>' +
                     '</div>';
@@ -766,7 +766,7 @@ function update_message_preview_enhanced(frm, dialog) {
             'Mode: <strong>' + option + '</strong><br>' +
             'Print Format: <strong>' + (print_format || 'Standard') + '</strong><br>' +
             'Letterhead: <strong>' + (letterhead || 'Default') + '</strong><br>' +
-            '📁 PDF will be saved to: <code>/files/Invoice_' + quotation.name + '.pdf</code>' +
+            '📁 PDF will be saved to: <code>/files/Quotation_' + quotation.name + '.pdf</code>' +
             '</div>';
     }
 
