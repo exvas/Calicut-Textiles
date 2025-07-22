@@ -12,10 +12,10 @@ from frappe.utils.file_manager import save_file
 @frappe.whitelist()
 def send_invoice_whatsapp(docname, mobile_number, print_format=None, letterhead=None):
     """
-    Generate invoice PDF, save it to files, and create WhatsApp message link
+    Generate quotation PDF, save it to files, and create WhatsApp message link
     """
     try:
-        # Get the invoice document
+        # Get the quotation document
         quotation = frappe.get_doc("Quotation", docname)
 
         # Check permissions
@@ -52,7 +52,7 @@ def send_pdf_to_whatsapp(docname, mobile_number, print_format=None, letterhead=N
     Generate quotation PDF for manual WhatsApp attachment
     """
     try:
-        # Get the invoice document
+        # Get the quotation document
         quotation = frappe.get_doc("Quotation", docname)
 
         # Check permissions
@@ -96,7 +96,7 @@ def resend_existing_pdf_whatsapp(docname, mobile_number, option, file_name, file
     Resend existing PDF via WhatsApp without regenerating
     """
     try:
-        # Get the invoice document
+        # Get the quotation document
         quotation = frappe.get_doc("Quotation", docname)
 
         # Check permissions
@@ -245,7 +245,7 @@ def generate_and_save_invoice_pdf(quotation, custom_print_format=None, custom_le
                     frappe.logger().info("WhatsApp: Using HTML format as final fallback")
 
         # Save the file
-        file_name = f"Quotation_{invoice.name}.{file_extension}"
+        file_name = f"Quotation_{quotation.name}.{file_extension}"
         file_doc = save_file(
             fname=file_name,
             content=file_content,
@@ -268,7 +268,7 @@ def generate_and_save_invoice_pdf(quotation, custom_print_format=None, custom_le
     except Exception as e:
         frappe.log_error(f"WhatsApp file generation error: {str(e)}", "WhatsApp File Generation Error")
 
-        # Fallback: Create a simple text file with invoice details
+        # Fallback: Create a simple text file with quotation details
         try:
             settings = frappe.get_single("Whatsapp Settings")
             print_format = custom_print_format if custom_print_format is not None else (settings.whatsapp__print_format or "Standard")
@@ -368,7 +368,7 @@ def create_whatsapp_message(mobile_number, quotation, pdf_data):
     except Exception as e:
         frappe.log_error(f"Error creating WhatsApp message: {str(e)}")
         raise
-        
+
 def create_whatsapp_message_for_attachment(mobile_number, quotation, pdf_data):
     """Create WhatsApp message URLs for manual PDF attachment"""
 
@@ -457,14 +457,14 @@ def get_customer_mobile(customer_name):
 
 @frappe.whitelist()
 def get_saved_invoice_files(docname):
-    """Get all saved PDF files for the invoice"""
+    """Get all saved PDF files for the quotation"""
     try:
-        # Get all files attached to this Sales Invoice
+        # Get all files attached to this Sales quotation
         files = frappe.get_all("File",
             filters={
-                "attached_to_doctype": "Sales Invoice",
+                "attached_to_doctype": "Quotation",
                 "attached_to_name": docname,
-                "file_name": ["like", "Invoice_%"]
+                "file_name": ["like", "Quotation_%"]
             },
             fields=["name", "file_name", "file_url", "creation"],
             order_by="creation desc"
