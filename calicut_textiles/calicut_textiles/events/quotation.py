@@ -1,49 +1,46 @@
 import frappe
-
-@frappe.whitelist()
-def get_customer_mobile(customer_name):
-    """Get mobile number from customer record"""
-    try:
-        if not customer_name:
-            return {"mobile": ""}
-
-        customer = frappe.get_doc("Customer", customer_name)
-        mobile = customer.mobile_no or ""
-
-        # Also check in customer's primary contact
-        if not mobile:
-            contacts = frappe.get_all("Dynamic Link",
-                filters={
-                    "link_doctype": "Customer",
-                    "link_name": customer_name,
-                    "parenttype": "Contact"
-                },
-                fields=["parent"]
-            )
-
-            if contacts:
-                contact = frappe.get_doc("Contact", contacts[0].parent)
-                mobile = contact.mobile_no or contact.phone or ""
-
-        return {"mobile": mobile}
-
-    except Exception as e:
-        frappe.log_error(f"Error getting customer mobile: {str(e)}")
-        return {"mobile": ""}
+from frappe import _
+from erpnext.stock.utils import _update_item_info
+from frappe.utils import *
+from typing import Dict, Optional
+import os
+import base64
+from frappe.utils.pdf import get_pdf
+from frappe.utils.file_manager import save_file
 
 
 @frappe.whitelist()
-def get_whatsapp_settings():
-    """Get WhatsApp settings from Whatsapp Settings"""
+def send_invoice_whatsapp(docname, mobile_number, print_format=None, letterhead=None):
+    """
+    Generate invoice PDF, save it to files, and create WhatsApp message link
+    """
     try:
-        settings = frappe.get_single("Whatsapp Settings")
+        # Get the invoice document
+        quotation = frappe.get_doc("Quotation", docname)
+
+        # Check permissions
+        if not frappe.has_permission("Quotation", "read", quotation.name):
+            frappe.throw(_("No permission to access this Quotation"))
+
+        # Generate and save PDF/HTML
+        pdf_data = generate_and_save_invoice_pdf(quotation, print_format, letterhead)
+
+        # Generate WhatsApp message
+        whatsapp_data = create_whatsapp_message(mobile_number, quotation, pdf_data)
+
         return {
             "success": True,
-            "print_format": settings.whatsapp__print_format or "Standard",
-            "letterhead": settings.whatsapp_letter_head or "",
-            "message": f"Settings: Print Format='{settings.whatsapp__print_format or 'Standard'}', Letterhead='{settings.whatsapp_letter_head or 'None'}'"
+            "whatsapp_url": whatsapp_data["whatsapp_url"],
+            "pdf_url": whatsapp_data["pdf_url"],
+            "pdf_file_name": pdf_data["file_name"],
+            "pdf_file_path": pdf_data["file_path"],
+            "print_format_used": pdf_data.get("print_format_used"),
+            "letterhead_used": pdf_data.get("letterhead_used"),
+            "message": f"WhatsApp link created using {pdf_data.get('print_format_used')} with {pdf_data.get('letterhead_used')} letterhead"
         }
+
     except Exception as e:
+        frappe.log_error(f"WhatsApp send error: {str(e)}", "WhatsApp Quotation Error")
         return {
             "success": False,
             "error": str(e)
@@ -88,6 +85,54 @@ def send_pdf_to_whatsapp(docname, mobile_number, print_format=None, letterhead=N
 
     except Exception as e:
         frappe.log_error(f"WhatsApp PDF error: {str(e)}", "WhatsApp PDF Error")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@frappe.whitelist()
+def resend_existing_pdf_whatsapp(docname, mobile_number, option, file_name, file_url):
+    """
+    Resend existing PDF via WhatsApp without regenerating
+    """
+    try:
+        # Get the invoice document
+        quotation = frappe.get_doc("Quotation", docname)
+
+        # Check permissions
+        if not frappe.has_permission("Quotation", "read", quotation.name):
+            frappe.throw(_("No permission to access this quotation"))
+
+        # Create fake pdf_data structure for existing file
+        pdf_data = {
+            "file_name": file_name,
+            "file_url": file_url
+        }
+
+        if option == "PDF for Manual Attachment":
+            # Create WhatsApp URLs (without PDF link in message)
+            whatsapp_data = create_whatsapp_message_for_attachment(mobile_number, quotation, pdf_data)
+
+            return {
+                "success": True,
+                "whatsapp_web_url": whatsapp_data["whatsapp_web_url"],
+                "whatsapp_mobile_url": whatsapp_data["whatsapp_mobile_url"],
+                "pdf_url": whatsapp_data["pdf_url"],
+                "message": "Resend ready for manual attachment"
+            }
+        else:
+            # Create WhatsApp message with PDF link
+            whatsapp_data = create_whatsapp_message(mobile_number, quotation, pdf_data)
+
+            return {
+                "success": True,
+                "whatsapp_url": whatsapp_data["whatsapp_url"],
+                "pdf_url": whatsapp_data["pdf_url"],
+                "message": "Resend ready with download link"
+            }
+
+    except Exception as e:
+        frappe.log_error(f"WhatsApp resend error: {str(e)}", "WhatsApp Resend Error")
         return {
             "success": False,
             "error": str(e)
@@ -200,7 +245,7 @@ def generate_and_save_invoice_pdf(quotation, custom_print_format=None, custom_le
                     frappe.logger().info("WhatsApp: Using HTML format as final fallback")
 
         # Save the file
-        file_name = f"Quotation{invoice.name}.{file_extension}"
+        file_name = f"Quotation_{invoice.name}.{file_extension}"
         file_doc = save_file(
             fname=file_name,
             content=file_content,
@@ -234,7 +279,7 @@ QUOTATION DETAILS
 ===============
 
 Quotation Number: {quotation.name}
-Customer: {quotation.customer_name or invoice.party_name}
+Customer: {quotation.customer_name or quotation.party_name}
 Date: {quotation.transaction_date}
 Amount: {quotation.currency} {quotation.grand_total}
 
@@ -246,7 +291,7 @@ Note: Both PDF and HTML generation failed. This is a text fallback.
 Please contact support for assistance.
             """.strip()
 
-            file_name = f"Quotation{quotation.name}_fallback.txt"
+            file_name = f"Quotation_{quotation.name}_fallback.txt"
             file_doc = save_file(
                 fname=file_name,
                 content=fallback_content.encode('utf-8'),
@@ -268,6 +313,62 @@ Please contact support for assistance.
             frappe.log_error(f"Final fallback failed: {str(final_error)}", "WhatsApp Final Fallback Error")
             raise Exception(f"All file generation methods failed: {str(e)}")
 
+def create_whatsapp_message(mobile_number, quotation, pdf_data):
+    """Create WhatsApp message URL with quotation details and PDF link"""
+    try:
+        # Clean mobile number (remove spaces, dashes, etc.)
+        clean_number = ''.join(filter(str.isdigit, mobile_number))
+
+        # Add country code if not present (assuming India +91)
+        if not clean_number.startswith('+') and len(clean_number) == 10:
+            clean_number = '+91' + clean_number
+        elif not clean_number.startswith('+'):
+            clean_number = '+' + clean_number
+
+        # Get site URL
+        site_url = frappe.utils.get_url()
+        full_pdf_url = f"{site_url}{pdf_data['file_url']}"
+
+        # Create message text
+        message_lines = [
+            "Good day! 👋",
+            "",
+            "Thank you for your interest in our quotation! 🛍️",
+            "",
+            "📋 *Quotation Details:*",
+            f"Quotation: #{quotation.name}",
+            f"Date: {quotation.get_formatted('transaction_date')}",
+            f"Amount: {quotation.currency} {quotation.get_formatted('grand_total')}",
+            "",
+            f"Customer: {quotation.customer_name or quotation.party_name}",
+        ]
+
+        if quotation.valid_till:
+            message_lines.append(f"Valid Till: {quotation.get_formatted('valid_till')}")
+
+        message_lines.extend([
+            "",
+            f"📄 Download Quotation: {full_pdf_url}",
+            "",
+            "Please let us know if you have any questions! 🙏"
+        ])
+
+        message = "\n".join(message_lines)
+
+        # Encode message for URL
+        from urllib.parse import quote
+        encoded_message = quote(message)
+        whatsapp_url = f"https://wa.me/{clean_number}?text={encoded_message}"
+
+        return {
+            "whatsapp_url": whatsapp_url,
+            "pdf_url": full_pdf_url,
+            "message": message
+        }
+    except Exception as e:
+        frappe.log_error(f"Error creating WhatsApp message: {str(e)}")
+        raise
+        
 def create_whatsapp_message_for_attachment(mobile_number, quotation, pdf_data):
     """Create WhatsApp message URLs for manual PDF attachment"""
 
@@ -301,7 +402,7 @@ def create_whatsapp_message_for_attachment(mobile_number, quotation, pdf_data):
 
     message_lines.extend([
         "",
-        "📄 Please find your invoice attached below.",
+        "📄 Please find your quotation attached below.",
         "",
         "Thank you for your business! 🙏"
     ])
@@ -324,109 +425,46 @@ def create_whatsapp_message_for_attachment(mobile_number, quotation, pdf_data):
     }
 
 @frappe.whitelist()
-def send_invoice_whatsapp(docname, mobile_number, print_format=None, letterhead=None):
-    """
-    Generate quotation PDF, save it to files, and create WhatsApp message link
-    """
+def get_customer_mobile(customer_name):
+    """Get mobile number from customer record"""
     try:
-        # Get the invoice document
-        quotation = frappe.get_doc("Quotation", docname)
+        if not customer_name:
+            return {"mobile": ""}
 
-        # Check permissions
-        if not frappe.has_permission("Quotation", "read", quotation.name):
-            frappe.throw(_("No permission to access this quotation"))
+        customer = frappe.get_doc("Customer", customer_name)
+        mobile = customer.mobile_no or ""
 
-        # Generate and save PDF/HTML
-        pdf_data = generate_and_save_invoice_pdf(quotation, print_format, letterhead)
+        # Also check in customer's primary contact
+        if not mobile:
+            contacts = frappe.get_all("Dynamic Link",
+                filters={
+                    "link_doctype": "Customer",
+                    "link_name": customer_name,
+                    "parenttype": "Contact"
+                },
+                fields=["parent"]
+            )
 
-        # Generate WhatsApp message
-        whatsapp_data = create_whatsapp_message(mobile_number, quotation, pdf_data)
+            if contacts:
+                contact = frappe.get_doc("Contact", contacts[0].parent)
+                mobile = contact.mobile_no or contact.phone or ""
 
-        return {
-            "success": True,
-            "whatsapp_url": whatsapp_data["whatsapp_url"],
-            "pdf_url": whatsapp_data["pdf_url"],
-            "pdf_file_name": pdf_data["file_name"],
-            "pdf_file_path": pdf_data["file_path"],
-            "print_format_used": pdf_data.get("print_format_used"),
-            "letterhead_used": pdf_data.get("letterhead_used"),
-            "message": f"WhatsApp link created using {pdf_data.get('print_format_used')} with {pdf_data.get('letterhead_used')} letterhead"
-        }
+        return {"mobile": mobile}
 
     except Exception as e:
-        frappe.log_error(f"WhatsApp send error: {str(e)}", "WhatsApp Invoice Error")
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        frappe.log_error(f"Error getting customer mobile: {str(e)}")
+        return {"mobile": ""}
 
-def create_whatsapp_message(mobile_number, quotation, pdf_data):
-    """Create WhatsApp message URL with quotation details and PDF link"""
-
-    # Clean mobile number (remove spaces, dashes, etc.)
-    clean_number = ''.join(filter(str.isdigit, mobile_number))
-
-    if not clean_number.startswith('+91') and len(clean_number) == 10:
-    	clean_number = '+91' + clean_number
-
-    # Get site URL
-    site_url = frappe.utils.get_url()
-    full_pdf_url = f"{site_url}{pdf_data['file_url']}"
-
-    # Create message text
-    message_lines = [
-        "Good day! 👋",
-        "",
-        "Thank you for your purchase! 🛍️",
-        "",
-        "📋 *Quotation Details:*",
-        f"Invoice: #{quotation.name}",
-        f"Date: {quotation.get_formatted('transaction_date')}",
-        f"Amount: {quotation.currency} {quotation.get_formatted('grand_total')}",
-        "",
-        f"Customer: {quotation.customer_name or quotation.party_name}",
-    ]
-
-    # Add due date and outstanding if applicable
-    if quotation.valid_till and quotation.outstanding_amount > 0:
-        message_lines.extend([
-            f"Due Date: {quotation.get_formatted('valid_till')}",
-            f"Outstanding: {quotation.currency} {quotation.get_formatted('outstanding_amount')}"
-        ])
-
-    # Determine file type for message
-    file_type = "PDF" if pdf_data['file_name'].endswith('.pdf') else "Quotation"
-
-    message_lines.extend([
-        "",
-        f"📄 Download {file_type}: {full_pdf_url}",
-        "",
-        "Thank you for your business! 🙏"
-    ])
-
-    message = "\n".join(message_lines)
-
-    # Encode message for URL
-    from urllib.parse import quote
-    encoded_message = quote(message)
-    whatsapp_url = f"https://wa.me/{clean_number}?text={encoded_message}"
-
-    return {
-        "whatsapp_url": whatsapp_url,
-        "pdf_url": full_pdf_url,
-        "message": message
-    }
-
-frappe.whitelist()
+@frappe.whitelist()
 def get_saved_invoice_files(docname):
-    """Get all saved PDF files for the QUOTATION"""
+    """Get all saved PDF files for the invoice"""
     try:
         # Get all files attached to this Sales Invoice
         files = frappe.get_all("File",
             filters={
-                "attached_to_doctype": "Quotation",
+                "attached_to_doctype": "Sales Invoice",
                 "attached_to_name": docname,
-                "file_name": ["like", "Quotation_%"]
+                "file_name": ["like", "Invoice_%"]
             },
             fields=["name", "file_name", "file_url", "creation"],
             order_by="creation desc"
@@ -444,51 +482,36 @@ def get_saved_invoice_files(docname):
             "error": str(e)
         }
 
-
 @frappe.whitelist()
-def resend_existing_pdf_whatsapp(docname, mobile_number, option, file_name, file_url):
-    """
-    Resend existing PDF via WhatsApp without regenerating
-    """
+def get_whatsapp_settings():
+    """Get WhatsApp settings from Whatsapp Settings"""
     try:
-        # Get the invoice document
-        quotation = frappe.get_doc("Quotation", docname)
-
-        # Check permissions
-        if not frappe.has_permission("Quotation", "read", quotation.name):
-            frappe.throw(_("No permission to access this quotation"))
-
-        # Create fake pdf_data structure for existing file
-        pdf_data = {
-            "file_name": file_name,
-            "file_url": file_url
+        settings = frappe.get_single("Whatsapp Settings")
+        return {
+            "success": True,
+            "print_format": settings.whatsapp__print_format or "Standard",
+            "letterhead": settings.whatsapp_letter_head or "",
+            "message": f"Settings: Print Format='{settings.whatsapp__print_format or 'Standard'}', Letterhead='{settings.whatsapp_letter_head or 'None'}'"
         }
-
-        if option == "PDF for Manual Attachment":
-            # Create WhatsApp URLs (without PDF link in message)
-            whatsapp_data = create_whatsapp_message_for_attachment(mobile_number, invoice, pdf_data)
-
-            return {
-                "success": True,
-                "whatsapp_web_url": whatsapp_data["whatsapp_web_url"],
-                "whatsapp_mobile_url": whatsapp_data["whatsapp_mobile_url"],
-                "pdf_url": whatsapp_data["pdf_url"],
-                "message": "Resend ready for manual attachment"
-            }
-        else:
-            # Create WhatsApp message with PDF link
-            whatsapp_data = create_whatsapp_message(mobile_number, invoice, pdf_data)
-
-            return {
-                "success": True,
-                "whatsapp_url": whatsapp_data["whatsapp_url"],
-                "pdf_url": whatsapp_data["pdf_url"],
-                "message": "Resend ready with download link"
-            }
-
     except Exception as e:
-        frappe.log_error(f"WhatsApp resend error: {str(e)}", "WhatsApp Resend Error")
         return {
             "success": False,
             "error": str(e)
         }
+
+@frappe.whitelist()
+def test_extra_settings():
+    """Test function to verify Whatsapp Settings are working"""
+    try:
+        settings = frappe.get_single("Whatsapp Settings")
+        return {
+            "success": True,
+            "print_format": settings.whatsapp__print_format or "Standard",
+            "letterhead": settings.whatsapp_letter_head or "",
+            "message": f"Settings: Print Format='{settings.whatsapp__print_format or 'Standard'}', Letterhead='{settings.whatsapp_letter_head or 'None'}'"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+    }

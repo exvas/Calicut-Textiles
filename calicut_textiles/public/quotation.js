@@ -209,7 +209,7 @@ function show_whatsapp_options_dialog(frm) {
             if (printFormatField) {
                 // Add print format info below the field
                 printFormatField.$wrapper.append('<div class="format-info">' +
-                    '📝 This print format will be used to generate the PDF invoice. Default is set from Whatsapp Settings.' +
+                    '📝 This print format will be used to generate the PDF quotation. Default is set from Whatsapp Settings.' +
                     '</div>');
 
                 printFormatField.$input.on('change', function() {
@@ -220,7 +220,7 @@ function show_whatsapp_options_dialog(frm) {
             if (letterheadField) {
                 // Add letterhead info below the field
                 letterheadField.$wrapper.append('<div class="format-info">' +
-                    '💡 This letterhead will be used in the generated PDF invoice. Default is set from Whatsapp Settings.' +
+                    '💡 This letterhead will be used in the generated PDF quotation. Default is set from Whatsapp Settings.' +
                     '</div>');
 
                 letterheadField.$input.on('change', function() {
@@ -283,7 +283,7 @@ function get_print_formats_letterheads_and_settings(callback) {
 
                     // Get current settings from Whatsapp Settings
                     frappe.call({
-                        method: 'calicut_textiles.calicut_textiles.events.quotation.get_whatsapp_settings',
+                        method: 'calicut_textiles.calicut_textiles.events.sales_invoice.get_whatsapp_settings',
                         callback: function(settings_response) {
                             var current_print_format = 'Standard';
                             var current_letterhead = '';
@@ -299,308 +299,6 @@ function get_print_formats_letterheads_and_settings(callback) {
         }
     });
 }
-
-function get_customer_mobile(customer_name, dialog) {
-    if (!customer_name) return;
-
-    frappe.call({
-        method: 'calicut_textiles.calicut_textiles.events.quotation.get_customer_mobile',
-        args: {
-            customer_name: customer_name
-        },
-        callback: function(r) {
-            if (r.message && r.message.mobile) {
-                if (dialog) {
-                    dialog.set_value('mobile_number', r.message.mobile);
-                    if (dialog.get_field('print_format')) {
-                        update_message_preview_enhanced(cur_frm, dialog);
-                    } else {
-                        update_resend_preview(cur_frm, dialog, 'Existing PDF');
-                    }
-                }
-                frappe.show_alert({
-                    message: 'Customer mobile: ' + r.message.mobile,
-                    indicator: 'green'
-                });
-            } else {
-                frappe.show_alert({
-                    message: 'No mobile number found for customer',
-                    indicator: 'orange'
-                });
-            }
-        }
-    });
-}
-
-
-function update_message_preview_enhanced(frm, dialog) {
-    var mobile_number = dialog.get_value('mobile_number');
-    var option = dialog.get_value('whatsapp_option');
-    var print_format = dialog.get_value('print_format');
-    var letterhead = dialog.get_value('letterhead');
-    var quotation = frm.doc;
-
-    var message_lines = [
-        "Good day! 👋",
-        "",
-        "Thank you for your purchase! 🛍️",
-        "",
-        "📋 *Quotation Details:*",
-        "Quotation: #" + quotation.name,
-        "Date: " + frappe.datetime.str_to_user(quotation.transaction_date),
-        "Amount: " + quotation.currency + " " + format_currency(quotation.grand_total, quotation.currency),
-        "",
-        "Customer: " + (quotation.customer_name || quotation.party_name),
-    ];
-
-    if (quotation.valid_till && quotation.outstanding_amount > 0) {
-        message_lines.push("Due Date: " + frappe.datetime.str_to_user(quotation.valid_till));
-        message_lines.push("Outstanding: " + quotation.currency + " " + format_currency(quotation.outstanding_amount, quotation.currency));
-    }
-
-    message_lines.push("");
-
-    if (option === 'PDF for Manual Attachment') {
-        message_lines.push("📄 Please find your invoice PDF attached below.");
-    } else {
-        message_lines.push("Download Invoice: [PDF Link will be added here]");
-    }
-
-    message_lines.push("");
-    message_lines.push("Thank you for your business! 🙏");
-
-    var preview_html = '<div class="whatsapp-preview">' +
-        '<strong>📱 WhatsApp Message Preview:</strong>' +
-        '<div style="margin-top: 10px; white-space: pre-line; font-size: 14px;">' +
-        message_lines.join('\n') +
-        '</div>';
-
-    if (mobile_number) {
-        preview_html += '<div style="margin-top: 10px; color: #666; font-size: 12px;">' +
-            'Will be sent to: <strong>' + mobile_number + '</strong><br>' +
-            'Mode: <strong>' + option + '</strong><br>' +
-            'Print Format: <strong>' + (print_format || 'Standard') + '</strong><br>' +
-            'Letterhead: <strong>' + (letterhead || 'Default') + '</strong><br>' +
-            '📁 PDF will be saved to: <code>/files/Invoice_' + quotation.name + '.pdf</code>' +
-            '</div>';
-    }
-
-    preview_html += '</div>';
-
-    dialog.set_df_property('message_preview', 'options', preview_html);
-}
-
-function update_resend_preview(frm, dialog, file_name) {
-    var mobile_number = dialog.get_value('mobile_number');
-    var option = dialog.get_value('whatsapp_option');
-    var quotation = frm.doc;
-
-    var message_lines = [
-        "Good day! 👋",
-        "",
-        "Thank you for your purchase!",
-        "",
-        "*Invoice Details:*",
-        "Invoice: #" + quotation.name,
-        "Date: " + frappe.datetime.str_to_user(quotation.transaction_date),
-        "Amount: " + invoice.currency + " " + format_currency(invoice.grand_total, invoice.currency),
-        "",
-        "Customer: " + (invoice.customer_name || invoice.party_name),
-    ];
-
-    if (invoice.valid_till && invoice.outstanding_amount > 0) {
-        message_lines.push("Due Date: " + frappe.datetime.str_to_user(invoice.valid_till));
-        message_lines.push("Outstanding: " + invoice.currency + " " + format_currency(invoice.outstanding_amount, invoice.currency));
-    }
-
-    message_lines.push("");
-
-    if (option === 'PDF for Manual Attachment') {
-        message_lines.push("📄 Please find your invoice PDF attached below.");
-    } else {
-        message_lines.push("Download Invoice: [PDF Link will be added here]");
-    }
-
-    message_lines.push("");
-    message_lines.push("Thank you for your business! 🙏");
-
-    var preview_html = '<div class="whatsapp-preview">' +
-        '<strong>📱 WhatsApp Message Preview:</strong>' +
-        '<div style="margin-top: 10px; white-space: pre-line; font-size: 14px;">' +
-        message_lines.join('\n') +
-        '</div>';
-
-    if (mobile_number) {
-        preview_html += '<div style="margin-top: 10px; color: #666; font-size: 12px;">' +
-            'Will be sent to: <strong>' + mobile_number + '</strong><br>' +
-            'Mode: <strong>' + option + '</strong><br>' +
-            'File: <strong>' + file_name + '</strong><br>' +
-            'Using existing saved PDF' +
-            '</div>';
-    }
-
-    preview_html += '</div>';
-
-    dialog.set_df_property('message_preview', 'options', preview_html);
-}
-
-function send_whatsapp_with_attachment(frm, mobile_number, print_format, letterhead, dialog) {
-    if (!mobile_number) {
-        frappe.msgprint('Please enter mobile number');
-        return;
-    }
-
-    frappe.show_alert({
-        message: 'Generating PDF for WhatsApp attachment...',
-        indicator: 'blue'
-    });
-
-    frappe.call({
-        method: 'calicut_textiles.calicut_textiles.events.quotation.send_pdf_to_whatsapp',
-        args: {
-            docname: frm.doc.name,
-            mobile_number: mobile_number,
-            print_format: print_format,
-            letterhead: letterhead
-        },
-        callback: function(r) {
-            if (r.message && r.message.success) {
-                dialog.hide();
-
-                var attachment_message = '<div style="padding: 20px;">' +
-                    '<div style="font-size: 16px; margin-bottom: 20px;">' +
-                        '📱 Choose your preferred method:' +
-                    '</div>' +
-                    '<div style="margin-bottom: 20px; padding: 15px; background: #e8f5e8; border-radius: 5px;">' +
-                        '<strong>Option 1: WhatsApp Web (Recommended)</strong><br>' +
-                        '<a href="' + r.message.whatsapp_web_url + '" target="_blank" ' +
-                           'class="btn btn-success" ' +
-                           'style="background: #25D366; border-color: #25D366; margin-top: 10px;">' +
-                            '📱 Open WhatsApp Web' +
-                        '</a>' +
-                        '<p style="margin-top: 10px; font-size: 12px;">' +
-                            'After opening, drag and drop the PDF file to attach it.' +
-                        '</p>' +
-                    '</div>' +
-                    '<div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px;">' +
-                        '<strong>Option 2: Mobile WhatsApp</strong><br>' +
-                        '<a href="' + r.message.whatsapp_mobile_url + '" target="_blank" ' +
-                           'class="btn btn-primary" ' +
-                           'style="margin-top: 10px;">' +
-                            '📱 Open Mobile WhatsApp' +
-                        '</a>' +
-                        '<p style="margin-top: 10px; font-size: 12px;">' +
-                            'Copy the PDF link and share it manually.' +
-                        '</p>' +
-                    '</div>' +
-                    '<div style="margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px;">' +
-                        '<strong>📄 PDF File:</strong><br>' +
-                        '<a href="' + r.message.pdf_url + '" target="_blank" style="color: #666;">' +
-                            '📥 Download ' + r.message.pdf_file_name +
-                        '</a>' +
-                        '<div style="margin-top: 5px; font-size: 12px; color: #666;">' +
-                            'Print Format: <strong>' + r.message.print_format_used + '</strong><br>' +
-                            'Letterhead: <strong>' + r.message.letterhead_used + '</strong>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
-
-                frappe.msgprint({
-                    title: 'WhatsApp Ready - Manual PDF Attachment',
-                    message: attachment_message,
-                    wide: true
-                });
-
-                frappe.show_alert({
-                    message: 'WhatsApp link and PDF ready! 🎉',
-                    indicator: 'green'
-                });
-            }
-        }
-    });
-}
-
-function send_whatsapp_invoice(frm, mobile_number, print_format, letterhead, dialog) {
-    if (!mobile_number) {
-        frappe.msgprint('Please enter mobile number');
-        return;
-    }
-
-    frappe.show_alert({
-        message: 'Generating WhatsApp link and saving PDF to /files/...',
-        indicator: 'blue'
-    });
-
-    frappe.call({
-        method: 'calicut_textiles.calicut_textiles.events.quotation.send_invoice_whatsapp',
-        args: {
-            docname: frm.doc.name,
-            mobile_number: mobile_number,
-            print_format: print_format,
-            letterhead: letterhead
-        },
-        callback: function(r) {
-            if (r.message && r.message.success) {
-                dialog.hide();
-
-                const file_url = r.message.pdf_url;
-                const message =
-                    `Hello! Here is your quotation: ${frm.doc.name}\n\n` +
-                    `Download link: ${file_url}`;
-
-                const whatsapp_url = "https://wa.me/" + encodeURIComponent(mobile_number.replace(/\D/g, '')) +
-                                     "?text=" + encodeURIComponent(message);
-
-                // Open WhatsApp chat in new tab immediately
-                window.open(whatsapp_url, '_blank');
-
-                // Show success message inside ERPNext
-                const success_message = `
-                    <div style="text-align: center; padding: 20px;">
-                        <div style="font-size: 16px; margin-bottom: 20px;">
-                            WhatsApp chat opened with customer! 🎉
-                        </div>
-                        <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
-                            <strong>📁 PDF Saved to:</strong><br>
-                            <code>${r.message.pdf_file_path || '/files/' + r.message.pdf_file_name}</code><br>
-                            <small style="color: #666;">
-                                Print Format: ${r.message.print_format_used} |
-                                Letterhead: ${r.message.letterhead_used}
-                            </small>
-                        </div>
-                        <div style="margin-bottom: 20px; color: #666; font-size: 14px;">
-                            If WhatsApp didn’t open automatically,
-                            <a href="${whatsapp_url}" target="_blank">click here</a>.
-                        </div>
-                    </div>
-                `;
-
-                frappe.msgprint({
-                    title: 'WhatsApp Link Generated & PDF Saved',
-                    message: success_message,
-                    wide: true
-                });
-
-                frappe.show_alert({
-                    message: 'WhatsApp chat opened with customer!',
-                    indicator: 'green'
-                });
-
-                frm.reload_doc();
-            }
-        }
-    });
-}
-
-// Utility function to format currency
-function format_currency(amount, currency) {
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: currency || 'INR',
-        minimumFractionDigits: 2
-    }).format(amount);
-}
-
 
 function show_saved_files_dialog(frm) {
     // Show dialog with saved PDF files
@@ -756,7 +454,7 @@ window.resend_saved_pdf = function(file_id, file_name, file_url) {
 
     // Load customer mobile if available
     if (cur_frm.doc.customer) {
-        get_customer_mobile(cur_frm.doc.customer, resend_dialog);
+        get_customer_mobile(cur_frm.doc.party_name, resend_dialog);
     }
 
     // Initial preview
@@ -765,6 +463,64 @@ window.resend_saved_pdf = function(file_id, file_name, file_url) {
     }, 200);
 };
 
+function resend_saved_pdf(file_id, file_name, file_url) {
+    // Call the global function
+    window.resend_saved_pdf(file_id, file_name, file_url);
+}
+
+function update_resend_preview(frm, dialog, file_name) {
+    var mobile_number = dialog.get_value('mobile_number');
+    var option = dialog.get_value('whatsapp_option');
+    var invoice = frm.doc;
+
+    var message_lines = [
+        "Good day! 👋",
+        "",
+        "Thank you for your purchase!",
+        "",
+        "*Quotation Details:*",
+        "Quotation: #" + quotation.name,
+        "Date: " + frappe.datetime.str_to_user(quotation.transaction_date),
+        "Amount: " + quotation.currency + " " + format_currency(quotation.grand_total, quotation.currency),
+        "",
+        "Customer: " + (quotation.customer_name || quotation.party_name),
+    ];
+
+    if (quotation.valid_till && quotation.outstanding_amount > 0) {
+        message_lines.push("Due Date: " + frappe.datetime.str_to_user(quotation.valid_till));
+        message_lines.push("Outstanding: " + quotation.currency + " " + format_currency(quotation.outstanding_amount, quotation.currency));
+    }
+
+    message_lines.push("");
+
+    if (option === 'PDF for Manual Attachment') {
+        message_lines.push("📄 Please find your quotation PDF attached below.");
+    } else {
+        message_lines.push("Download Quotation: [PDF Link will be added here]");
+    }
+
+    message_lines.push("");
+    message_lines.push("Thank you for your business! 🙏");
+
+    var preview_html = '<div class="whatsapp-preview">' +
+        '<strong>📱 WhatsApp Message Preview:</strong>' +
+        '<div style="margin-top: 10px; white-space: pre-line; font-size: 14px;">' +
+        message_lines.join('\n') +
+        '</div>';
+
+    if (mobile_number) {
+        preview_html += '<div style="margin-top: 10px; color: #666; font-size: 12px;">' +
+            'Will be sent to: <strong>' + mobile_number + '</strong><br>' +
+            'Mode: <strong>' + option + '</strong><br>' +
+            'File: <strong>' + file_name + '</strong><br>' +
+            'Using existing saved PDF' +
+            '</div>';
+    }
+
+    preview_html += '</div>';
+
+    dialog.set_df_property('message_preview', 'options', preview_html);
+}
 
 function send_existing_pdf_via_whatsapp(frm, mobile_number, option, file_name, file_url, dialog) {
     if (!mobile_number) {
@@ -852,4 +608,248 @@ function send_existing_pdf_via_whatsapp(frm, mobile_number, option, file_name, f
             }
         }
     });
+}
+
+function get_customer_mobile(customer_name, dialog) {
+    if (!customer_name) return;
+
+    frappe.call({
+        method: 'calicut_textiles.calicut_textiles.events.quotation.get_customer_mobile',
+        args: {
+            customer_name: customer_name
+        },
+        callback: function(r) {
+            if (r.message && r.message.mobile) {
+                if (dialog) {
+                    dialog.set_value('mobile_number', r.message.mobile);
+                    if (dialog.get_field('print_format')) {
+                        update_message_preview_enhanced(cur_frm, dialog);
+                    } else {
+                        update_resend_preview(cur_frm, dialog, 'Existing PDF');
+                    }
+                }
+                frappe.show_alert({
+                    message: 'Customer mobile: ' + r.message.mobile,
+                    indicator: 'green'
+                });
+            } else {
+                frappe.show_alert({
+                    message: 'No mobile number found for customer',
+                    indicator: 'orange'
+                });
+            }
+        }
+    });
+}
+
+function send_whatsapp_with_attachment(frm, mobile_number, print_format, letterhead, dialog) {
+    if (!mobile_number) {
+        frappe.msgprint('Please enter mobile number');
+        return;
+    }
+
+    frappe.show_alert({
+        message: 'Generating PDF for WhatsApp attachment...',
+        indicator: 'blue'
+    });
+
+    frappe.call({
+        method: 'calicut_textiles.calicut_textiles.events.quotation.send_pdf_to_whatsapp',
+        args: {
+            docname: frm.doc.name,
+            mobile_number: mobile_number,
+            print_format: print_format,
+            letterhead: letterhead
+        },
+        callback: function(r) {
+            if (r.message && r.message.success) {
+                dialog.hide();
+
+                var attachment_message = '<div style="padding: 20px;">' +
+                    '<div style="font-size: 16px; margin-bottom: 20px;">' +
+                        '📱 Choose your preferred method:' +
+                    '</div>' +
+                    '<div style="margin-bottom: 20px; padding: 15px; background: #e8f5e8; border-radius: 5px;">' +
+                        '<strong>Option 1: WhatsApp Web (Recommended)</strong><br>' +
+                        '<a href="' + r.message.whatsapp_web_url + '" target="_blank" ' +
+                           'class="btn btn-success" ' +
+                           'style="background: #25D366; border-color: #25D366; margin-top: 10px;">' +
+                            '📱 Open WhatsApp Web' +
+                        '</a>' +
+                        '<p style="margin-top: 10px; font-size: 12px;">' +
+                            'After opening, drag and drop the PDF file to attach it.' +
+                        '</p>' +
+                    '</div>' +
+                    '<div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-radius: 5px;">' +
+                        '<strong>Option 2: Mobile WhatsApp</strong><br>' +
+                        '<a href="' + r.message.whatsapp_mobile_url + '" target="_blank" ' +
+                           'class="btn btn-primary" ' +
+                           'style="margin-top: 10px;">' +
+                            '📱 Open Mobile WhatsApp' +
+                        '</a>' +
+                        '<p style="margin-top: 10px; font-size: 12px;">' +
+                            'Copy the PDF link and share it manually.' +
+                        '</p>' +
+                    '</div>' +
+                    '<div style="margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 5px;">' +
+                        '<strong>📄 PDF File:</strong><br>' +
+                        '<a href="' + r.message.pdf_url + '" target="_blank" style="color: #666;">' +
+                            '📥 Download ' + r.message.pdf_file_name +
+                        '</a>' +
+                        '<div style="margin-top: 5px; font-size: 12px; color: #666;">' +
+                            'Print Format: <strong>' + r.message.print_format_used + '</strong><br>' +
+                            'Letterhead: <strong>' + r.message.letterhead_used + '</strong>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+
+                frappe.msgprint({
+                    title: 'WhatsApp Ready - Manual PDF Attachment',
+                    message: attachment_message,
+                    wide: true
+                });
+
+                frappe.show_alert({
+                    message: 'WhatsApp link and PDF ready! 🎉',
+                    indicator: 'green'
+                });
+            }
+        }
+    });
+}
+
+function update_message_preview_enhanced(frm, dialog) {
+    var mobile_number = dialog.get_value('mobile_number');
+    var option = dialog.get_value('whatsapp_option');
+    var print_format = dialog.get_value('print_format');
+    var letterhead = dialog.get_value('letterhead');
+    var quotation = frm.doc;
+
+    var message_lines = [
+        "Good day! 👋",
+        "",
+        "Thank you for your purchase! 🛍️",
+        "",
+        "📋 *Quotation Details:*",
+        "Quotation: #" + quotation.name,
+        "Date: " + frappe.datetime.str_to_user(quotation.transaction_date),
+        "Amount: " + quotation.currency + " " + format_currency(quotation.grand_total, quotation.currency),
+        "",
+        "Customer: " + (quotation.customer_name || quotation.party_name),
+    ];
+
+    if (quotation.valid_till && quotation.outstanding_amount > 0) {
+        message_lines.push("Due Date: " + frappe.datetime.str_to_user(quotation.valid_till));
+        message_lines.push("Outstanding: " + quotation.currency + " " + format_currency(quotation.outstanding_amount, quotation.currency));
+    }
+
+    message_lines.push("");
+
+    if (option === 'PDF for Manual Attachment') {
+        message_lines.push("📄 Please find your quotation PDF attached below.");
+    } else {
+        message_lines.push("Download Quotation: [PDF Link will be added here]");
+    }
+
+    message_lines.push("");
+    message_lines.push("Thank you for your business! 🙏");
+
+    var preview_html = '<div class="whatsapp-preview">' +
+        '<strong>📱 WhatsApp Message Preview:</strong>' +
+        '<div style="margin-top: 10px; white-space: pre-line; font-size: 14px;">' +
+        message_lines.join('\n') +
+        '</div>';
+
+    if (mobile_number) {
+        preview_html += '<div style="margin-top: 10px; color: #666; font-size: 12px;">' +
+            'Will be sent to: <strong>' + mobile_number + '</strong><br>' +
+            'Mode: <strong>' + option + '</strong><br>' +
+            'Print Format: <strong>' + (print_format || 'Standard') + '</strong><br>' +
+            'Letterhead: <strong>' + (letterhead || 'Default') + '</strong><br>' +
+            '📁 PDF will be saved to: <code>/files/Invoice_' + quotation.name + '.pdf</code>' +
+            '</div>';
+    }
+
+    preview_html += '</div>';
+
+    dialog.set_df_property('message_preview', 'options', preview_html);
+}
+
+function send_whatsapp_invoice(frm, mobile_number, print_format, letterhead, dialog) {
+    if (!mobile_number) {
+        frappe.msgprint('Please enter mobile number');
+        return;
+    }
+
+    frappe.show_alert({
+        message: 'Generating WhatsApp link and saving PDF...',
+        indicator: 'blue'
+    });
+
+    frappe.call({
+        method: 'calicut_textiles.calicut_textiles.events.quotation.send_invoice_whatsapp',
+        args: {
+            docname: frm.doc.name,
+            mobile_number: mobile_number,
+            print_format: print_format,
+            letterhead: letterhead
+        },
+        callback: function(r) {
+            if (r.message && r.message.success) {
+                dialog.hide();
+
+                // Open WhatsApp in new tab
+                window.open(r.message.whatsapp_url, '_blank');
+
+                // Show success message
+                var success_message = '<div style="text-align: center; padding: 20px;">' +
+                    '<div style="font-size: 16px; margin-bottom: 20px;">' +
+                        'WhatsApp chat opened with customer! 🎉' +
+                    '</div>' +
+                    '<div style="margin-bottom: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">' +
+                        '<strong>📁 PDF Saved to:</strong><br>' +
+                        '<a href="' + r.message.pdf_url + '" target="_blank" style="color: #333;">' +
+                            r.message.pdf_file_name +
+                        '</a><br>' +
+                        '<small style="color: #666;">' +
+                            'Print Format: ' + r.message.print_format_used + ' | ' +
+                            'Letterhead: ' + r.message.letterhead_used +
+                        '</small>' +
+                    '</div>' +
+                    '<div style="margin-bottom: 20px; color: #666; font-size: 14px;">' +
+                        'If WhatsApp didn\'t open automatically, ' +
+                        '<a href="' + r.message.whatsapp_url + '" target="_blank">click here</a>.' +
+                    '</div>' +
+                '</div>';
+
+                frappe.msgprint({
+                    title: 'WhatsApp Link Generated',
+                    message: success_message,
+                    wide: true
+                });
+
+                frappe.show_alert({
+                    message: 'WhatsApp opened successfully!',
+                    indicator: 'green'
+                });
+
+                frm.reload_doc();
+            } else {
+                frappe.msgprint({
+                    title: 'Error',
+                    message: 'Failed to generate WhatsApp link: ' + (r.message.error || 'Unknown error'),
+                    indicator: 'red'
+                });
+            }
+        }
+    });
+}
+
+// Utility function to format currency
+function format_currency(amount, currency) {
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: currency || 'INR',
+        minimumFractionDigits: 2
+    }).format(amount);
 }
