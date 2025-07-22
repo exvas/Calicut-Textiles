@@ -144,7 +144,6 @@ def send_invoice_whatsapp(docname, mobile_number, print_format=None, letterhead=
 
         # Generate and save PDF/HTML
         pdf_data = generate_and_save_invoice_pdf(invoice, print_format, letterhead)
-        print("PDF Data", pdf_data)
 
         # Generate WhatsApp message
         whatsapp_data = create_whatsapp_message(mobile_number, invoice, pdf_data)
