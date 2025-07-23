@@ -291,7 +291,7 @@ def generate_and_save_invoice_pdf(purchase_order, custom_print_format=None, cust
                     frappe.logger().info("WhatsApp: Using HTML format as final fallback")
 
         # Save the file
-        file_name = f"Purchase_Order_{purchase_order.name}.{file_extension}"
+        file_name = f"PO_{purchase_order.name}.{file_extension}"
         file_doc = save_file(
             fname=file_name,
             content=file_content,
@@ -337,7 +337,7 @@ Note: Both PDF and HTML generation failed. This is a text fallback.
 Please contact support for assistance.
             """.strip()
 
-            file_name = f"Purchase_Order_{purchase_order.name}_fallback.txt"
+            file_name = f"PO_{purchase_order.name}_fallback.txt"
             file_doc = save_file(
                 fname=file_name,
                 content=fallback_content.encode('utf-8'),
@@ -510,7 +510,7 @@ def get_saved_invoice_files(docname):
             filters={
                 "attached_to_doctype": "Purchase Order",
                 "attached_to_name": docname,
-                "file_name": ["like", "Purchase_Order_%"]
+                "file_name": ["like", "PO_%"]
             },
             fields=["name", "file_name", "file_url", "creation"],
             order_by="creation desc"
