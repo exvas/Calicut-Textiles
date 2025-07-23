@@ -166,7 +166,7 @@ function show_whatsapp_options_dialog(frm) {
                     fieldtype: 'Select',
                     options: print_formats,
                     default: current_print_format,
-                    description: 'Select print format for the PDF sales order'
+                    description: 'Select print format for the PDF purchase order'
                 },
                 {
                     label: 'Letterhead',
@@ -174,7 +174,7 @@ function show_whatsapp_options_dialog(frm) {
                     fieldtype: 'Select',
                     options: letterheads,
                     default: current_letterhead,
-                    description: 'Select letterhead for the PDF sales order'
+                    description: 'Select letterhead for the PDF purchase order'
                 },
                 {
                     label: 'WhatsApp Option',
@@ -608,7 +608,7 @@ function send_existing_pdf_via_whatsapp(frm, mobile_number, option, file_name, f
                         '</div>' +
                         '<div style="font-size: 12px; color: #666;">' +
                             '<a href="' + file_url + '" target="_blank" style="color: #666;">' +
-                                '📄 View PDF Sales Order' +
+                                '📄 View PDF Purchase Order' +
                             '</a>' +
                         '</div>' +
                     '</div>';
@@ -872,11 +872,6 @@ function format_currency(amount, currency) {
         minimumFractionDigits: 2
     }).format(amount);
 }
-
-
-
-
-
 
 frappe.ui.form.on("Estimate bom Items", {
     custom_pcs: function(frm, cdt, cdn) {
