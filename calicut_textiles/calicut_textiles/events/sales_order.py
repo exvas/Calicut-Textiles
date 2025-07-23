@@ -1,7 +1,5 @@
 import frappe
-from frappe.model.document import Document
 from frappe import _
-from frappe.utils import comma_and, cstr, flt, getdate, nowdate, cint
 from erpnext.stock.utils import _update_item_info
 from frappe.utils import *
 from typing import Dict, Optional
@@ -12,67 +10,23 @@ from frappe.utils.file_manager import save_file
 
 
 @frappe.whitelist()
-def make_supplier_packing_slip(purchase_order):
-
-    order = frappe.get_doc("Purchase Order", purchase_order)
-
-
-    sp = frappe.get_doc({
-        'doctype': 'Supplier Packing Slip',
-        'posting_date': order.transaction_date,
-        'company': order.company,
-        'supplier': order.supplier,
-        'purchase_order': order.name
-    })
-
-    for item in order.items:
-        available_qty = item.qty - flt(frappe.db.sql("""
-            SELECT SUM(qty)
-            FROM `tabSupplier Packing Slip Item`
-            WHERE parent IN (
-                SELECT name
-                FROM `tabSupplier Packing Slip`
-                WHERE purchase_order = %s AND docstatus != 2
-            )
-            AND item_code = %s
-        """, (purchase_order, item.item_code))[0][0])
-        print(available_qty)
-        if available_qty > 0:
-            sp_item = sp.append("supplier_packing_slip_item", {})
-            sp_item.item_code = item.item_code
-            sp_item.po_ref = item.parent
-            sp_item.purchase_order_item = item.name
-            sp_item.uom = item.uom
-            sp_item.po_actual_qty = available_qty
-            sp_item.po_remaining_qty = available_qty
-
-    if sp.supplier_packing_slip_item:
-        sp.insert(ignore_permissions=True)
-
-        return sp.name
-    else:
-        frappe.msgprint(_("All qty against supplier packing slip created"))
-
-
-
-@frappe.whitelist()
 def send_invoice_whatsapp(docname, mobile_number, print_format=None, letterhead=None):
     """
-    Generate Purchase Order PDF, save it to files, and create WhatsApp message link
+    Generate Sales Order PDF, save it to files, and create WhatsApp message link
     """
     try:
         # Get the sales order document
-        purchase_order = frappe.get_doc("Purchase Order", docname)
+        sales_order = frappe.get_doc("Sales Order", docname)
 
         # Check permissions
-        if not frappe.has_permission("Purchase Order", "read", purchase_order.name):
-            frappe.throw(_("No permission to access this Purchase Order"))
+        if not frappe.has_permission("Sales Order", "read", sales_order.name):
+            frappe.throw(_("No permission to access this Sales Order"))
 
         # Generate and save PDF/HTML
-        pdf_data = generate_and_save_invoice_pdf(purchase_order, print_format, letterhead)
+        pdf_data = generate_and_save_invoice_pdf(sales_order, print_format, letterhead)
 
         # Generate WhatsApp message
-        whatsapp_data = create_whatsapp_message(mobile_number, purchase_order, pdf_data)
+        whatsapp_data = create_whatsapp_message(mobile_number, sales_order, pdf_data)
 
         return {
             "success": True,
@@ -86,7 +40,7 @@ def send_invoice_whatsapp(docname, mobile_number, print_format=None, letterhead=
         }
 
     except Exception as e:
-        frappe.log_error(f"WhatsApp send error: {str(e)}", "WhatsApp Purchase Order Error")
+        frappe.log_error(f"WhatsApp send error: {str(e)}", "WhatsApp Sales Order Error")
         return {
             "success": False,
             "error": str(e)
@@ -95,21 +49,21 @@ def send_invoice_whatsapp(docname, mobile_number, print_format=None, letterhead=
 @frappe.whitelist()
 def send_pdf_to_whatsapp(docname, mobile_number, print_format=None, letterhead=None):
     """
-    Generate Purchase Orderr PDF for manual WhatsApp attachment
+    Generate Sales Order PDF for manual WhatsApp attachment
     """
     try:
         # Get the sales order document
-        purchase_order = frappe.get_doc("Purchase Order", docname)
+        sales_order = frappe.get_doc("Sales Order", docname)
 
         # Check permissions
-        if not frappe.has_permission("Purchase Order", "read", purchase_order.name):
+        if not frappe.has_permission("Sales Order", "read", sales_order.name):
             frappe.throw(_("No permission to access this sales order"))
 
         # Generate and save PDF/HTML
-        pdf_data = generate_and_save_invoice_pdf(purchase_order, print_format, letterhead)
+        pdf_data = generate_and_save_invoice_pdf(sales_order, print_format, letterhead)
 
         # Create WhatsApp URLs (without PDF link in message)
-        whatsapp_data = create_whatsapp_message_for_attachment(mobile_number, purchase_order, pdf_data)
+        whatsapp_data = create_whatsapp_message_for_attachment(mobile_number, sales_order, pdf_data)
 
         # Use the file URL directly instead of constructing physical path
         file_url = pdf_data.get('file_url', '')
@@ -143,11 +97,11 @@ def resend_existing_pdf_whatsapp(docname, mobile_number, option, file_name, file
     """
     try:
         # Get the sales order document
-        purchase_order = frappe.get_doc("Sales Order", docname)
+        sales_order = frappe.get_doc("Sales Order", docname)
 
         # Check permissions
-        if not frappe.has_permission("Purchase Order", "read", purchase_order.name):
-            frappe.throw(_("No permission to access this Purchase Order"))
+        if not frappe.has_permission("Sales Order", "read", sales_order.name):
+            frappe.throw(_("No permission to access this sales order"))
 
         # Create fake pdf_data structure for existing file
         pdf_data = {
@@ -157,7 +111,7 @@ def resend_existing_pdf_whatsapp(docname, mobile_number, option, file_name, file
 
         if option == "PDF for Manual Attachment":
             # Create WhatsApp URLs (without PDF link in message)
-            whatsapp_data = create_whatsapp_message_for_attachment(mobile_number, purchase_order, pdf_data)
+            whatsapp_data = create_whatsapp_message_for_attachment(mobile_number, sales_order, pdf_data)
 
             return {
                 "success": True,
@@ -168,7 +122,7 @@ def resend_existing_pdf_whatsapp(docname, mobile_number, option, file_name, file
             }
         else:
             # Create WhatsApp message with PDF link
-            whatsapp_data = create_whatsapp_message(mobile_number, purchase_order, pdf_data)
+            whatsapp_data = create_whatsapp_message(mobile_number, sales_order, pdf_data)
 
             return {
                 "success": True,
@@ -184,7 +138,7 @@ def resend_existing_pdf_whatsapp(docname, mobile_number, option, file_name, file
             "error": str(e)
         }
 
-def generate_and_save_invoice_pdf(purchase_order, custom_print_format=None, custom_letterhead=None):
+def generate_and_save_invoice_pdf(sales_order, custom_print_format=None, custom_letterhead=None):
     """
     Generate PDF for the sales order using Whatsapp Settings configuration or custom parameters
     Tries PDF first, falls back to HTML if PDF generation fails
@@ -202,8 +156,8 @@ def generate_and_save_invoice_pdf(purchase_order, custom_print_format=None, cust
 
         # # Generate HTML using the custom settings
         html = frappe.get_print(
-            "Purchase Order",
-            purchase_order.name,
+            "Sales Order",
+            sales_order.name,
             print_format=print_format,
             letterhead=letterhead
         )
@@ -212,8 +166,8 @@ def generate_and_save_invoice_pdf(purchase_order, custom_print_format=None, cust
         try:
             # Method 1: Try with frappe.get_print directly with as_pdf=True
             pdf_content = frappe.get_print(
-                "Purchase Order",
-                purchase_order.name,
+                "Sales Order",
+                sales_order.name,
                 print_format=print_format,
                 letterhead=letterhead,
                 as_pdf=True
@@ -291,12 +245,12 @@ def generate_and_save_invoice_pdf(purchase_order, custom_print_format=None, cust
                     frappe.logger().info("WhatsApp: Using HTML format as final fallback")
 
         # Save the file
-        file_name = f"Purchase Order_{purchase_order.name}.{file_extension}"
+        file_name = f"Sales Order_{sales_order.name}.{file_extension}"
         file_doc = save_file(
             fname=file_name,
             content=file_content,
-            dt="Purchase Order",
-            dn=purchase_order.name,
+            dt="Sales Order",
+            dn=sales_order.name,
             is_private=0
         )
 
@@ -321,13 +275,13 @@ def generate_and_save_invoice_pdf(purchase_order, custom_print_format=None, cust
             letterhead = custom_letterhead if custom_letterhead is not None else settings.whatsapp_letter_head
 
             fallback_content = f"""
-PURCHASE ORDER DETAILS
+SALES ORDER DETAILS
 ===============
 
-Purchase Order Number: {purchase_order.name}
-Supplier: {purchase_order.supplier_name or purchase_order.supplier}
-Date: {purchase_order.transaction_date}
-Amount: {purchase_order.currency} {purchase_order.grand_total}
+Sales Order Number: {sales_order.name}
+Customer: {sales_order.customer_name or sales_order.customer}
+Date: {sales_order.transaction_date}
+Amount: {sales_order.currency} {sales_order.grand_total}
 
 Attempted to use:
 Print Format: {print_format}
@@ -337,12 +291,12 @@ Note: Both PDF and HTML generation failed. This is a text fallback.
 Please contact support for assistance.
             """.strip()
 
-            file_name = f"Purchase Order_{purchase_order.name}_fallback.txt"
+            file_name = f"Sales Order_{sales_order.name}_fallback.txt"
             file_doc = save_file(
                 fname=file_name,
                 content=fallback_content.encode('utf-8'),
-                dt="Purchase Order",
-                dn=purchase_order.name,
+                dt="Sales Order",
+                dn=sales_order.name,
                 is_private=0
             )
 
@@ -359,8 +313,8 @@ Please contact support for assistance.
             frappe.log_error(f"Final fallback failed: {str(final_error)}", "WhatsApp Final Fallback Error")
             raise Exception(f"All file generation methods failed: {str(e)}")
 
-def create_whatsapp_message(mobile_number, purchase_order, pdf_data):
-    """Create WhatsApp message URL with purchase order details and PDF link"""
+def create_whatsapp_message(mobile_number, sales_order, pdf_data):
+    """Create WhatsApp message URL with sales order details and PDF link"""
     try:
         # Clean mobile number (remove spaces, dashes, etc.)
         clean_number = ''.join(filter(str.isdigit, mobile_number))
@@ -379,22 +333,22 @@ def create_whatsapp_message(mobile_number, purchase_order, pdf_data):
         message_lines = [
             "Good day! 👋",
             "",
-            "Thank you for your interest in our purchase order! 🛍️",
+            "Thank you for your interest in our sales order! 🛍️",
             "",
-            "📋 *Purchase Order Details:*",
-            f"Purchase: #{purchase_order.name}",
-            f"Date: {purchase_order.get_formatted('transaction_date')}",
-            f"Amount: {purchase_order.currency} {purchase_order.get_formatted('grand_total')}",
+            "📋 *Sales Order Details:*",
+            f"Sales Order: #{sales_order.name}",
+            f"Date: {sales_order.get_formatted('transaction_date')}",
+            f"Amount: {sales_order.currency} {sales_order.get_formatted('grand_total')}",
             "",
-            f"Supplier: {purchase_order.supplier_name or purchase_order.supplier}",
+            f"Customer: {sales_order.customer_name or sales_order.customer}",
         ]
 
-        # if purchase_order.delivery_date:
-        #     message_lines.append(f"Valid Till: {sales_order.get_formatted('delivery_date')}")
+        if sales_order.delivery_date:
+            message_lines.append(f"Valid Till: {sales_order.get_formatted('delivery_date')}")
 
         message_lines.extend([
             "",
-            f"📄 Download Purchase Order: {full_pdf_url}",
+            f"📄 Download Sales Order: {full_pdf_url}",
             "",
             "Please let us know if you have any questions! 🙏"
         ])
@@ -415,7 +369,7 @@ def create_whatsapp_message(mobile_number, purchase_order, pdf_data):
         frappe.log_error(f"Error creating WhatsApp message: {str(e)}")
         raise
 
-def create_whatsapp_message_for_attachment(mobile_number, purchase_order, pdf_data):
+def create_whatsapp_message_for_attachment(mobile_number, sales_order, pdf_data):
     """Create WhatsApp message URLs for manual PDF attachment"""
 
     # Clean mobile number (remove spaces, dashes, etc.)
@@ -431,20 +385,20 @@ def create_whatsapp_message_for_attachment(mobile_number, purchase_order, pdf_da
         "",
         "Thank you for your purchase! 🛍️",
         "",
-        "📋 *Purchase Order Details:*",
-        f"Purchase Order: #{purchase_order.name}",
-        f"Date: {purchase_order.get_formatted('transaction_date')}",
-        f"Amount: {purchase_order.currency} {purchase_order.get_formatted('grand_total')}",
+        "📋 *Sales Order Details:*",
+        f"Sales Order: #{sales_order.name}",
+        f"Date: {sales_order.get_formatted('transaction_date')}",
+        f"Amount: {sales_order.currency} {sales_order.get_formatted('grand_total')}",
         "",
-        f"Supplier: {purchase_order.supplier_name or purchase_order.supplier}",
+        f"Customer: {sales_order.customer_name or sales_order.party_name}",
     ]
 
-    # # Add due date and outstanding if applicable
-    # if sales_order.delivery_date and sales_order.outstanding_amount > 0:
-    #     message_lines.extend([
-    #         f"Due Date: {sales_order.get_formatted('delivery_date')}",
-    #         f"Outstanding: {sales_order.currency} {sales_order.get_formatted('outstanding_amount')}"
-    #     ])
+    # Add due date and outstanding if applicable
+    if sales_order.delivery_date and sales_order.outstanding_amount > 0:
+        message_lines.extend([
+            f"Due Date: {sales_order.get_formatted('delivery_date')}",
+            f"Outstanding: {sales_order.currency} {sales_order.get_formatted('outstanding_amount')}"
+        ])
 
     message_lines.extend([
         "",
@@ -471,21 +425,21 @@ def create_whatsapp_message_for_attachment(mobile_number, purchase_order, pdf_da
     }
 
 @frappe.whitelist()
-def get_supplier_mobile(supplier_name):
-    """Get mobile number from supplier record"""
+def get_customer_mobile(customer_name):
+    """Get mobile number from customer record"""
     try:
-        if not supplier_name:
+        if not customer_name:
             return {"mobile": ""}
 
-        supplier = frappe.get_doc("Supplier", supplier_name)
-        mobile = supplier.mobile_no or ""
+        customer = frappe.get_doc("Customer", customer_name)
+        mobile = customer.mobile_no or ""
 
-        # Also check in supplier primary contact
+        # Also check in customer's primary contact
         if not mobile:
             contacts = frappe.get_all("Dynamic Link",
                 filters={
-                    "link_doctype": "Supplier",
-                    "link_name": supplier_name,
+                    "link_doctype": "Customer",
+                    "link_name": customer_name,
                     "parenttype": "Contact"
                 },
                 fields=["parent"]
@@ -498,19 +452,19 @@ def get_supplier_mobile(supplier_name):
         return {"mobile": mobile}
 
     except Exception as e:
-        frappe.log_error(f"Error getting supplier mobile: {str(e)}")
+        frappe.log_error(f"Error getting customer mobile: {str(e)}")
         return {"mobile": ""}
 
 @frappe.whitelist()
 def get_saved_invoice_files(docname):
-    """Get all saved PDF files for the purchase order"""
+    """Get all saved PDF files for the sales order"""
     try:
         # Get all files attached to this Sales sales order
         files = frappe.get_all("File",
             filters={
-                "attached_to_doctype": "Purchase Order",
+                "attached_to_doctype": "Sales Order",
                 "attached_to_name": docname,
-                "file_name": ["like", "Purchase Order_%"]
+                "file_name": ["like", "Sales Order_%"]
             },
             fields=["name", "file_name", "file_url", "creation"],
             order_by="creation desc"
