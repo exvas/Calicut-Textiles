@@ -824,7 +824,7 @@ function update_message_preview_enhanced(frm, dialog) {
             'Mode: <strong>' + option + '</strong><br>' +
             'Print Format: <strong>' + (print_format || 'Standard') + '</strong><br>' +
             'Letterhead: <strong>' + (letterhead || 'Default') + '</strong><br>' +
-            '📁 PDF will be saved to: <code>/files/Sales Order_' + sales_order.name + '.pdf</code>' +
+            '📁 PDF will be saved to: <code>/files/Sales_Order_' + sales_order.name + '.pdf</code>' +
             '</div>';
     }
 
