@@ -1,5 +1,6 @@
-frappe.ui.form.on('Quotation', {
+frappe.ui.form.on('Payment Entry', {
   onload: function(frm) {
+    console.log("hiiii")
     if (!$('#whatsapp-custom-css').length) {
         $('head').append('<style id="whatsapp-custom-css">' +
             '.btn-success[data-label*="WhatsApp"], .btn-whatsapp {' +
@@ -113,10 +114,10 @@ frappe.ui.form.on('Quotation', {
         }, 100);
     }
   },
-  party_name: function(frm) {
+  party: function(frm) {
       // Auto-fetch customer mobile when customer is selected
-      if (frm.doc.party_name) {
-          get_customer_mobile(frm.doc.party_name);
+      if (frm.doc.party) {
+          get_customer_mobile(frm.doc.party);
       }
   }
 });
@@ -147,7 +148,7 @@ function show_whatsapp_options_dialog(frm) {
                     fieldtype: 'Select',
                     options: print_formats,
                     default: current_print_format,
-                    description: 'Select print format for the PDF quotation'
+                    description: 'Select print format for the PDF Payment Entry'
                 },
                 {
                     label: 'Letterhead',
@@ -155,7 +156,7 @@ function show_whatsapp_options_dialog(frm) {
                     fieldtype: 'Select',
                     options: letterheads,
                     default: current_letterhead,
-                    description: 'Select letterhead for the PDF quotation'
+                    description: 'Select letterhead for the PDF Payment Entry'
                 },
                 {
                     label: 'WhatsApp Option',
@@ -209,7 +210,7 @@ function show_whatsapp_options_dialog(frm) {
             if (printFormatField) {
                 // Add print format info below the field
                 printFormatField.$wrapper.append('<div class="format-info">' +
-                    '📝 This print format will be used to generate the PDF quotation. Default is set from Whatsapp Settings.' +
+                    '📝 This print format will be used to generate the PDF Payment Entry. Default is set from Whatsapp Settings.' +
                     '</div>');
 
                 printFormatField.$input.on('change', function() {
@@ -220,7 +221,7 @@ function show_whatsapp_options_dialog(frm) {
             if (letterheadField) {
                 // Add letterhead info below the field
                 letterheadField.$wrapper.append('<div class="format-info">' +
-                    '💡 This letterhead will be used in the generated PDF quotation. Default is set from Whatsapp Settings.' +
+                    '💡 This letterhead will be used in the generated PDF Payment Entry. Default is set from Whatsapp Settings.' +
                     '</div>');
 
                 letterheadField.$input.on('change', function() {
@@ -238,8 +239,8 @@ function show_whatsapp_options_dialog(frm) {
         dialog.show();
 
         // Load customer mobile if available
-        if (frm.doc.party_name) {
-            get_customer_mobile(frm.doc.party_name, dialog);
+        if (frm.doc.party) {
+            get_customer_mobile(frm.doc.party, dialog);
         }
 
         // Initial preview
@@ -256,7 +257,7 @@ function get_print_formats_letterheads_and_settings(callback) {
         args: {
             doctype: 'Print Format',
             filters: {
-                'doc_type': 'Quotation'
+                'doc_type': 'Payment Entry'
             },
             fields: ['name'],
             order_by: 'name'
@@ -283,7 +284,7 @@ function get_print_formats_letterheads_and_settings(callback) {
 
                     // Get current settings from Whatsapp Settings
                     frappe.call({
-                        method: 'calicut_textiles.calicut_textiles.events.sales_invoice.get_whatsapp_settings',
+                        method: 'calicut_textiles.calicut_textiles.events.payment_entry.get_whatsapp_settings',
                         callback: function(settings_response) {
                             var current_print_format = 'Standard';
                             var current_letterhead = '';
@@ -303,7 +304,7 @@ function get_print_formats_letterheads_and_settings(callback) {
 function show_saved_files_dialog(frm) {
     // Show dialog with saved PDF files
     frappe.call({
-        method: 'calicut_textiles.calicut_textiles.events.quotation.get_saved_invoice_files',
+        method: 'calicut_textiles.calicut_textiles.events.payment_entry.get_saved_invoice_files',
         args: {
             docname: frm.doc.name
         },
@@ -338,11 +339,11 @@ function show_saved_files_dialog(frm) {
 
                     files_html += '</div>';
                 } else {
-                    files_html = '<p class="text-muted">No saved PDF files found for this quotation.</p>';
+                    files_html = '<p class="text-muted">No saved PDF files found for this Payment Entry.</p>';
                 }
 
                 var files_dialog = frappe.msgprint({
-                    title: 'Quotation PDFs',
+                    title: 'Payment Entry PDFs',
                     message: files_html,
                     wide: true
                 });
@@ -453,8 +454,8 @@ window.resend_saved_pdf = function(file_id, file_name, file_url) {
     }, 150);
 
     // Load customer mobile if available
-    if (cur_frm.doc.party_name) {
-        get_customer_mobile(cur_frm.doc.party_name, resend_dialog);
+    if (cur_frm.doc.party) {
+        get_customer_mobile(cur_frm.doc.party, resend_dialog);
     }
 
     // Initial preview
@@ -471,32 +472,32 @@ function resend_saved_pdf(file_id, file_name, file_url) {
 function update_resend_preview(frm, dialog, file_name) {
     var mobile_number = dialog.get_value('mobile_number');
     var option = dialog.get_value('whatsapp_option');
-    var quotation = frm.doc;
+    var payment_entry = frm.doc;
 
     var message_lines = [
         "Good day! 👋",
         "",
         "Thank you for your purchase!",
         "",
-        "*Quotation Details:*",
-        "Quotation: #" + quotation.name,
-        "Date: " + frappe.datetime.str_to_user(quotation.transaction_date),
-        "Amount: " + quotation.currency + " " + format_currency(quotation.grand_total, quotation.currency),
+        "*Payment Entry Details:*",
+        "Payment Entry: #" + payment_entry.name,
+        "Date: " + frappe.datetime.str_to_user(payment_entry.posting_date),
+        "Amount: " + payment_entry.currency + " " + format_currency(payment_entry.paid_amount, payment_entry.currency),
         "",
-        "Customer: " + (quotation.customer_name || quotation.party_name),
+        "Customer: " + (payment_entry.party_name || payment_entry.party),
     ];
 
-    if (quotation.valid_till && quotation.outstanding_amount > 0) {
-        message_lines.push("Due Date: " + frappe.datetime.str_to_user(quotation.valid_till));
-        message_lines.push("Outstanding: " + quotation.currency + " " + format_currency(quotation.outstanding_amount, quotation.currency));
-    }
+    // if (payment_entry.valid_till && payment_entry.outstanding_amount > 0) {
+    //     message_lines.push("Due Date: " + frappe.datetime.str_to_user(payment_entry.valid_till));
+    //     message_lines.push("Outstanding: " + payment_entry.currency + " " + format_currency(payment_entry.outstanding_amount, payment_entry.currency));
+    // }
 
     message_lines.push("");
 
     if (option === 'PDF for Manual Attachment') {
-        message_lines.push("📄 Please find your quotation PDF attached below.");
+        message_lines.push("📄 Please find your Payment Entry PDF attached below.");
     } else {
-        message_lines.push("Download Quotation: [PDF Link will be added here]");
+        message_lines.push("Download Payment Entry: [PDF Link will be added here]");
     }
 
     message_lines.push("");
@@ -529,7 +530,7 @@ function send_existing_pdf_via_whatsapp(frm, mobile_number, option, file_name, f
     }
 
     frappe.call({
-        method: 'calicut_textiles.calicut_textiles.events.quotation.resend_existing_pdf_whatsapp',
+        method: 'calicut_textiles.calicut_textiles.events.payment_entry.resend_existing_pdf_whatsapp',
         args: {
             docname: frm.doc.name,
             mobile_number: mobile_number,
@@ -589,7 +590,7 @@ function send_existing_pdf_via_whatsapp(frm, mobile_number, option, file_name, f
                         '</div>' +
                         '<div style="font-size: 12px; color: #666;">' +
                             '<a href="' + file_url + '" target="_blank" style="color: #666;">' +
-                                '📄 View PDF Quotation' +
+                                '📄 View PDF Payment Entry' +
                             '</a>' +
                         '</div>' +
                     '</div>';
@@ -614,7 +615,7 @@ function get_customer_mobile(customer_name, dialog) {
     if (!customer_name) return;
 
     frappe.call({
-        method: 'calicut_textiles.calicut_textiles.events.quotation.get_customer_mobile',
+        method: 'calicut_textiles.calicut_textiles.events.payment_entry.get_customer_mobile',
         args: {
             customer_name: customer_name
         },
@@ -654,7 +655,7 @@ function send_whatsapp_with_attachment(frm, mobile_number, print_format, letterh
     });
 
     frappe.call({
-        method: 'calicut_textiles.calicut_textiles.events.quotation.send_pdf_to_whatsapp',
+        method: 'calicut_textiles.calicut_textiles.events.payment_entry.send_pdf_to_whatsapp',
         args: {
             docname: frm.doc.name,
             mobile_number: mobile_number,
@@ -723,32 +724,32 @@ function update_message_preview_enhanced(frm, dialog) {
     var option = dialog.get_value('whatsapp_option');
     var print_format = dialog.get_value('print_format');
     var letterhead = dialog.get_value('letterhead');
-    var quotation = frm.doc;
+    var payment_entry = frm.doc;
 
     var message_lines = [
         "Good day! 👋",
         "",
         "Thank you for your purchase! 🛍️",
         "",
-        "📋 *Quotation Details:*",
-        "Quotation: #" + quotation.name,
-        "Date: " + frappe.datetime.str_to_user(quotation.transaction_date),
-        "Amount: " + quotation.currency + " " + format_currency(quotation.grand_total, quotation.currency),
+        "📋 *Payment Entry Details:*",
+        "Payment Entry: #" + payment_entry.name,
+        "Date: " + frappe.datetime.str_to_user(payment_entry.transaction_date),
+        "Amount: " + payment_entry.currency + " " + format_currency(payment_entry.grand_total, payment_entry.currency),
         "",
-        "Customer: " + (quotation.customer_name || quotation.party_name),
+        "Customer: " + (payment_entry.customer_name || payment_entry.party_name),
     ];
 
-    if (quotation.valid_till && quotation.outstanding_amount > 0) {
-        message_lines.push("Due Date: " + frappe.datetime.str_to_user(quotation.valid_till));
-        message_lines.push("Outstanding: " + quotation.currency + " " + format_currency(quotation.outstanding_amount, quotation.currency));
-    }
+    // if (quotation.valid_till && quotation.outstanding_amount > 0) {
+    //     message_lines.push("Due Date: " + frappe.datetime.str_to_user(quotation.valid_till));
+    //     message_lines.push("Outstanding: " + quotation.currency + " " + format_currency(quotation.outstanding_amount, quotation.currency));
+    // }
 
     message_lines.push("");
 
     if (option === 'PDF for Manual Attachment') {
-        message_lines.push("📄 Please find your quotation PDF attached below.");
+        message_lines.push("📄 Please find your Payment Entry PDF attached below.");
     } else {
-        message_lines.push("Download Quotation: [PDF Link will be added here]");
+        message_lines.push("Download Payment Entry: [PDF Link will be added here]");
     }
 
     message_lines.push("");
@@ -766,7 +767,7 @@ function update_message_preview_enhanced(frm, dialog) {
             'Mode: <strong>' + option + '</strong><br>' +
             'Print Format: <strong>' + (print_format || 'Standard') + '</strong><br>' +
             'Letterhead: <strong>' + (letterhead || 'Default') + '</strong><br>' +
-            '📁 PDF will be saved to: <code>/files/Quotation_' + quotation.name + '.pdf</code>' +
+            '📁 PDF will be saved to: <code>/files/PE_' + payment_entry.name + '.pdf</code>' +
             '</div>';
     }
 
@@ -787,7 +788,7 @@ function send_whatsapp_invoice(frm, mobile_number, print_format, letterhead, dia
     });
 
     frappe.call({
-        method: 'calicut_textiles.calicut_textiles.events.quotation.send_invoice_whatsapp',
+        method: 'calicut_textiles.calicut_textiles.events.payment_entry.send_invoice_whatsapp',
         args: {
             docname: frm.doc.name,
             mobile_number: mobile_number,
