@@ -467,7 +467,7 @@ def get_saved_invoice_files(docname):
             filters={
                 "attached_to_doctype": "Purchase Receipt",
                 "attached_to_name": docname,
-                "file_name": ["like", "PO_%"]
+                "file_name": ["like", "PR_%"]
             },
             fields=["name", "file_name", "file_url", "creation"],
             order_by="creation desc"
