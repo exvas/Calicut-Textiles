@@ -857,7 +857,7 @@ function update_message_preview_enhanced(frm, dialog) {
             'Mode: <strong>' + option + '</strong><br>' +
             'Print Format: <strong>' + (print_format || 'Standard') + '</strong><br>' +
             'Letterhead: <strong>' + (letterhead || 'Default') + '</strong><br>' +
-            '📁 PDF will be saved to: <code>/files/PO_' + purchase_receipt.name + '.pdf</code>' +
+            '📁 PDF will be saved to: <code>/files/PR_' + purchase_receipt.name + '.pdf</code>' +
             '</div>';
     }
 
