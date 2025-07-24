@@ -433,117 +433,112 @@ Please contact support for assistance.
             frappe.log_error(f"Final fallback failed: {str(final_error)}", "WhatsApp Final Fallback Error")
             raise Exception(f"All file generation methods failed: {str(e)}")
 
-def create_whatsapp_message(mobile_number, invoice, pdf_data):
-    """Create WhatsApp message URL with invoice details and PDF link"""
+def create_whatsapp_message(mobile_number, sales_invoice, pdf_data):
+    """Create WhatsApp message URL with sales invoice details and PDF link"""
+    try:
+        # Clean mobile number (remove spaces, dashes, etc.)
+        clean_number = ''.join(filter(str.isdigit, mobile_number))
 
-    # Clean mobile number (remove spaces, dashes, etc.)
-    clean_number = ''.join(filter(str.isdigit, mobile_number))
+        # Add country code if not present (assuming India +91)
+        if not clean_number.startswith('+') and len(clean_number) == 10:
+            clean_number = '+91' + clean_number
+        elif not clean_number.startswith('+'):
+            clean_number = '+' + clean_number
 
-    if not clean_number.startswith('+91') and len(clean_number) == 10:
-    	clean_number = '+91' + clean_number
+        # Get site URL
+        site_url = frappe.utils.get_url()
+        full_pdf_url = f"{site_url}{pdf_data['file_url']}"
 
-    # Get site URL
-    site_url = frappe.utils.get_url()
-    full_pdf_url = f"{site_url}{pdf_data['file_url']}"
+        # Create message text in the style you want
+        message_lines = [
+            "Good day! 👋",
+            "",
+            "Thank you for your purchase! 🛍️",
+            "",
+            "📋 *Invoice Details:*",
+            f"Invoice: #{sales_invoice.name}",
+            f"Date: {sales_invoice.get_formatted('posting_date')}",
+            f"Amount: {sales_invoice.currency} {sales_invoice.get_formatted('grand_total')}",
+            "",
+            f"Customer: {sales_invoice.customer_name or sales_invoice.customer}",
+        ]
 
-    # Create message text
-    message_lines = [
-        "Good day! 👋",
-        "",
-        "Thank you for your purchase! 🛍️",
-        "",
-        "📋 *Invoice Details:*",
-        f"Invoice: #{invoice.name}",
-        f"Date: {invoice.get_formatted('posting_date')}",
-        f"Amount: {invoice.currency} {invoice.get_formatted('grand_total')}",
-        "",
-        f"Customer: {invoice.customer_name or invoice.customer}",
-    ]
+        # Add due date if available
+        if sales_invoice.due_date:
+            message_lines.append(f"Due Date: {sales_invoice.get_formatted('due_date')}")
 
-    # Add due date and outstanding if applicable
-    if invoice.due_date and invoice.outstanding_amount > 0:
         message_lines.extend([
-            f"Due Date: {invoice.get_formatted('due_date')}",
-            f"Outstanding: {invoice.currency} {invoice.get_formatted('outstanding_amount')}"
+            "",
+            f"📄 Download Invoice: {full_pdf_url}",
+            "",
+            "Please let us know if you have any questions! 🙏"
         ])
 
-    # Determine file type for message
-    file_type = "PDF" if pdf_data['file_name'].endswith('.pdf') else "Invoice"
+        message = "\n".join(message_lines)
 
-    message_lines.extend([
-        "",
-        f"📄 Download {file_type}: {full_pdf_url}",
-        "",
-        "Thank you for your business! 🙏"
-    ])
+        # Encode message for URL
+        from urllib.parse import quote
+        encoded_message = quote(message)
+        whatsapp_url = f"https://wa.me/{clean_number}?text={encoded_message}"
 
-    message = "\n".join(message_lines)
-
-    # Encode message for URL
-    from urllib.parse import quote
-    encoded_message = quote(message)
-    whatsapp_url = f"https://wa.me/{clean_number}?text={encoded_message}"
-
-    return {
-        "whatsapp_url": whatsapp_url,
-        "pdf_url": full_pdf_url,
-        "message": message
-    }
+        return {
+            "whatsapp_url": whatsapp_url,
+            "pdf_url": full_pdf_url,
+            "message": message
+        }
+    except Exception as e:
+        frappe.log_error(f"Error creating WhatsApp message: {str(e)}")
+        raise
 
 def create_whatsapp_message_for_attachment(mobile_number, invoice, pdf_data):
     """Create WhatsApp message URLs for manual PDF attachment"""
+    try:
+        # Clean mobile number (remove spaces, dashes, etc.)
+        clean_number = ''.join(filter(str.isdigit, mobile_number.replace('+', '')))
 
-    # Clean mobile number (remove spaces, dashes, etc.)
-    clean_number = ''.join(filter(str.isdigit, mobile_number.replace('+', '')))
+        # Create message text in the same style
+        message_lines = [
+            "Good day! 👋",
+            "",
+            "Thank you for your purchase! 🛍️",
+            "",
+            "📋 *Invoice Details:*",
+            f"Invoice: #{invoice.name}",
+            f"Date: {invoice.get_formatted('posting_date')}",
+            f"Amount: {invoice.currency} {invoice.get_formatted('grand_total')}",
+            "",
+            f"Customer: {invoice.customer_name or invoice.customer}",
+        ]
 
-    # Get site URL
-    site_url = frappe.utils.get_url()
-    full_pdf_url = f"{site_url}{pdf_data['file_url']}"
+        if invoice.due_date:
+            message_lines.append(f"Due Date: {invoice.get_formatted('due_date')}")
 
-    # Create message text (without PDF link since it will be attached manually)
-    message_lines = [
-        "Good day! 👋",
-        "",
-        "Thank you for your purchase! 🛍️",
-        "",
-        "📋 *Invoice Details:*",
-        f"Invoice: #{invoice.name}",
-        f"Date: {invoice.get_formatted('posting_date')}",
-        f"Amount: {invoice.currency} {invoice.get_formatted('grand_total')}",
-        "",
-        f"Customer: {invoice.customer_name or invoice.customer}",
-    ]
-
-    # Add due date and outstanding if applicable
-    if invoice.due_date and invoice.outstanding_amount > 0:
         message_lines.extend([
-            f"Due Date: {invoice.get_formatted('due_date')}",
-            f"Outstanding: {invoice.currency} {invoice.get_formatted('outstanding_amount')}"
+            "",
+            "📄 Please find your invoice attached below.",
+            "",
+            "Thank you for your business! 🙏"
         ])
 
-    message_lines.extend([
-        "",
-        "📄 Please find your invoice attached below.",
-        "",
-        "Thank you for your business! 🙏"
-    ])
+        message = "\n".join(message_lines)
 
-    message = "\n".join(message_lines)
+        # Rest of the function remains the same...
+        # Encode message for URL
+        import urllib.parse
+        encoded_message = urllib.parse.quote(message)
 
-    # Encode message for URL
-    import urllib.parse
-    encoded_message = urllib.parse.quote(message)
+        # Create WhatsApp URLs
+        whatsapp_web_url = f"https://web.whatsapp.com/send?phone={clean_number}&text={encoded_message}"
+        whatsapp_mobile_url = f"https://wa.me/{clean_number}?text={encoded_message}"
 
-    # Create WhatsApp URLs
-    whatsapp_web_url = f"https://web.whatsapp.com/send?phone={clean_number}&text={encoded_message}"
-    whatsapp_mobile_url = f"https://wa.me/{clean_number}?text={encoded_message}"
-
-    return {
-        "whatsapp_web_url": whatsapp_web_url,
-        "whatsapp_mobile_url": whatsapp_mobile_url,
-        "pdf_url": full_pdf_url,
-        "message": message
-    }
+        return {
+            "whatsapp_web_url": whatsapp_web_url,
+            "whatsapp_mobile_url": whatsapp_mobile_url,
+            "message": message
+        }
+    except Exception as e:
+        frappe.log_error(f"Error creating WhatsApp attachment message: {str(e)}")
+        raise
 
 @frappe.whitelist()
 def get_customer_mobile(customer_name):

@@ -948,7 +948,7 @@ function send_whatsapp_invoice(frm, mobile_number, print_format, letterhead, dia
     }
 
     frappe.show_alert({
-        message: 'Generating WhatsApp link and saving PDF to /files/...',
+        message: 'Generating WhatsApp link and saving PDF...',
         indicator: 'blue'
     });
 
@@ -964,50 +964,48 @@ function send_whatsapp_invoice(frm, mobile_number, print_format, letterhead, dia
             if (r.message && r.message.success) {
                 dialog.hide();
 
-                const file_url = r.message.pdf_url;
-                const message =
-                    `Hello! Here is your invoice: ${frm.doc.name}\n\n` +
-                    `Download link: ${file_url}`;
+                // Open WhatsApp in new tab
+                window.open(r.message.whatsapp_url, '_blank');
 
-                const whatsapp_url = "https://wa.me/" + encodeURIComponent(mobile_number.replace(/\D/g, '')) +
-                                     "?text=" + encodeURIComponent(message);
-
-                // Open WhatsApp chat in new tab immediately
-                window.open(whatsapp_url, '_blank');
-
-                // Show success message inside ERPNext
-                const success_message = `
-                    <div style="text-align: center; padding: 20px;">
-                        <div style="font-size: 16px; margin-bottom: 20px;">
-                            WhatsApp chat opened with customer! 🎉
-                        </div>
-                        <div style="margin-bottom: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
-                            <strong>📁 PDF Saved to:</strong><br>
-                            <code>${r.message.pdf_file_path || '/files/' + r.message.pdf_file_name}</code><br>
-                            <small style="color: #666;">
-                                Print Format: ${r.message.print_format_used} |
-                                Letterhead: ${r.message.letterhead_used}
-                            </small>
-                        </div>
-                        <div style="margin-bottom: 20px; color: #666; font-size: 14px;">
-                            If WhatsApp didn’t open automatically,
-                            <a href="${whatsapp_url}" target="_blank">click here</a>.
-                        </div>
-                    </div>
-                `;
+                // Show success message
+                var success_message = '<div style="text-align: center; padding: 20px;">' +
+                    '<div style="font-size: 16px; margin-bottom: 20px;">' +
+                        'WhatsApp chat opened with customer! 🎉' +
+                    '</div>' +
+                    '<div style="margin-bottom: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">' +
+                        '<strong>📁 PDF Saved to:</strong><br>' +
+                        '<a href="' + r.message.pdf_url + '" target="_blank" style="color: #333;">' +
+                            r.message.pdf_file_name +
+                        '</a><br>' +
+                        '<small style="color: #666;">' +
+                            'Print Format: ' + r.message.print_format_used + ' | ' +
+                            'Letterhead: ' + r.message.letterhead_used +
+                        '</small>' +
+                    '</div>' +
+                    '<div style="margin-bottom: 20px; color: #666; font-size: 14px;">' +
+                        'If WhatsApp didn\'t open automatically, ' +
+                        '<a href="' + r.message.whatsapp_url + '" target="_blank">click here</a>.' +
+                    '</div>' +
+                '</div>';
 
                 frappe.msgprint({
-                    title: 'WhatsApp Link Generated & PDF Saved',
+                    title: 'WhatsApp Link Generated',
                     message: success_message,
                     wide: true
                 });
 
                 frappe.show_alert({
-                    message: 'WhatsApp chat opened with customer!',
+                    message: 'WhatsApp opened successfully!',
                     indicator: 'green'
                 });
 
                 frm.reload_doc();
+            } else {
+                frappe.msgprint({
+                    title: 'Error',
+                    message: 'Failed to generate WhatsApp link: ' + (r.message.error || 'Unknown error'),
+                    indicator: 'red'
+                });
             }
         }
     });
