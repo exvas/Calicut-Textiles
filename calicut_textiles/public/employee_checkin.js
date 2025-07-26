@@ -107,39 +107,46 @@ frappe.ui.form.on('Employee Checkin', {
 
 function calculate_late_coming(frm, start) {
     const checkin_time = moment(frm.doc.time);
+
+    // Calculate shift start time based on "start" object (with hours & minutes)
     const shift_start_today = moment(frm.doc.time).startOf('day')
         .add(start.hours(), 'hours')
         .add(start.minutes(), 'minutes');
 
-    const diff_minutes = checkin_time.diff(shift_start_today, 'minutes');
+    // Add 10 minutes grace period
+    const grace_end_time = shift_start_today.clone().add(10, 'minutes');
 
-    console.log("Check-in Time:", checkin_time.format());
-    console.log("Shift Start Time:", shift_start_today.format());
-    console.log("Late Minutes:", diff_minutes);
-
-    if (diff_minutes > 10) {
-        frm.set_value('custom_late_coming_minutes', diff_minutes);
-    } else {
-        frm.set_value('custom_late_coming_minutes', 0);
+    let late_minutes = 0;
+    if (checkin_time.isAfter(grace_end_time)) {
+        late_minutes = checkin_time.diff(grace_end_time, 'minutes');
     }
+
+    frm.set_value('custom_late_coming_minutes', late_minutes);
 }
 
 
 function calculate_early_going(frm, end) {
     const checkout_time = moment(frm.doc.time);
+
+    // Calculate today's shift end time from the 'end' object
     const shift_end_today = moment(frm.doc.time).startOf('day')
         .add(end.hours(), 'hours')
         .add(end.minutes(), 'minutes');
 
-    const early_minutes = shift_end_today.diff(checkout_time, 'minutes');
+    // Grace period ends 10 minutes *before* shift end
+    const grace_start_time = shift_end_today.clone().subtract(10, 'minutes');
 
-    console.log("Check-out Time:", checkout_time.format());
+    let early_minutes = 0;
+
+    // If checkout is before the grace start time, calculate early minutes
+    if (checkout_time.isBefore(grace_start_time)) {
+        early_minutes = grace_start_time.diff(checkout_time, 'minutes');
+    }
+
+    console.log("Checkout Time:", checkout_time.format());
     console.log("Shift End Time:", shift_end_today.format());
+    console.log("Grace Start Time:", grace_start_time.format());
     console.log("Early Going Minutes:", early_minutes);
 
-    if (early_minutes > 20) {
-        frm.set_value('custom_early_going_minutes', early_minutes);
-    } else {
-        frm.set_value('custom_early_going_minutes', 0);
-    }
+    frm.set_value('custom_early_going_minutes', early_minutes);
 }

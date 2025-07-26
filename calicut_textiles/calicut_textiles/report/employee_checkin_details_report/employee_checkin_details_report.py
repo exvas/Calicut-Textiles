@@ -174,7 +174,7 @@ def get_data(filters):
                 "time": format_time(row.time),
                 "log_type": row.log_type or "IN",
                 "late": row.custom_late_coming_minutes if is_first else "",
-                "early": row.custom_late_early if is_last else "",
+                "early": row.custom_early_going_minutes if is_last else "",
                 "over_time": overtime if is_last else "",
                 "total_working_hours": total_working_hours if is_last else "",
                 "total_break_time": total_break_time if is_last else ""
