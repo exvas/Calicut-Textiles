@@ -17,16 +17,15 @@ class CalicutTextilesSettings(Document):
 
 
 @frappe.whitelist()
-def reset_late_early():
-    """Method to reset the Log type and early late calculation"""
-    today = frappe.utils.today()
-    current_month_start = get_first_day(today)
-    current_month_end = get_last_day(today)
-
+def reset_late_early(from_date=None, to_date=None):
+ 
+    from_date = from_date or get_first_day(frappe.utils.today())
+    to_date = to_date or get_last_day(frappe.utils.today())
+ 
     checkins = frappe.get_all(
         "Employee Checkin",
         filters={
-            "time": ["between", [current_month_start, current_month_end]]
+            "time": ["between", [from_date, to_date]]
         },
         fields=[
             "name",
@@ -40,22 +39,22 @@ def reset_late_early():
         ],
         order_by="employee, time ASC"
     )
-
+ 
     checkin_data = defaultdict(lambda: defaultdict(list))
-
+ 
     for checkin in checkins:
         date_str = checkin.time.date().isoformat()
         checkin_data[checkin.employee][date_str].append(checkin)
-
+ 
     for employee, dates in checkin_data.items():
         for date, entries in dates.items():
             entries_sorted = sorted(entries, key=lambda x: x["time"])
-
+ 
             if not entries_sorted:
                 continue
-
+ 
             first_entry = entries_sorted[0]
-
+ 
             if len(entries_sorted) == 1:
                 # Only one entry for the day: set as IN
                 frappe.db.set_value("Employee Checkin", first_entry["name"], {
@@ -75,7 +74,7 @@ def reset_late_early():
                 })
                 first_entry["log_type"] = "IN"
                 last_entry["log_type"] = "OUT"
-
+ 
             # Calculate late coming minutes
             late = 0
             if first_entry:
@@ -83,7 +82,7 @@ def reset_late_early():
                 frappe.db.set_value("Employee Checkin", first_entry["name"], {
                     "custom_late_coming_minutes": late
                 })
-
+ 
             # Calculate early going minutes
             early = 0
             if last_entry:
@@ -91,9 +90,9 @@ def reset_late_early():
                 frappe.db.set_value("Employee Checkin", last_entry["name"], {
                     "custom_early_going_minutes": early
                 })
-
+ 
             total = late + early
-
+ 
             # Update combined late and early minutes
             frappe.db.set_value("Employee Checkin", first_entry["name"], {
                 "custom_late_early": total
@@ -102,7 +101,7 @@ def reset_late_early():
                 frappe.db.set_value("Employee Checkin", last_entry["name"], {
                     "custom_late_early": total
                 })
-
+ 
     frappe.db.commit()
     return "Done"
 
