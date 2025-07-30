@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, time
 from frappe.utils import today, get_first_day, get_last_day, add_days, getdate, nowdate
 from datetime import datetime, timedelta, time
 from collections import defaultdict
+import math
+from frappe.utils import get_datetime
 
 
 
@@ -24,13 +26,20 @@ def get_late_minutes_from_in_log(employee, date):
     return record[0] if record else {}
 
 
+def as_time(timedelta_obj):
+    # Convert timedelta to datetime.time object
+    total_seconds = int(timedelta_obj.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    return datetime.time(hour=hours, minute=minutes, second=seconds)
+
 @frappe.whitelist()
 def update_employee_checkin_fields(doc, method):
     """Auto alternate IN/OUT and calculate late/early metrics"""
+
     if not doc.employee or not doc.time:
         return
-
-    from frappe.utils import get_datetime
 
     time_obj = doc.time if isinstance(doc.time, datetime) else get_datetime(doc.time)
 
@@ -38,8 +47,10 @@ def update_employee_checkin_fields(doc, method):
         "Employee Checkin",
         filters={
             "employee": doc.employee,
-            "time": ["between", [time_obj.date().strftime('%Y-%m-%d') + " 00:00:00",
-                                 time_obj.date().strftime('%Y-%m-%d') + " 23:59:59"]],
+            "time": ["between", [
+                time_obj.date().strftime('%Y-%m-%d') + " 00:00:00",
+                time_obj.date().strftime('%Y-%m-%d') + " 23:59:59"
+            ]],
             "docstatus": ["<", 2]
         },
         fields=["name", "time", "log_type"],
@@ -50,7 +61,6 @@ def update_employee_checkin_fields(doc, method):
         last_log = same_day_logs[-1]
         last_log_time = get_datetime(last_log["time"])
         time_diff_min = abs((time_obj - last_log_time).total_seconds()) / 60
-
         if time_diff_min < 5:
             doc.log_type = "IN"
         else:
@@ -75,29 +85,51 @@ def update_employee_checkin_fields(doc, method):
     if shift_end <= shift_start:
         shift_end += timedelta(days=1)
 
-    total_hours = (shift_end - shift_start).seconds / 3600
+    total_seconds = (shift_end - shift_start).total_seconds()
+    total_hours = total_seconds / 3600
     doc.custom_total_hours = round(total_hours, 2)
 
+    grace_late = 10
+    grace_early = 10
+
     if doc.log_type == 'IN':
-        diff_minutes = int((time_obj - shift_start).total_seconds() / 60)
-        doc.custom_late_coming_minutes = diff_minutes if diff_minutes > 10 else 0
+        grace_limit = shift_start + timedelta(minutes=grace_late)
+        if time_obj > grace_limit:
+            diff_seconds = (time_obj - shift_start).total_seconds()
+            diff_minutes = int(diff_seconds // 60)
+            doc.custom_late_coming_minutes = diff_minutes
+        else:
+            doc.custom_late_coming_minutes = 0
+        doc.custom_early_going_minutes = 0
 
     elif doc.log_type == 'OUT':
-        diff_minutes = int((shift_end - time_obj).total_seconds() / 60)
-        doc.custom_early_going_minutes = diff_minutes if diff_minutes > 20 else 0
+        grace_limit = shift_end - timedelta(minutes=grace_early)
+        if time_obj < grace_limit:
+            diff_seconds = (shift_end - time_obj).total_seconds()
+            diff_minutes = math.ceil(diff_seconds / 60)
+            doc.custom_early_going_minutes = diff_minutes
+        else:
+            doc.custom_early_going_minutes = 0
 
-        in_checkin = frappe.db.get_value("Employee Checkin", {
-            "employee": doc.employee,
-            "log_type": "IN",
-            "time": ["between", [time_obj.date().strftime('%Y-%m-%d') + " 00:00:00",
-                                 time_obj.date().strftime('%Y-%m-%d') + " 23:59:59"]],
-            "docstatus": ["<", 2]
-        }, ["custom_late_coming_minutes"])
+        in_checkin_late_coming = frappe.db.get_value(
+            "Employee Checkin",
+            {
+                "employee": doc.employee,
+                "log_type": "IN",
+                "time": ["between", [
+                    time_obj.date().strftime('%Y-%m-%d') + " 00:00:00",
+                    time_obj.date().strftime('%Y-%m-%d') + " 23:59:59"
+                ]],
+                "docstatus": ["<", 2]
+            },
+            "custom_late_coming_minutes"
+        ) or 0
 
-        late = in_checkin or 0
-        early = doc.custom_early_going_minutes or 0
-        doc.custom_late_coming_minutes = late
-        doc.custom_late_early = float(late) + float(early)
+        doc.custom_late_coming_minutes = in_checkin_late_coming or 0
+
+    late = doc.custom_late_coming_minutes or 0
+    early = doc.custom_early_going_minutes or 0
+    doc.custom_late_early = float(late) + float(early)
 
 
 def as_time(value):
@@ -124,6 +156,7 @@ def to_time(value):
         return time(hour=hours, minute=minutes, second=seconds)
     return value
 
+
 @frappe.whitelist()
 def process_monthly_overtime_additional_salary():
     """Creates Additional Salary for Overtime only once per month per employee."""
@@ -131,8 +164,11 @@ def process_monthly_overtime_additional_salary():
     today_date = today()
     first_day = get_first_day(today_date)
     last_day = get_last_day(today_date)
+    if getdate(today_date) < last_day:
+        processing_last_day = getdate(today_date)
 
-    processing_last_day = getdate(today_date) if getdate(today_date) < last_day else last_day
+    else :
+        processing_last_day = last_day
 
     settings = frappe.get_single("Calicut Textiles Settings")
     threshold = settings.threshold_overtime_minutes or 0
@@ -154,8 +190,16 @@ def process_monthly_overtime_additional_salary():
             continue
 
         shift_type = frappe.get_doc("Shift Type", shift_type_name)
-        shift_start = to_time(shift_type.start_time)
-        shift_end = to_time(shift_type.end_time)
+        shift_start = timedelta_to_time(shift_type.start_time)
+        shift_end = timedelta_to_time(shift_type.end_time)
+
+        # Calculate shift working minutes dynamically
+        start_dt = datetime.combine(datetime.today(), shift_start)
+        end_dt = datetime.combine(datetime.today(), shift_end)
+        if end_dt <= start_dt:
+            end_dt += timedelta(days=1)
+        shift_duration_minutes = (end_dt - start_dt).total_seconds() / 60
+
 
         checkins = frappe.get_all("Employee Checkin", filters={
             "employee": emp.name,
@@ -166,40 +210,58 @@ def process_monthly_overtime_additional_salary():
         for row in checkins:
             checkins_by_day[row.time.date()].append(row.time)
 
+        # Process each day's checkin times for the current employee
         for checkin_date, times in checkins_by_day.items():
             filtered_checkins = []
             last_time = None
-            for current_time in times:
+            for current_time in sorted(times):  # sort times just in case
                 if not last_time or (current_time - last_time).total_seconds() > 300:
                     filtered_checkins.append(current_time)
                     last_time = current_time
 
+            # Only process if we have at least 2 valid checkins for the day
             if len(filtered_checkins) >= 2:
                 in_time = filtered_checkins[0]
                 out_time = filtered_checkins[-1]
-                worked_minutes = (out_time - in_time).total_seconds() / 60
 
                 shift_start_dt = datetime.combine(checkin_date, shift_start)
                 shift_end_dt = datetime.combine(checkin_date, shift_end)
                 if shift_end_dt <= shift_start_dt:
                     shift_end_dt += timedelta(days=1)
 
-                shift_minutes = (shift_end_dt - shift_start_dt).total_seconds() / 60
-                extra = worked_minutes - shift_minutes
+                threshold_timedelta = timedelta(minutes=threshold)
 
-                if extra > threshold:
-                    overtime_today = extra - threshold
-                    total_overtime_minutes += overtime_today
+                # Early overtime calculation (before shift start minus threshold)
+                early_overtime = 0
+                early_overtime_limit = shift_start_dt - threshold_timedelta
+                if in_time < early_overtime_limit:
+                    early_overtime = (early_overtime_limit - in_time).total_seconds() / 60
 
+                # Late overtime calculation (after shift end plus threshold)
+                late_overtime = 0
+                late_overtime_limit = shift_end_dt + threshold_timedelta
+                if out_time > late_overtime_limit:
+                    late_overtime = (out_time - late_overtime_limit).total_seconds() / 60
+
+                # Total daily overtime
+                daily_overtime_minutes = early_overtime + late_overtime
+
+                # Accumulate only if positive
+                if daily_overtime_minutes > 0:
+                    total_overtime_minutes += daily_overtime_minutes
+
+
+        # After processing all days for employee, create Additional Salary if overtime exists
         if total_overtime_minutes > 0:
             base = frappe.get_value("Salary Structure Assignment", {"employee": emp.name}, "base")
             if not base:
                 continue
 
             total_days = (datetime.strptime(str(last_day), "%Y-%m-%d") - datetime.strptime(str(first_day), "%Y-%m-%d")).days + 1
-            per_minute_rate = base / (total_days * 8 * 60)
-            overtime_amount = round(per_minute_rate * total_overtime_minutes, 2)
 
+            per_minute_rate = base / (total_days * shift_duration_minutes)
+            overtime_amount = round(per_minute_rate * total_overtime_minutes, 2)
+        
             additional_salary = frappe.new_doc("Additional Salary")
             additional_salary.employee = emp.name
             additional_salary.company = emp.company
@@ -208,3 +270,10 @@ def process_monthly_overtime_additional_salary():
             additional_salary.salary_component = "Over Time"
             additional_salary.overwrite_salary_structure_amount = 1
             additional_salary.submit()
+
+def timedelta_to_time(td):
+    total_seconds = int(td.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    return time(hours, minutes, seconds)
