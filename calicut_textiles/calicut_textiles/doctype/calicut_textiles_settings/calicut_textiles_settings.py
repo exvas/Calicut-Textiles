@@ -9,19 +9,17 @@ import calendar
 from collections import defaultdict
 import pytz
 import json
-
-
+import math
 
 class CalicutTextilesSettings(Document):
-	pass
+    pass
 
 
 @frappe.whitelist()
 def reset_late_early(from_date=None, to_date=None):
- 
     from_date = from_date or get_first_day(frappe.utils.today())
     to_date = to_date or get_last_day(frappe.utils.today())
- 
+
     checkins = frappe.get_all(
         "Employee Checkin",
         filters={
@@ -39,42 +37,34 @@ def reset_late_early(from_date=None, to_date=None):
         ],
         order_by="employee, time ASC"
     )
- 
+
     checkin_data = defaultdict(lambda: defaultdict(list))
- 
+
     for checkin in checkins:
         date_str = checkin.time.date().isoformat()
         checkin_data[checkin.employee][date_str].append(checkin)
- 
+
     for employee, dates in checkin_data.items():
         for date, entries in dates.items():
             entries_sorted = sorted(entries, key=lambda x: x["time"])
- 
+
             if not entries_sorted:
                 continue
- 
+
             first_entry = entries_sorted[0]
- 
+
             if len(entries_sorted) == 1:
-                # Only one entry for the day: set as IN
-                frappe.db.set_value("Employee Checkin", first_entry["name"], {
-                    "log_type": "IN"
-                })
+                frappe.db.set_value("Employee Checkin", first_entry["name"], {"log_type": "IN"})
                 first_entry["log_type"] = "IN"
                 last_entry = None
             else:
+                first_entry = entries_sorted[0]
                 last_entry = entries_sorted[-1]
-                # Set first entry as IN
-                frappe.db.set_value("Employee Checkin", first_entry["name"], {
-                    "log_type": "IN"
-                })
-                # Set last entry as OUT
-                frappe.db.set_value("Employee Checkin", last_entry["name"], {
-                    "log_type": "OUT"
-                })
+                frappe.db.set_value("Employee Checkin", first_entry["name"], {"log_type": "IN"})
+                frappe.db.set_value("Employee Checkin", last_entry["name"], {"log_type": "OUT"})
                 first_entry["log_type"] = "IN"
                 last_entry["log_type"] = "OUT"
- 
+
             # Calculate late coming minutes
             late = 0
             if first_entry:
@@ -82,7 +72,7 @@ def reset_late_early(from_date=None, to_date=None):
                 frappe.db.set_value("Employee Checkin", first_entry["name"], {
                     "custom_late_coming_minutes": late
                 })
- 
+
             # Calculate early going minutes
             early = 0
             if last_entry:
@@ -90,9 +80,9 @@ def reset_late_early(from_date=None, to_date=None):
                 frappe.db.set_value("Employee Checkin", last_entry["name"], {
                     "custom_early_going_minutes": early
                 })
- 
+
             total = late + early
- 
+
             # Update combined late and early minutes
             frappe.db.set_value("Employee Checkin", first_entry["name"], {
                 "custom_late_early": total
@@ -101,9 +91,10 @@ def reset_late_early(from_date=None, to_date=None):
                 frappe.db.set_value("Employee Checkin", last_entry["name"], {
                     "custom_late_early": total
                 })
- 
+
     frappe.db.commit()
     return "Done"
+
 
 def calculate_late_minutes(checkin):
     if not checkin.get("shift"):
@@ -121,25 +112,32 @@ def calculate_late_minutes(checkin):
     shift_datetime = datetime.combine(checkin_time.date(), shift_start)
     grace_end = shift_datetime + timedelta(minutes=grace)
 
-
     if checkin_time > grace_end:
-        return int((checkin_time - grace_end).total_seconds() / 60)
+        diff_seconds = (checkin_time - shift_datetime).total_seconds()
+        diff_minutes = int(diff_seconds // 60)
+        return diff_minutes
     return 0
 
-
 def calculate_early_minutes(checkout):
-    if not checkout.get("shift"): return 0
+    if not checkout.get("shift"):
+        return 0
 
-    shift = frappe.get_doc("Shift Type", checkout["shift"])
+    try:
+        shift = frappe.get_doc("Shift Type", checkout["shift"])
+    except frappe.DoesNotExistError:
+        return 0
+
     shift_end = timedelta_to_time(shift.end_time)
     grace = 10
-
     checkout_time = checkout["time"]
     shift_datetime = datetime.combine(checkout_time.date(), shift_end)
     grace_start = shift_datetime - timedelta(minutes=grace)
 
     if checkout_time < grace_start:
-        return int((grace_start - checkout_time).total_seconds() / 60)
+        diff_seconds = (shift_datetime - checkout_time).total_seconds()
+        diff_minutes = math.ceil(diff_seconds / 60)
+        return int(diff_minutes)
+
     return 0
 
 

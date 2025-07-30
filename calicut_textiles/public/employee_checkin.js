@@ -107,22 +107,35 @@ frappe.ui.form.on('Employee Checkin', {
 
 function calculate_late_coming(frm, start) {
     const checkin_time = moment(frm.doc.time);
+    console.log("Check-in Time:", checkin_time.format('HH:mm'));
 
-    // Calculate shift start time based on "start" object (with hours & minutes)
+    // Calculate shift start time from the start object (assumed plain { hours: X, minutes: Y })
     const shift_start_today = moment(frm.doc.time).startOf('day')
-        .add(start.hours(), 'hours')
-        .add(start.minutes(), 'minutes');
+        .add(start.hours, 'hours')
+        .add(start.minutes, 'minutes');
+    console.log('Shift Start:', shift_start_today.format('HH:mm'));
 
-    // Add 10 minutes grace period
+    // Define end of grace period (shift start + 10 minutes)
     const grace_end_time = shift_start_today.clone().add(10, 'minutes');
+    console.log('Grace End Time:', grace_end_time.format('HH:mm'));
 
     let late_minutes = 0;
+
+    // Only calculate late minutes if check-in is strictly **after** grace period
     if (checkin_time.isAfter(grace_end_time)) {
-        late_minutes = checkin_time.diff(grace_end_time, 'minutes');
+        // Difference in minutes from shift START (including grace period)
+        late_minutes = checkin_time.diff(shift_start_today, 'minutes');
+
+        if (late_minutes < 0) {
+            // Defensive check, should not happen, but just in case
+            late_minutes = 0;
+        }
     }
 
+    console.log('Calculated Late Minutes:', late_minutes);
     frm.set_value('custom_late_coming_minutes', late_minutes);
 }
+
 
 
 function calculate_early_going(frm, end) {
