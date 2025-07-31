@@ -14,7 +14,6 @@ from hrms.payroll.doctype.salary_structure_assignment.salary_structure_assignmen
 from hrms.hr.doctype.leave_application.leave_application import get_leave_balance_on
 
 
-
 class CustomLeaveEncashment(LeaveEncashment):
 	def validate(self):
 		set_employee_name(self)
@@ -140,100 +139,201 @@ class CustomLeaveEncashment(LeaveEncashment):
 
 		return leave_allocation[0] if leave_allocation else None
 
-
+@frappe.whitelist()
 def process_monthly_leave_encashment():
     """Function to be called by scheduler to process monthly encashments"""
 
-    if getdate() == get_last_day(getdate()):
-        employees = frappe.get_all("Employee",
-            filters={"status": "Active"},
-            fields=["name"]
+    settings = frappe.get_single("Calicut Textiles Settings")
+    if settings.auto_encashment:
+
+	    if getdate() == get_last_day(getdate()):
+	        employees = frappe.get_all("Employee",
+	            filters={"status": "Active"},
+	            fields=["name"]
+	        )
+
+	        for emp in employees:
+	            leave_type = "Casual Leave"
+	            current_date = getdate()
+	            encashment_date = get_last_day(current_date)
+
+	            leave_period = frappe.get_all(
+	                "Leave Period",
+	                filters={
+	                    "from_date": ("<=", current_date),
+	                    "to_date": (">=", current_date),
+	                    "is_active": 1
+	                },
+	                fields=["name", "from_date", "to_date"],
+	                limit=1
+	            )
+
+	            if not leave_period:
+	                frappe.log_error(f"No active leave period found for date {current_date}")
+	                continue
+
+	            leave_period = leave_period[0]
+
+	            leave_allocation = frappe.get_all(
+	                "Leave Allocation",
+	                filters={
+	                    "employee": emp.name,
+	                    "leave_type": leave_type
+	                },
+	                fields=[
+	                    "employee",
+	                    "leave_policy_assignment",
+	                    "leave_type",
+	                    "to_date",
+	                    "total_leaves_allocated",
+	                    "new_leaves_allocated",
+	                ],
+	            )
+
+	            for allocation in leave_allocation:
+	                if not get_assigned_salary_structure(allocation.employee, allocation.to_date):
+	                    continue
+
+	                leave_balance = get_leave_balance_on(
+	                    allocation.employee,
+	                    allocation.leave_type,
+	                    current_date,
+	                    to_date=allocation.to_date
+	                )
+
+	                if frappe.db.exists("Leave Encashment", {
+	                    "employee": allocation.employee,
+	                    "leave_type": leave_type,
+	                    "encashment_date": encashment_date,
+	                    "docstatus": ["<", 2]
+	                }):
+	                    continue
+
+	                from_date = encashment_date.replace(day=1)
+	                monthly_entitlement = 3
+
+	                leaves_taken = frappe.db.sql("""
+	                    SELECT COALESCE(SUM(total_leave_days), 0)
+	                    FROM `tabLeave Application`
+	                    WHERE employee=%s AND leave_type=%s
+	                    AND docstatus=1
+	                    AND (from_date BETWEEN %s AND %s OR to_date BETWEEN %s AND %s)
+	                """, (allocation.employee, leave_type, from_date, encashment_date, from_date, encashment_date))[0][0]
+
+	                monthly_balance = max(monthly_entitlement - leaves_taken, 0)
+	                encashment_days = min(monthly_balance, leave_balance)
+
+	                if encashment_days > 0:
+	                    leave_encashment = frappe.new_doc("Leave Encashment")
+	                    leave_encashment.leave_period = leave_period.name
+	                    leave_encashment.employee = allocation.employee
+	                    leave_encashment.leave_type = allocation.leave_type
+	                    leave_encashment.encashment_date = encashment_date
+	                    leave_encashment.leave_balance = leave_balance
+	                    leave_encashment.encashment_days = encashment_days
+	                    leave_encashment.status = "Submitted"
+	                    leave_encashment.custom_is_system_generated = True
+	                    leave_encashment.save(ignore_permissions=True)
+	                    leave_encashment.submit()
+	                    frappe.db.commit()
+
+	                else:
+	                    frappe.log_error(f"Unable to create Auto Leave Encashment for employee: {allocation.employee}")
+
+@frappe.whitelist()
+def create_monthly_leave_encashment(payroll_date):
+    """Process leave encashment using user-specified payroll_date from dialog"""
+
+    encashment_date = getdate(payroll_date)
+    current_date = encashment_date
+
+    employees = frappe.get_all("Employee",
+        filters={"status": "Active"},
+        fields=["name"]
+    )
+
+    for emp in employees:
+        leave_type = "Casual Leave"
+
+        leave_period = frappe.get_all(
+            "Leave Period",
+            filters={
+                "from_date": ("<=", current_date),
+                "to_date": (">=", current_date),
+                "is_active": 1
+            },
+            fields=["name", "from_date", "to_date"],
+            limit=1
         )
 
-        for emp in employees:
-            leave_type = "Casual Leave"
-            current_date = getdate()
-            encashment_date = get_last_day(current_date)
+        if not leave_period:
+            frappe.log_error(f"No active leave period found for date {current_date}")
+            continue
 
-            leave_period = frappe.get_all(
-                "Leave Period",
-                filters={
-                    "from_date": ("<=", current_date),
-                    "to_date": (">=", current_date),
-                    "is_active": 1
-                },
-                fields=["name", "from_date", "to_date"],
-                limit=1
-            )
+        leave_period = leave_period[0]
 
-            if not leave_period:
-                frappe.log_error(f"No active leave period found for date {current_date}")
+        leave_allocation = frappe.get_all(
+            "Leave Allocation",
+            filters={
+                "employee": emp.name,
+                "leave_type": leave_type
+            },
+            fields=[
+                "employee",
+                "leave_policy_assignment",
+                "leave_type",
+                "to_date",
+                "total_leaves_allocated",
+                "new_leaves_allocated",
+            ],
+        )
+
+        for allocation in leave_allocation:
+            if not get_assigned_salary_structure(allocation.employee, allocation.to_date):
                 continue
 
-            leave_period = leave_period[0]
-
-            leave_allocation = frappe.get_all(
-                "Leave Allocation",
-                filters={
-                    "employee": emp.name,
-                    "leave_type": leave_type
-                },
-                fields=[
-                    "employee",
-                    "leave_policy_assignment",
-                    "leave_type",
-                    "to_date",
-                    "total_leaves_allocated",
-                    "new_leaves_allocated",
-                ],
+            leave_balance = get_leave_balance_on(
+                allocation.employee,
+                allocation.leave_type,
+                current_date,
+                to_date=allocation.to_date
             )
 
-            for allocation in leave_allocation:
-                if not get_assigned_salary_structure(allocation.employee, allocation.to_date):
-                    continue
+            if frappe.db.exists("Leave Encashment", {
+                "employee": allocation.employee,
+                "leave_type": leave_type,
+                "encashment_date": encashment_date,
+                "docstatus": ["<", 2]
+            }):
+                continue
 
-                leave_balance = get_leave_balance_on(
-                    allocation.employee,
-                    allocation.leave_type,
-                    current_date,
-                    to_date=allocation.to_date
-                )
+            from_date = encashment_date.replace(day=1)
+            monthly_entitlement = 3
 
-                if frappe.db.exists("Leave Encashment", {
-                    "employee": allocation.employee,
-                    "leave_type": leave_type,
-                    "encashment_date": encashment_date,
-                    "docstatus": ["<", 2]
-                }):
-                    continue
+            leaves_taken = frappe.db.sql("""
+                SELECT COALESCE(SUM(total_leave_days), 0)
+                FROM `tabLeave Application`
+                WHERE employee=%s AND leave_type=%s
+                AND docstatus=1
+                AND (from_date BETWEEN %s AND %s OR to_date BETWEEN %s AND %s)
+            """, (allocation.employee, leave_type, from_date, encashment_date, from_date, encashment_date))[0][0]
 
-                from_date = encashment_date.replace(day=1)
-                monthly_entitlement = 3
+            monthly_balance = max(monthly_entitlement - leaves_taken, 0)
+            encashment_days = min(monthly_balance, leave_balance)
 
-                leaves_taken = frappe.db.sql("""
-                    SELECT COALESCE(SUM(total_leave_days), 0)
-                    FROM `tabLeave Application`
-                    WHERE employee=%s AND leave_type=%s
-                    AND docstatus=1
-                    AND (from_date BETWEEN %s AND %s OR to_date BETWEEN %s AND %s)
-                """, (allocation.employee, leave_type, from_date, encashment_date, from_date, encashment_date))[0][0]
+            if encashment_days > 0:
+                leave_encashment = frappe.new_doc("Leave Encashment")
+                leave_encashment.leave_period = leave_period.name
+                leave_encashment.employee = allocation.employee
+                leave_encashment.leave_type = allocation.leave_type
+                leave_encashment.encashment_date = encashment_date
+                leave_encashment.leave_balance = leave_balance
+                leave_encashment.encashment_days = encashment_days
+                leave_encashment.status = "Submitted"
+                leave_encashment.custom_is_system_generated = True
+                leave_encashment.save(ignore_permissions=True)
+                leave_encashment.submit()
+                frappe.db.commit()
 
-                monthly_balance = max(monthly_entitlement - leaves_taken, 0)
-                encashment_days = min(monthly_balance, leave_balance)
-
-                if encashment_days > 0:
-                    leave_encashment = frappe.new_doc("Leave Encashment")
-                    leave_encashment.leave_period = leave_period.name
-                    leave_encashment.employee = allocation.employee
-                    leave_encashment.leave_type = allocation.leave_type
-                    leave_encashment.encashment_date = encashment_date
-                    leave_encashment.leave_balance = leave_balance
-                    leave_encashment.encashment_days = encashment_days
-                    leave_encashment.status = "Submitted"
-                    leave_encashment.custom_is_system_generated = True
-                    leave_encashment.save(ignore_permissions=True)
-                    leave_encashment.submit()
-                    frappe.db.commit()
-
-                else:
-                    frappe.log_error(f"Unable to create Auto Leave Encashment for employee: {allocation.employee}")
+            else:
+                frappe.log_error(f"Unable to create Auto Leave Encashment for employee: {allocation.employee}")
