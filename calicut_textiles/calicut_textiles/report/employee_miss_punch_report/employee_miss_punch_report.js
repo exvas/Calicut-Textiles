@@ -39,5 +39,11 @@ frappe.query_reports["Employee Miss Punch Report"] = {
 			},
 			width: "120px",
 		},
+		{
+	    fieldname: "status",
+	    label: __("Status"),
+	    fieldtype: "Select",
+	    options: ["","Present", "Miss Punch"]
+		},
 	]
 };

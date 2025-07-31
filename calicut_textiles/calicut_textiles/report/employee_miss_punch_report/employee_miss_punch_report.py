@@ -12,17 +12,25 @@ def execute(filters=None):
     today_str = date.today().strftime("%Y-%m-%d")
     from_date = filters.get("from_date") or today_str
     to_date = filters.get("to_date") or today_str
+    company = filters.get("company")
+    employee_filter = filters.get("employee")
+    status_filter = filters.get("status")
 
     columns = get_columns()
     data = []
 
+    # Build filters for checkin query
+    checkin_filters = [
+        ["time", ">=", f"{from_date} 00:00:00"],
+        ["time", "<=", f"{to_date} 23:59:59"]
+    ]
+    if employee_filter:
+        checkin_filters.append(["employee", "=", employee_filter])
+
     checkins = frappe.get_all(
         "Employee Checkin",
         fields=["employee", "time", "log_type"],
-        filters=[
-            ["time", ">=", f"{from_date} 00:00:00"],
-            ["time", "<=", f"{to_date} 23:59:59"]
-        ],
+        filters=checkin_filters,
         order_by="employee, time asc"
     )
 
@@ -65,6 +73,9 @@ def execute(filters=None):
         last_out = val["last_out"]
 
         status = "Present" if first_in and last_out else "Miss Punch"
+
+        if status_filter and status != status_filter:
+            continue
 
         if first_in:
             data.append({
