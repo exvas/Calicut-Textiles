@@ -164,11 +164,8 @@ def process_monthly_overtime_additional_salary():
     today_date = today()
     first_day = get_first_day(today_date)
     last_day = get_last_day(today_date)
-    if getdate(today_date) < last_day:
-        processing_last_day = getdate(today_date)
 
-    else :
-        processing_last_day = last_day
+    processing_last_day = getdate(today_date) if getdate(today_date) < last_day else last_day
 
     settings = frappe.get_single("Calicut Textiles Settings")
     threshold = settings.threshold_overtime_minutes or 0
@@ -190,16 +187,8 @@ def process_monthly_overtime_additional_salary():
             continue
 
         shift_type = frappe.get_doc("Shift Type", shift_type_name)
-        shift_start = timedelta_to_time(shift_type.start_time)
-        shift_end = timedelta_to_time(shift_type.end_time)
-
-        # Calculate shift working minutes dynamically
-        start_dt = datetime.combine(datetime.today(), shift_start)
-        end_dt = datetime.combine(datetime.today(), shift_end)
-        if end_dt <= start_dt:
-            end_dt += timedelta(days=1)
-        shift_duration_minutes = (end_dt - start_dt).total_seconds() / 60
-
+        shift_start = to_time(shift_type.start_time)
+        shift_end = to_time(shift_type.end_time)
 
         checkins = frappe.get_all("Employee Checkin", filters={
             "employee": emp.name,
@@ -210,16 +199,14 @@ def process_monthly_overtime_additional_salary():
         for row in checkins:
             checkins_by_day[row.time.date()].append(row.time)
 
-        # Process each day's checkin times for the current employee
         for checkin_date, times in checkins_by_day.items():
             filtered_checkins = []
             last_time = None
-            for current_time in sorted(times):  # sort times just in case
+            for current_time in times:
                 if not last_time or (current_time - last_time).total_seconds() > 300:
                     filtered_checkins.append(current_time)
                     last_time = current_time
 
-            # Only process if we have at least 2 valid checkins for the day
             if len(filtered_checkins) >= 2:
                 in_time = filtered_checkins[0]
                 out_time = filtered_checkins[-1]
@@ -229,47 +216,57 @@ def process_monthly_overtime_additional_salary():
                 if shift_end_dt <= shift_start_dt:
                     shift_end_dt += timedelta(days=1)
 
-                threshold_timedelta = timedelta(minutes=threshold)
+                # Calculate the normal end time for overtime threshold (evening)
+                normal_end_dt = shift_end_dt + timedelta(minutes=threshold)
 
-                # Early overtime calculation (before shift start minus threshold)
-                early_overtime = 0
-                early_overtime_limit = shift_start_dt - threshold_timedelta
-                if in_time < early_overtime_limit:
-                    early_overtime = (early_overtime_limit - in_time).total_seconds() / 60
+                # Evening overtime calculation (as you already have)
+                if out_time <= normal_end_dt:
+                    overtime_evening = 0
+                else:
+                    overtime_evening = threshold + (out_time - normal_end_dt).total_seconds() / 60
 
-                # Late overtime calculation (after shift end plus threshold)
-                late_overtime = 0
-                late_overtime_limit = shift_end_dt + threshold_timedelta
-                if out_time > late_overtime_limit:
-                    late_overtime = (out_time - late_overtime_limit).total_seconds() / 60
+                # Calculate normal start time for morning threshold (shift start - threshold)
+                normal_start_dt = shift_start_dt - timedelta(minutes=threshold)
 
-                # Total daily overtime
-                daily_overtime_minutes = early_overtime + late_overtime
+                # Morning overtime calculation
+                if in_time >= normal_start_dt:
+                    overtime_morning = 0
+                else:
+                    overtime_morning = threshold + (normal_start_dt - in_time).total_seconds() / 60
 
-                # Accumulate only if positive
-                if daily_overtime_minutes > 0:
-                    total_overtime_minutes += daily_overtime_minutes
+                # Total overtime = morning overtime + evening overtime
+                total_overtime_minutes += overtime_morning + overtime_evening
 
-
-        # After processing all days for employee, create Additional Salary if overtime exists
         if total_overtime_minutes > 0:
             base = frappe.get_value("Salary Structure Assignment", {"employee": emp.name}, "base")
             if not base:
                 continue
 
             total_days = (datetime.strptime(str(last_day), "%Y-%m-%d") - datetime.strptime(str(first_day), "%Y-%m-%d")).days + 1
-
-            per_minute_rate = base / (total_days * shift_duration_minutes)
+            per_minute_rate = base / (total_days * 8 * 60)
             overtime_amount = round(per_minute_rate * total_overtime_minutes, 2)
-        
-            additional_salary = frappe.new_doc("Additional Salary")
-            additional_salary.employee = emp.name
-            additional_salary.company = emp.company
-            additional_salary.payroll_date = last_day
-            additional_salary.amount = overtime_amount
-            additional_salary.salary_component = "Over Time"
-            additional_salary.overwrite_salary_structure_amount = 1
-            additional_salary.submit()
+
+            existing_additional_salary = frappe.get_all("Additional Salary", filters={
+                "employee": emp.name,
+                "salary_component": "Over Time",
+                "payroll_date": last_day
+            }, limit=1)
+
+            if existing_additional_salary:
+                # Option 1: Update the amount (sum the existing and new if needed)
+                additional_salary = frappe.get_doc("Additional Salary", existing_additional_salary[0].name)
+                additional_salary.amount += overtime_amount
+                additional_salary.save()
+            else:
+                additional_salary = frappe.new_doc("Additional Salary")
+                additional_salary.employee = emp.name
+                additional_salary.company = emp.company
+                additional_salary.payroll_date = last_day
+                additional_salary.amount = overtime_amount
+                additional_salary.salary_component = "Over Time"
+                additional_salary.overwrite_salary_structure_amount = 1
+                additional_salary.submit()
+
 
 def timedelta_to_time(td):
     total_seconds = int(td.total_seconds())
