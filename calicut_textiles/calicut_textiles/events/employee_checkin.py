@@ -191,6 +191,20 @@ def process_monthly_overtime_additional_salary():
             shift_start = to_time(shift_type.start_time)
             shift_end = to_time(shift_type.end_time)
 
+            # Compute total working hours per day
+            dummy_date = datetime.today().date()
+            shift_start_dt = datetime.combine(dummy_date, shift_start)
+            shift_end_dt = datetime.combine(dummy_date, shift_end)
+            if shift_end_dt <= shift_start_dt:
+                shift_end_dt += timedelta(days=1)
+
+            total_working_hours = (shift_end_dt - shift_start_dt).total_seconds() / 3600
+
+            # Handle edge case if shift is wrongly configured
+            if total_working_hours <= 0:
+                continue
+
+
             checkins = frappe.get_all("Employee Checkin", filters={
                 "employee": emp.name,
                 "time": ["between", [f"{first_day} 00:00:00", f"{processing_last_day} 23:59:59"]]
@@ -239,7 +253,7 @@ def process_monthly_overtime_additional_salary():
                     continue
 
                 total_days = (datetime.strptime(str(last_day), "%Y-%m-%d") - datetime.strptime(str(first_day), "%Y-%m-%d")).days + 1
-                per_minute_rate = base / (total_days * 8 * 60)
+                per_minute_rate = base / (total_days * total_working_hours * 60)
                 overtime_amount = round(per_minute_rate * total_overtime_minutes, 2)
 
                 existing_additional_salary = frappe.get_all("Additional Salary", filters={
@@ -298,6 +312,20 @@ def create_overtime_additional_salary(payroll_date):
         shift_start = to_time(shift_type.start_time)
         shift_end = to_time(shift_type.end_time)
 
+        # Compute total working hours per day
+        dummy_date = datetime.today().date()
+        shift_start_dt = datetime.combine(dummy_date, shift_start)
+        shift_end_dt = datetime.combine(dummy_date, shift_end)
+        if shift_end_dt <= shift_start_dt:
+            shift_end_dt += timedelta(days=1)
+
+        total_working_hours = (shift_end_dt - shift_start_dt).total_seconds() / 3600
+
+        # Handle edge case if shift is wrongly configured
+        if total_working_hours <= 0:
+            continue
+
+
         checkins = frappe.get_all("Employee Checkin", filters={
             "employee": emp.name,
             "time": ["between", [f"{first_day} 00:00:00", f"{processing_last_day} 23:59:59"]]
@@ -346,7 +374,7 @@ def create_overtime_additional_salary(payroll_date):
                 continue
 
             total_days = (datetime.strptime(str(last_day), "%Y-%m-%d") - datetime.strptime(str(first_day), "%Y-%m-%d")).days + 1
-            per_minute_rate = base / (total_days * 8 * 60)
+            per_minute_rate = base / (total_days * total_working_hours * 60)
             overtime_amount = round(per_minute_rate * total_overtime_minutes, 2)
 
             existing_additional_salary = frappe.get_all("Additional Salary", filters={
