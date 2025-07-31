@@ -12,6 +12,7 @@
   "column_break_0hrb",
   "early_component",
   "auto_encashment",
+  "ot_salary",
   "section_break_zjrq",
   "price_listmrp",
   "column_break_gqiu",
@@ -125,13 +126,19 @@
    "fieldname": "auto_encashment",
    "fieldtype": "Check",
    "label": "Auto Encashment"
+  },
+  {
+   "default": "0",
+   "fieldname": "ot_salary",
+   "fieldtype": "Check",
+   "label": "OT Salary"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-07-31 15:25:27.185349",
+ "modified": "2025-07-31 15:55:16.151447",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles Settings",
