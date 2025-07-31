@@ -452,7 +452,55 @@ def get_all_products():
             "error": str(e)
         }
 
+import frappe
+from frappe import _
 
+@frappe.whitelist()
+def update_product(product_name=None, new_product_name=None, uom=None):
+    if not product_name:
+        frappe.throw(_("Product Name is required"))
+
+    if not new_product_name and not uom:
+        frappe.throw(_("No new values provided"))
+
+    renamed = False
+    uom_updated = False
+
+    # Rename product if new name provided
+    if new_product_name and new_product_name != product_name:
+        try:
+            frappe.rename_doc("Product", product_name, new_product_name)
+            frappe.msgprint(
+                _("✅ Product renamed from <b>{0}</b> to <b>{1}</b>").format(product_name, new_product_name),
+                alert=True
+            )
+            product_name = new_product_name  # Update reference for next steps
+            renamed = True
+        except frappe.DuplicateEntryError:
+            frappe.throw(_("❌ Product with name <b>{0}</b> already exists").format(new_product_name))
+
+    # Load updated or existing product
+    doc = frappe.get_doc("Product", product_name)
+
+    # Update UOM if provided
+    if uom:
+        doc.uom = uom
+        doc.save()
+        frappe.msgprint(
+            _("✅ UOM updated to <b>{0}</b>").format(uom),
+            alert=True
+        )
+        uom_updated = True
+
+    frappe.db.commit()
+
+    return {
+        "success": True,
+        "message": "Product updated successfully",
+        "product": doc.name,
+        "renamed": renamed,
+        "uom_updated": uom_updated
+    }
 
 # @frappe.whitelist(methods=["POST"], allow_guest=True)
 # def create_supplier_order():
