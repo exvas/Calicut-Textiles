@@ -16,26 +16,31 @@ class LateDayCheckinReset(Document):
                 frappe.msgprint(f"Check-in updated for {checkin.employee_name}")
 
 @frappe.whitelist()
-def get_first_checkins_by_date(checkin_date):
-    """Method to get employee checkin checkin_details
-        args :
-            checkin_date : Date which fetch the checkin details(default as Today)
-    """
-    if not checkin_date:
+def get_first_checkins_by_date(from_date, to_date):
+    """Get first employee checkin for each employee per day within the date range."""
+
+    if not from_date or not to_date:
         return []
-        
+
     data = frappe.db.sql("""
-        SELECT ec.name, ec.employee, ec.employee_name, ec.log_type, ec.time
+        SELECT
+            ec.name,
+            ec.employee,
+            ec.employee_name,
+            ec.log_type,
+            ec.time
         FROM `tabEmployee Checkin` ec
         INNER JOIN (
-            SELECT employee, MIN(time) AS min_time
+            SELECT employee, DATE(time) as checkin_date, MIN(time) AS min_time
             FROM `tabEmployee Checkin`
-            WHERE DATE(time) = %s
-            GROUP BY employee
+            WHERE DATE(time) BETWEEN %s AND %s
+            GROUP BY employee, checkin_date
         ) AS first_checkin
-        ON ec.employee = first_checkin.employee AND ec.time = first_checkin.min_time
+        ON ec.employee = first_checkin.employee
+        AND DATE(ec.time) = first_checkin.checkin_date
+        AND ec.time = first_checkin.min_time
         WHERE ec.docstatus < 2
         ORDER BY ec.time ASC
-    """, (checkin_date,), as_dict=True)
+    """, (from_date, to_date), as_dict=True)
 
     return data

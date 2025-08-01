@@ -6,9 +6,10 @@ frappe.ui.form.on("Late Day Checkin Reset", {
 		if (frm.is_new()) {
 
 			frm.add_custom_button(__("Get First Check-ins"), function () {
-				const checkin_date = frm.doc.checkin_date;
+				const from_date = frm.doc.from_date;
+				const to_date = frm.doc.to_date;
 
-				if (!checkin_date) {
+				if (!from_date && !to_date) {
 					frappe.msgprint(__("Please select a Checkin Date first."));
 					return;
 				}
@@ -16,7 +17,8 @@ frappe.ui.form.on("Late Day Checkin Reset", {
 				frappe.call({
 					method: "calicut_textiles.calicut_textiles.doctype.late_day_checkin_reset.late_day_checkin_reset.get_first_checkins_by_date",
 					args: {
-						checkin_date: checkin_date
+						from_date: from_date,
+						to_date: to_date
 					},
 					callback: function (r) {
 						if (r.message && r.message.length > 0) {
