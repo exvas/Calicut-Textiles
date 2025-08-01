@@ -9,7 +9,6 @@
   "posting_date",
   "payroll_date",
   "column_break_efsu",
-  "month",
   "from_date",
   "to_date",
   "section_break_aksc",
@@ -64,12 +63,6 @@
    "options": "Consolidate Late Entry Details"
   },
   {
-   "fieldname": "month",
-   "fieldtype": "Select",
-   "label": "Month",
-   "options": "January\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
-  },
-  {
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "hidden": 1,
@@ -80,7 +73,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-05 17:10:23.237404",
+ "modified": "2025-08-01 19:34:29.815401",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Consolidate Late Entry",
