@@ -26,6 +26,8 @@ frappe.listview_settings['Employee Checkin'] = {
                             from_date: values.from_date,
                             to_date: values.to_date
                         },
+                        freeze: true,
+                        freeze_message: "Recalculating late/early entries...",
                         callback(r) {
                             if (r.message) {
                                 frappe.msgprint(__('Late/Early entries recalculated successfully.'));
