@@ -105,24 +105,66 @@ def get_data(filters):
 
     result = []
 
-    for (employee, date), entries in grouped.items():
-        first_in_time = None
-        last_out_time = None
-        total_break_seconds = 0
-        shift_type_name = frappe.get_value("Employee", employee, "default_shift")
-        if shift_type_name:
-            shift_type = frappe.get_doc("Shift Type", shift_type_name)
-            shift_start = to_time(shift_type.start_time)
-            shift_end = to_time(shift_type.end_time)
+    settings = frappe.get_single("Calicut Textiles Settings")
+    threshold = settings.threshold_overtime_minutes or 0
 
+    for (employee, date), entries in grouped.items():
+        checkin_times = [entry.time for entry in entries]
+        checkin_times.sort()
+
+        filtered_checkins = []
+        last_time = None
+        for current_time in checkin_times:
+            if not last_time or (current_time - last_time).total_seconds() > 300:
+                filtered_checkins.append(current_time)
+                last_time = current_time
+
+        if len(filtered_checkins) < 2:
+            continue
+
+        in_time = filtered_checkins[0]
+        out_time = filtered_checkins[-1]
+
+        shift_type_name = frappe.get_value("Employee", employee, "default_shift")
+        if not shift_type_name:
+            continue
+
+        shift_type = frappe.get_doc("Shift Type", shift_type_name)
+        shift_start = to_time(shift_type.start_time)
+        shift_end = to_time(shift_type.end_time)
+
+        shift_start_dt = datetime.combine(date, shift_start)
+        shift_end_dt = datetime.combine(date, shift_end)
+        if shift_end_dt <= shift_start_dt:
+            shift_end_dt += timedelta(days=1)
+
+        normal_end_dt = shift_end_dt + timedelta(minutes=threshold)
+        normal_start_dt = shift_start_dt - timedelta(minutes=threshold)
+
+        # ----- Overtime Calculation Logic START -----
+        if out_time <= normal_end_dt:
+            overtime_evening = 0
+        else:
+            overtime_evening = threshold + (out_time - normal_end_dt).total_seconds() / 60
+
+        if in_time >= normal_start_dt:
+            overtime_morning = 0
+        else:
+            overtime_morning = threshold + (normal_start_dt - in_time).total_seconds() / 60
+
+        total_overtime_minutes = overtime_morning + overtime_evening
+
+        overtime = ""
+        if total_overtime_minutes > 0:
+            h = int(total_overtime_minutes // 60)
+            m = int(total_overtime_minutes % 60)
+            overtime = "{:02}:{:02}".format(h, m)
+        # ----- Overtime Calculation Logic END -----
+
+        # --- Calculate total break time and working hours as in original logic ---
+        total_break_seconds = 0
         for idx, entry in enumerate(entries):
             log_type = (entry.log_type or '').upper()
-
-            if not first_in_time and log_type == "IN":
-                first_in_time = entry.time
-            if log_type == "OUT":
-                last_out_time = entry.time
-
             if log_type == "OUT" and idx + 1 < len(entries):
                 next_entry = entries[idx + 1]
                 next_log_type = (next_entry.log_type or '').upper()
@@ -131,8 +173,8 @@ def get_data(filters):
                     total_break_seconds += time_diff.total_seconds()
 
         total_working_hours = ""
-        if first_in_time and last_out_time and last_out_time > first_in_time:
-            working_duration = last_out_time - first_in_time
+        if in_time and out_time and out_time > in_time:
+            working_duration = out_time - in_time
             h, remainder = divmod(working_duration.total_seconds(), 3600)
             m, _ = divmod(remainder, 60)
             total_working_hours = "{:02}:{:02}".format(int(h), int(m))
@@ -142,23 +184,6 @@ def get_data(filters):
             h, remainder = divmod(total_break_seconds, 3600)
             m, _ = divmod(remainder, 60)
             total_break_time = "{:02}:{:02}".format(int(h), int(m))
-
-        overtime = ""
-        if last_out_time and shift_end:
-
-            shift_end_datetime = datetime.combine(date, shift_end)
-
-            if shift_end < datetime.combine(date, datetime.min.time()).time():
-                shift_end_datetime += timedelta(days=1)
-
-            if last_out_time > shift_end_datetime:
-                overtime_duration = last_out_time - shift_end_datetime
-                overtime_seconds = overtime_duration.total_seconds()
-
-                if overtime_seconds > 0:
-                    h, remainder = divmod(overtime_seconds, 3600)
-                    m, _ = divmod(remainder, 60)
-                    overtime = "{:02}:{:02}".format(int(h), int(m))
 
         for i, row in enumerate(entries):
             is_first = i == 0
