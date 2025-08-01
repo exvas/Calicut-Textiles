@@ -141,16 +141,17 @@ def get_data(filters):
         normal_end_dt = shift_end_dt + timedelta(minutes=threshold)
         normal_start_dt = shift_start_dt - timedelta(minutes=threshold)
 
-        # ----- Overtime Calculation Logic START -----
-        if out_time <= normal_end_dt:
-            overtime_evening = 0
-        else:
-            overtime_evening = threshold + (out_time - normal_end_dt).total_seconds() / 60
-
-        if in_time >= normal_start_dt:
-            overtime_morning = 0
-        else:
+        # Morning Overtime
+        if in_time < normal_start_dt:
             overtime_morning = threshold + (normal_start_dt - in_time).total_seconds() / 60
+        else:
+            overtime_morning = 0
+
+        # Evening Overtime
+        if out_time > normal_end_dt:
+            overtime_evening = threshold + (out_time - normal_end_dt).total_seconds() / 60
+        else:
+            overtime_evening = 0
 
         total_overtime_minutes = overtime_morning + overtime_evening
 
@@ -159,8 +160,7 @@ def get_data(filters):
             h = int(total_overtime_minutes // 60)
             m = int(total_overtime_minutes % 60)
             overtime = "{:02}:{:02}".format(h, m)
-        # ----- Overtime Calculation Logic END -----
-
+            
         # --- Calculate total break time and working hours as in original logic ---
         total_break_seconds = 0
         for idx, entry in enumerate(entries):
