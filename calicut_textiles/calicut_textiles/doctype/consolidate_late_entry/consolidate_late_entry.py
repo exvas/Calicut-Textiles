@@ -15,7 +15,7 @@ def get_employee_late_entries(from_date, to_date):
     from_dt_str = from_date + " 00:00:00"
     to_dt_str = to_date + " 23:59:59"
 
-    # Query to get last OUT checkin per employee per day with all details
+    # Query to get last OUT checkin per employee per day
     last_out_query = """
     SELECT
         ec.name,
@@ -47,7 +47,7 @@ def get_employee_late_entries(from_date, to_date):
 
     last_out_checkins = frappe.db.sql(last_out_query, {"from_dt": from_dt_str, "to_dt": to_dt_str}, as_dict=True)
 
-    # Query to sum custom_late_early per employee for the date range
+    # Sum of custom_late_early for full date range
     late_early_sum_query = """
     SELECT
         employee,
@@ -59,50 +59,44 @@ def get_employee_late_entries(from_date, to_date):
         AND time BETWEEN %(from_dt)s AND %(to_dt)s
     GROUP BY employee
     """
-
     late_early_sums = frappe.db.sql(late_early_sum_query, {"from_dt": from_dt_str, "to_dt": to_dt_str}, as_dict=True)
-
-    # Map employee to total late early sum
     late_early_map = {d["employee"]: d["total_late_early"] or 0 for d in late_early_sums}
 
+    # ✅ Keep only the latest OUT checkin for each employee
+    latest_checkin_map = {}
+    for checkin in last_out_checkins:
+        emp_id = checkin["employee"]
+        if (emp_id not in latest_checkin_map) or (checkin["time"] > latest_checkin_map[emp_id]["time"]):
+            latest_checkin_map[emp_id] = checkin
+
     results = []
+    for emp_id, checkin in latest_checkin_map.items():
+        salary_structures = frappe.db.get_all(
+            "Salary Structure Assignment",
+            filters={"employee": emp_id},
+            fields=["employee", "base"]
+        )
+        basic_salary = salary_structures[0].base if salary_structures else 0
+        basic_salary_per_day = basic_salary / 30 if basic_salary else 0
+        total_work_hours = checkin.get("custom_total_hours") or 0
 
-    if last_out_checkins:
-        for checkin in last_out_checkins:
-            emp_id = checkin["employee"]
+        if total_work_hours > 0:
+            per_minute_rate = round(basic_salary_per_day / (total_work_hours * 60), 4)
+        else:
+            per_minute_rate = 0
 
-            salary_structures = frappe.db.get_all(
-                "Salary Structure Assignment",
-                filters={"employee": emp_id},
-                fields=["employee", "base"]
-            )
-            if salary_structures:
-                basic_salary = salary_structures[0].base or 0
-            else:
-                basic_salary = 0
+        consolidate_hour_cutting = late_early_map.get(emp_id, 0)
+        consolidate_amt_cutting = round(per_minute_rate * consolidate_hour_cutting, 2)
 
-            basic_salary_per_day = basic_salary / 30 if basic_salary else 0
-            total_work_hours = checkin.get("custom_total_hours") or 0
-
-            if total_work_hours > 0:
-                per_minute_rate = round(basic_salary_per_day / (total_work_hours * 60), 4)
-            else:
-                per_minute_rate = 0
-
-            # Sum of late early for this employee across the date range
-            consolidate_hour_cutting = late_early_map.get(emp_id, 0)
-
-            consolidate_amt_cutting = round(per_minute_rate * consolidate_hour_cutting, 2)
-
-            results.append({
-                "employee": checkin["employee"],
-				"employee_name": checkin["employee_name"],
-                "shift_type": checkin["shift"],
-                "total_working_hours": total_work_hours,
-                "basic_salary": basic_salary,
-                "min_salary": per_minute_rate,
-                "consolidat_hour_cutting": consolidate_hour_cutting,
-                "consolidate_amt_cutting": consolidate_amt_cutting
-            })
+        results.append({
+            "employee": checkin["employee"],
+            "employee_name": checkin["employee_name"],
+            "shift_type": checkin["shift"],
+            "total_working_hours": total_work_hours,
+            "basic_salary": basic_salary,
+            "min_salary": per_minute_rate,
+            "consolidat_hour_cutting": consolidate_hour_cutting,
+            "consolidate_amt_cutting": consolidate_amt_cutting
+        })
 
     return results
