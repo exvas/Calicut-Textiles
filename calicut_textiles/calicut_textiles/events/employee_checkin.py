@@ -171,7 +171,7 @@ def process_monthly_overtime_additional_salary():
         settings = frappe.get_single("Calicut Textiles Settings")
         threshold = settings.threshold_overtime_minutes or 0
 
-        employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "employee_name", "company"])
+        employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "employee_name", "company", "holiday_list"])
 
         for emp in employees:
             if frappe.db.exists("Additional Salary", {
@@ -231,6 +231,11 @@ def process_monthly_overtime_additional_salary():
                     if shift_end_dt <= shift_start_dt:
                         shift_end_dt += timedelta(days=1)
 
+                    if emp.holiday_list == "CT Holidays" and checkin_date.weekday() == 6:
+                        overtime_minutes = (out_time - in_time).total_seconds() / 60
+                        total_overtime_minutes += overtime_minutes
+                        continue
+
                     normal_end_dt = shift_end_dt + timedelta(minutes=threshold)
 
                     if out_time <= normal_end_dt:
@@ -280,19 +285,17 @@ def process_monthly_overtime_additional_salary():
 @frappe.whitelist()
 def create_overtime_additional_salary(payroll_date):
     """Creates Additional Salary for Overtime only once per month per employee."""
-    today_date = today()
-    first_day = get_first_day(today_date)
-    last_day = get_last_day(today_date)
-
     encashment_date = getdate(payroll_date)
+    first_day = get_first_day(encashment_date)
+    last_day = get_last_day(encashment_date)
+    processing_last_day = last_day
     current_date = encashment_date
 
-    processing_last_day = getdate(today_date) if getdate(today_date) < last_day else last_day
 
     settings = frappe.get_single("Calicut Textiles Settings")
     threshold = settings.threshold_overtime_minutes or 0
 
-    employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "employee_name", "company"])
+    employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "employee_name", "company", "holiday_list"])
 
     for emp in employees:
         if frappe.db.exists("Additional Salary", {
@@ -351,6 +354,11 @@ def create_overtime_additional_salary(payroll_date):
                 shift_end_dt = datetime.combine(checkin_date, shift_end)
                 if shift_end_dt <= shift_start_dt:
                     shift_end_dt += timedelta(days=1)
+
+                if emp.holiday_list == "CT Holidays" and checkin_date.weekday() == 6:
+                    overtime_minutes = (out_time - in_time).total_seconds() / 60
+                    total_overtime_minutes += overtime_minutes
+                    continue
 
                 normal_end_dt = shift_end_dt + timedelta(minutes=threshold)
 
