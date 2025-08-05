@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+import json
 from frappe.model.document import Document
 from datetime import datetime
 
@@ -62,7 +63,7 @@ def get_employee_late_entries(from_date, to_date):
     late_early_sums = frappe.db.sql(late_early_sum_query, {"from_dt": from_dt_str, "to_dt": to_dt_str}, as_dict=True)
     late_early_map = {d["employee"]: d["total_late_early"] or 0 for d in late_early_sums}
 
-    # ✅ Keep only the latest OUT checkin for each employee
+    #  Keep only the latest OUT checkin for each employee
     latest_checkin_map = {}
     for checkin in last_out_checkins:
         emp_id = checkin["employee"]
@@ -100,3 +101,38 @@ def get_employee_late_entries(from_date, to_date):
         })
 
     return results
+
+
+
+@frappe.whitelist()
+def create_late_early_additional_salary(doc):
+    if isinstance(doc, str):
+        doc = frappe.get_doc("Consolidate Late Entry", doc)
+
+    if doc.additional_salary_created:
+        frappe.throw("Additional Salary Already Created")
+
+    for late_entry in doc.late_entry_details:
+        relieving_date = frappe.db.get_value("Employee", late_entry.employee, "relieving_date")
+
+        if relieving_date and relieving_date < doc.payroll_date:
+            frappe.throw(
+                "Payroll Date {0} is after the Relieving Date {1} for Employee {2}".format(
+                    doc.payroll_date, relieving_date, late_entry.employee
+                )
+            )
+
+        additional_salary = frappe.new_doc("Additional Salary")
+        additional_salary.employee = late_entry.employee
+        additional_salary.employee_name = late_entry.employee_name
+        additional_salary.payroll_date = doc.payroll_date
+        additional_salary.salary_component = doc.componenet
+        additional_salary.amount = late_entry.consolidate_amt_cutting
+        additional_salary.custom_late_early_min = late_entry.consolidat_hour_cutting
+        additional_salary.custom_consolidated_late_entry = doc.name
+        additional_salary.overwrite_salary_structure_amount = True
+        additional_salary.custom_is_late_early = True
+        additional_salary.submit()
+
+    doc.additional_salary_created = True
+    doc.save()
