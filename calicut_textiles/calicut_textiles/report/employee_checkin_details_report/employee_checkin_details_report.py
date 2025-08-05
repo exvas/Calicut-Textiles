@@ -90,6 +90,7 @@ def get_data(filters):
             ec.log_type,
             emp.default_shift,
             ec.custom_late_coming_minutes,
+            ec.custom_early_going_minutes,
             ec.custom_late_early,
             ec.custom_total_hours
         FROM `tabEmployee Checkin` ec
