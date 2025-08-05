@@ -1,10 +1,19 @@
-# Copyright (c) 2025, sammish and contributors
-# For license information, please see license.txt
-
 import frappe
 from frappe.utils import getdate, format_time
 from collections import defaultdict
 from datetime import datetime, timedelta, time
+
+
+def str_to_minutes(time_str):
+    if not time_str:
+        return 0
+    h, m = map(int, time_str.split(":"))
+    return h * 60 + m
+
+def minutes_to_str(minutes):
+    h = int(minutes // 60)
+    m = int(minutes % 60)
+    return f"{h:02}:{m:02}"
 
 
 def execute(filters=None):
@@ -18,6 +27,11 @@ def execute(filters=None):
     last_key = None
 
     for row in data:
+        # Keep totals row untouched
+        if row.get("employee") == "Total":
+            final_data.append(row)
+            continue
+
         current_key = (row["employee"], row["date"])
 
         if current_key == last_key:
@@ -33,6 +47,7 @@ def execute(filters=None):
         final_data.append(row)
 
     return columns, final_data
+
 
 def get_columns():
     return [
@@ -50,6 +65,7 @@ def get_columns():
         {"label": "Total Working Hours", "fieldname": "total_working_hours", "fieldtype": "Data", "width": 150},
         {"label": "Total Break Time", "fieldname": "total_break_time", "fieldtype": "Data", "width": 150}
     ]
+
 
 def to_time(value):
     """Convert timedelta to time if needed."""
@@ -109,6 +125,13 @@ def get_data(filters):
     settings = frappe.get_single("Calicut Textiles Settings")
     threshold = settings.threshold_overtime_minutes or 0
 
+    # Totals accumulators
+    total_late = 0
+    total_early = 0
+    total_overtime_minutes = 0
+    total_working_minutes = 0
+    total_break_minutes = 0
+
     for (employee, date), entries in grouped.items():
         checkin_times = [entry.time for entry in entries]
         checkin_times.sort()
@@ -145,7 +168,7 @@ def get_data(filters):
         holiday_list = frappe.get_value("Employee", employee, "holiday_list") or ""
 
         if holiday_list == "CT Holidays" and date.weekday() == 6:
-            total_overtime_minutes = (out_time - in_time).total_seconds() / 60
+            total_overtime_minutes_day = (out_time - in_time).total_seconds() / 60
         else:
 
             # Morning Overtime
@@ -160,12 +183,12 @@ def get_data(filters):
             else:
                 overtime_evening = 0
 
-            total_overtime_minutes = overtime_morning + overtime_evening
+            total_overtime_minutes_day = overtime_morning + overtime_evening
 
         overtime = ""
-        if total_overtime_minutes > 0:
-            h = int(total_overtime_minutes // 60)
-            m = int(total_overtime_minutes % 60)
+        if total_overtime_minutes_day > 0:
+            h = int(total_overtime_minutes_day // 60)
+            m = int(total_overtime_minutes_day % 60)
             overtime = "{:02}:{:02}".format(h, m)
 
         # --- Calculate total break time and working hours as in original logic ---
@@ -196,6 +219,18 @@ def get_data(filters):
             is_first = i == 0
             is_last = i == len(entries) - 1
 
+            # Calculate late/early minutes safely as integers
+            late_val = row.custom_late_coming_minutes if is_first and holiday_list != "CT Holidays" and row.custom_late_coming_minutes else 0
+            early_val = row.custom_early_going_minutes if is_last and holiday_list != "CT Holidays" and row.custom_early_going_minutes else 0
+
+            # Accumulate totals
+            total_late += late_val
+            total_early += early_val
+            if is_last:
+                total_overtime_minutes += str_to_minutes(overtime) if overtime else 0
+                total_working_minutes += str_to_minutes(total_working_hours) if total_working_hours else 0
+                total_break_minutes += str_to_minutes(total_break_time) if total_break_time else 0
+
             result.append({
                 "employee": row.employee,
                 "employee_name": row.employee_name,
@@ -205,11 +240,28 @@ def get_data(filters):
                 "date": date,
                 "time": format_time(row.time),
                 "log_type": row.log_type or "IN",
-                "late": row.custom_late_coming_minutes if is_first else "",
-                "early": row.custom_early_going_minutes if is_last else "",
+                "late": row.custom_late_coming_minutes if is_first and holiday_list != "CT Holidays" else "",
+                "early": row.custom_early_going_minutes if is_last and holiday_list != "CT Holidays" else "",
                 "over_time": overtime if is_last else "",
                 "total_working_hours": total_working_hours if is_last else "",
                 "total_break_time": total_break_time if is_last else ""
             })
+
+    # Append a total summary row at the end
+    result.append({
+        "employee": "",
+        "employee_name": "",
+        "company": "",
+        "shift": "",
+        "total_hours": "",
+        "date": "",
+        "time": "",
+        "log_type": "<b>Total</b>",
+        "late": f"<b>{total_late}</b>" if total_late else "",
+        "early": f"<b>{total_early}</b>" if total_early else "",
+        "over_time": f"<b>{minutes_to_str(total_overtime_minutes)}</b>" if total_overtime_minutes > 0 else "",
+        "total_working_hours": f"<b>{minutes_to_str(total_working_minutes)}</b>" if total_working_minutes > 0 else "",
+        "total_break_time": f"<b>{minutes_to_str(total_break_minutes)}</b>" if total_break_minutes > 0 else ""
+    })
 
     return result

@@ -8,9 +8,11 @@
  "field_order": [
   "posting_date",
   "payroll_date",
+  "componenet",
   "column_break_efsu",
   "from_date",
   "to_date",
+  "additional_salary_created",
   "section_break_aksc",
   "get_employee",
   "late_entry_details",
@@ -68,12 +70,25 @@
    "hidden": 1,
    "label": "Naming Series",
    "options": "CLE/.YYYY./.{month}./"
+  },
+  {
+   "default": "Late Early",
+   "fieldname": "componenet",
+   "fieldtype": "Link",
+   "label": "Component",
+   "options": "Salary Component"
+  },
+  {
+   "default": "0",
+   "fieldname": "additional_salary_created",
+   "fieldtype": "Check",
+   "label": "Additional Salary Created"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-01 19:34:29.815401",
+ "modified": "2025-08-05 17:45:25.604205",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Consolidate Late Entry",
