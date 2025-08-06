@@ -170,6 +170,7 @@ def process_monthly_overtime_additional_salary():
 
         settings = frappe.get_single("Calicut Textiles Settings")
         threshold = settings.threshold_overtime_minutes or 0
+        excluded_shift = settings.shift
 
         employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "employee_name", "company", "holiday_list"])
 
@@ -185,6 +186,9 @@ def process_monthly_overtime_additional_salary():
 
             shift_type_name = frappe.get_value("Employee", emp.name, "default_shift")
             if not shift_type_name:
+                continue
+
+            if excluded_shift and shift_type_name == excluded_shift:
                 continue
 
             shift_type = frappe.get_doc("Shift Type", shift_type_name)
@@ -294,6 +298,7 @@ def create_overtime_additional_salary(payroll_date):
 
     settings = frappe.get_single("Calicut Textiles Settings")
     threshold = settings.threshold_overtime_minutes or 0
+    excluded_shift = settings.shift
 
     employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "employee_name", "company", "holiday_list"])
 
@@ -309,6 +314,9 @@ def create_overtime_additional_salary(payroll_date):
 
         shift_type_name = frappe.get_value("Employee", emp.name, "default_shift")
         if not shift_type_name:
+            continue
+
+        if excluded_shift and shift_type_name == excluded_shift:
             continue
 
         shift_type = frappe.get_doc("Shift Type", shift_type_name)
