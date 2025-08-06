@@ -69,7 +69,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Naming Series",
-   "options": "CLE/.YYYY./.{month}./"
+   "options": "CLE/.{payroll_date}./"
   },
   {
    "default": "Late Early",
@@ -88,7 +88,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-08-05 17:45:25.604205",
+ "modified": "2025-08-06 10:32:41.613353",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Consolidate Late Entry",
