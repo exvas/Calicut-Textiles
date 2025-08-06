@@ -31,23 +31,34 @@ frappe.ui.form.on("Consolidate Late Entry", {
         });
     },
     refresh: function(frm) {
-        if (!frm.is_new() && !frm.doc.additional_salary_created) {
-            frm.add_custom_button(__('Create Additional Salary'), function() {
-                frappe.call({
-                    method: "calicut_textiles.calicut_textiles.doctype.consolidate_late_entry.consolidate_late_entry.create_late_early_additional_salary",
-                    args: {
-                        doc: frm.doc.name
-                    },
-                    freeze: true,
-                    freeze_message: "Creating Additional Salary...",
-                    callback: function(r) {
-                        if (!r.exc) {
-                            frappe.msgprint(__('Additional Salary created successfully'));
-                            frm.reload_doc();
-                        }
-                    }
-                });
-            }, __('Create'));
-        }
-    }
+      if (!frm.is_new()) {
+          frm.fields.forEach(field => {
+              if (field.df && field.df.fieldname) {
+                  frm.set_df_property(field.df.fieldname, 'read_only', 1);
+              }
+          });
+
+          frm.disable_save();
+
+          if (!frm.doc.additional_salary_created) {
+              frm.add_custom_button(__('Create Additional Salary'), function() {
+                  frappe.call({
+                      method: "calicut_textiles.calicut_textiles.doctype.consolidate_late_entry.consolidate_late_entry.create_late_early_additional_salary",
+                      args: {
+                          doc: frm.doc.name
+                      },
+                      freeze: true,
+                      freeze_message: "Creating Additional Salary...",
+                      callback: function(r) {
+                          if (!r.exc) {
+                              frappe.msgprint(__('Additional Salary created successfully'));
+                              frm.reload_doc();
+                          }
+                      }
+                  });
+              }, __('Create'));
+          }
+      }
+  }
+
 });

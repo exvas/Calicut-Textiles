@@ -219,9 +219,10 @@ def get_data(filters):
             is_first = i == 0
             is_last = i == len(entries) - 1
 
-            # Calculate late/early minutes safely as integers
-            late_val = row.custom_late_coming_minutes if is_first and holiday_list != "CT Holidays" and row.custom_late_coming_minutes else 0
-            early_val = row.custom_early_going_minutes if is_last and holiday_list != "CT Holidays" and row.custom_early_going_minutes else 0
+            is_ct_sunday = holiday_list == "CT Holidays" and date.weekday() == 6
+
+            late_val = row.custom_late_coming_minutes if is_first and not is_ct_sunday and row.custom_late_coming_minutes else 0
+            early_val = row.custom_early_going_minutes if is_last and not is_ct_sunday and row.custom_early_going_minutes else 0
 
             # Accumulate totals
             total_late += late_val
@@ -240,8 +241,8 @@ def get_data(filters):
                 "date": date,
                 "time": format_time(row.time),
                 "log_type": row.log_type or "IN",
-                "late": row.custom_late_coming_minutes if is_first and holiday_list != "CT Holidays" else "",
-                "early": row.custom_early_going_minutes if is_last and holiday_list != "CT Holidays" else "",
+                "late": row.custom_late_coming_minutes if is_first and not is_ct_sunday else "",
+                "early": row.custom_early_going_minutes if is_last and not is_ct_sunday else "",
                 "over_time": overtime if is_last else "",
                 "total_working_hours": total_working_hours if is_last else "",
                 "total_break_time": total_break_time if is_last else ""
