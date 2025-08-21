@@ -43,6 +43,15 @@ def update_employee_checkin_fields(doc, method):
 
     time_obj = doc.time if isinstance(doc.time, datetime) else get_datetime(doc.time)
 
+    # Skip late/early check if Sunday
+    if time_obj.weekday() == 6:  # Sunday = 6 (Monday=0)
+        # doc.log_type = doc.log_type or "IN"
+        # doc.custom_total_hours = 0
+        doc.custom_late_coming_minutes = 0
+        doc.custom_early_going_minutes = 0
+        doc.custom_late_early = 0
+        return
+
     same_day_logs = frappe.db.get_all(
         "Employee Checkin",
         filters={
