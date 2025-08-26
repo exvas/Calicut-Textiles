@@ -61,7 +61,9 @@ def get_employee_late_entries(from_date, to_date):
     GROUP BY employee
     """
     late_early_sums = frappe.db.sql(late_early_sum_query, {"from_dt": from_dt_str, "to_dt": to_dt_str}, as_dict=True)
+    print("late_early_sums", late_early_sums)
     late_early_map = {d["employee"]: d["total_late_early"] or 0 for d in late_early_sums}
+    print("late_early_map", late_early_map)
 
     #  Keep only the latest OUT checkin for each employee
     latest_checkin_map = {}
@@ -87,6 +89,7 @@ def get_employee_late_entries(from_date, to_date):
             per_minute_rate = 0
 
         consolidate_hour_cutting = late_early_map.get(emp_id, 0)
+        print("consolidate_hour_cutting", consolidate_hour_cutting)
         consolidate_amt_cutting = round(per_minute_rate * consolidate_hour_cutting, 2)
 
         results.append({
@@ -108,6 +111,18 @@ def get_employee_late_entries(from_date, to_date):
 def create_late_early_additional_salary(doc):
     if isinstance(doc, str):
         doc = frappe.get_doc("Consolidate Late Entry", doc)
+        print("doc", doc)
+
+    exists = frappe.db.exists(
+        "Consolidate Late Entry",
+        {
+            "payroll_date": doc.payroll_date,
+            "additional_salary_created": 1
+        }
+    )
+    print("exists", exists)
+    if exists:
+        frappe.throw(f"Additional Salary already created for Payroll Date {doc.payroll_date} in document {exists}")
 
     if doc.additional_salary_created:
         frappe.throw("Additional Salary Already Created")
