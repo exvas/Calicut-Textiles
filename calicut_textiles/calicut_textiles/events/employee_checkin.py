@@ -46,7 +46,7 @@ def update_employee_checkin_fields(doc, method):
     employees = frappe.get_all("Employee", filters={"status": "Active"}, fields=["name", "employee_name", "company", "holiday_list"])
 
     for emp in employees:
-        if emp.holiday_list == "CT Holidays" and checkin_date.weekday() == 6:
+        if emp.holiday_list == "CT Holidays" and time_obj.weekday() == 6:
             # doc.log_type = doc.log_type or "IN"
             # doc.custom_total_hours = 0
             doc.custom_late_coming_minutes = 0
