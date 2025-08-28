@@ -45,15 +45,26 @@ def reset_late_early(from_date=None, to_date=None):
         checkin_data[checkin.employee][date_str].append(checkin)
 
     for employee, dates in checkin_data.items():
+        emp = frappe.get_doc("Employee", employee)
         for date, entries in dates.items():
             entries_sorted = sorted(entries, key=lambda x: x["time"])
 
             if not entries_sorted:
                 continue
 
-            first_entry = entries_sorted[0]
+            checkin_date = entries_sorted[0]["time"].date()
+            if emp.holiday_list == "CT Holidays" and checkin_date.weekday() == 6:
+                for entry in entries_sorted:
+                    frappe.db.set_value("Employee Checkin", entry["name"], {
+                        "custom_late_coming_minutes": 0,
+                        "custom_early_going_minutes": 0,
+                        "custom_late_early": 0
+                    })
+                continue
+
 
             if len(entries_sorted) == 1:
+                first_entry = entries_sorted[0]
                 frappe.db.set_value("Employee Checkin", first_entry["name"], {"log_type": "IN"})
                 first_entry["log_type"] = "IN"
                 last_entry = None
