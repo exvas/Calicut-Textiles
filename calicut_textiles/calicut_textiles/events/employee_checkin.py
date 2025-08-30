@@ -52,7 +52,7 @@ def update_employee_checkin_fields(doc, method):
             doc.custom_late_coming_minutes = 0
             doc.custom_early_going_minutes = 0
             doc.custom_late_early = 0
-            return
+
 
     same_day_logs = frappe.db.get_all(
         "Employee Checkin",
@@ -141,7 +141,6 @@ def update_employee_checkin_fields(doc, method):
     late = doc.custom_late_coming_minutes or 0
     early = doc.custom_early_going_minutes or 0
     doc.custom_late_early = float(late) + float(early)
-
 
 def as_time(value):
     """Convert timedelta or string to datetime.time."""
