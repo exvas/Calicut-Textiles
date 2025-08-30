@@ -62,39 +62,39 @@ def reset_late_early(from_date=None, to_date=None):
                     })
                 continue
 
+            # Mark first and last entry
+            first_entry = entries_sorted[0]
+            last_entry = entries_sorted[-1]
 
-            if len(entries_sorted) == 1:
-                first_entry = entries_sorted[0]
-                frappe.db.set_value("Employee Checkin", first_entry["name"], {"log_type": "IN"})
-                first_entry["log_type"] = "IN"
-                last_entry = None
-            else:
-                first_entry = entries_sorted[0]
-                last_entry = entries_sorted[-1]
-                frappe.db.set_value("Employee Checkin", first_entry["name"], {"log_type": "IN"})
+            frappe.db.set_value("Employee Checkin", first_entry["name"], {"log_type": "IN"})
+            first_entry["log_type"] = "IN"
+
+            if first_entry["name"] != last_entry["name"]:
                 frappe.db.set_value("Employee Checkin", last_entry["name"], {"log_type": "OUT"})
-                first_entry["log_type"] = "IN"
                 last_entry["log_type"] = "OUT"
 
-            # Calculate late coming minutes
-            late = 0
-            if first_entry:
-                late = calculate_late_minutes(first_entry)
-                frappe.db.set_value("Employee Checkin", first_entry["name"], {
-                    "custom_late_coming_minutes": late
+            # Reset intermediate entries (between first and last)
+            for inter_entry in entries_sorted[1:-1]:
+                frappe.db.set_value("Employee Checkin", inter_entry["name"], {
+                    "custom_late_coming_minutes": 0,
+                    "custom_early_going_minutes": 0,
+                    "custom_late_early": 0
                 })
 
-            # Calculate early going minutes
-            early = 0
-            if last_entry:
-                early = calculate_early_minutes(last_entry)
-                frappe.db.set_value("Employee Checkin", last_entry["name"], {
-                    "custom_early_going_minutes": early
-                })
+            # Calculate late coming (only first IN)
+            late = calculate_late_minutes(first_entry) if first_entry else 0
+            frappe.db.set_value("Employee Checkin", first_entry["name"], {
+                "custom_late_coming_minutes": late
+            })
 
+            # Calculate early going (only last OUT if exists)
+            early = calculate_early_minutes(last_entry) if last_entry else 0
+            frappe.db.set_value("Employee Checkin", last_entry["name"], {
+                "custom_early_going_minutes": early
+            })
+
+            # Combined late + early
             total = late + early
-
-            # Update combined late and early minutes
             frappe.db.set_value("Employee Checkin", first_entry["name"], {
                 "custom_late_early": total
             })

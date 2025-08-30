@@ -50,7 +50,7 @@ def purchase_receipt(data):
 			"Project": ["items", "project"],
 			"Quality Inspection": ["items", "quality_inspection"],
 			"Supplier Packing Slip": ["items", "custom_supplier_packing_slip"],
-			
+
 		},
 		"transactions": [
 			{
@@ -65,3 +65,16 @@ def purchase_receipt(data):
 			{"label": _("Subscription"), "items": ["Auto Repeat"]},
 		],
 	}
+
+def employee_advance(data):
+    return {
+        "non_standard_fieldnames": {
+            "Additional Salary": "ref_docname"
+        },
+        "transactions": [
+            {
+                "label": "References",
+                "items": ["Expense Claim", "Payment Entry", "Journal Entry", "Additional Salary"]
+            }
+        ],
+    }

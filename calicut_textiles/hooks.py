@@ -224,7 +224,8 @@ override_whitelisted_methods = {
 # along with any modifications made in other Frappe apps
 override_doctype_dashboards = {
 	"Purchase Order": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.purchase_order_dashboard",
-    "Purchase Receipt": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.purchase_receipt"
+    "Purchase Receipt": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.purchase_receipt",
+    "Employee Advance": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.employee_advance"
 }
 
 # exempt linked doctypes from being automatically cancelled
