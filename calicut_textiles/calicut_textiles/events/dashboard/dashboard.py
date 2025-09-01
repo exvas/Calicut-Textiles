@@ -78,3 +78,15 @@ def employee_advance(data):
             }
         ],
     }
+
+def employee_advance_salary(data):
+    return {
+        "non_standard_fieldnames": {
+            "Additional Salary": "ref_docname"
+        },
+        "transactions": [
+            {
+                "items": ["Additional Salary"]
+            }
+        ],
+    }
