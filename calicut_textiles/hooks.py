@@ -225,7 +225,8 @@ override_whitelisted_methods = {
 override_doctype_dashboards = {
 	"Purchase Order": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.purchase_order_dashboard",
     "Purchase Receipt": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.purchase_receipt",
-    "Employee Advance": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.employee_advance"
+    "Employee Advance": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.employee_advance",
+    "Leave Encashment": "calicut_textiles.calicut_textiles.events.dashboard.dashboard.employee_advance_salary"
 }
 
 # exempt linked doctypes from being automatically cancelled
