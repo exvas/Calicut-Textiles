@@ -66,22 +66,29 @@ def purchase_receipt(data):
 		],
 	}
 
+
 def employee_advance(data):
-    return {
-        "non_standard_fieldnames": {
+	return {
+		"fieldname": "employee_advance",
+		"non_standard_fieldnames": {
+			"Payment Entry": "reference_name",
+			"Journal Entry": "reference_name",
+			"Additional Salary": "ref_docname",
+		},
+		"internal_links": {
             "Additional Salary": "ref_docname"
         },
-        "transactions": [
-            {
-                "label": "References",
-                "items": ["Expense Claim", "Payment Entry", "Journal Entry", "Additional Salary"]
-            }
-        ],
-    }
+		"transactions": [{"items": ["Expense Claim"]}, {"items": ["Payment Entry", "Journal Entry", "Additional Salary"]}],
+	}
+
 
 def employee_advance_salary(data):
     return {
+		"fieldname": "leave_encashment",
         "non_standard_fieldnames": {
+            "Additional Salary": "ref_docname"
+        },
+		"internal_links": {
             "Additional Salary": "ref_docname"
         },
         "transactions": [
