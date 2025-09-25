@@ -61,6 +61,7 @@ def get_columns():
         {"label": "Status", "fieldname": "log_type", "fieldtype": "Data", "width": 150},
         {"label": "Late", "fieldname": "late", "fieldtype": "Data", "width": 150},
         {"label": "Early", "fieldname": "early", "fieldtype": "Data", "width": 150},
+        {"label": "LateEarly", "fieldname": "late_early", "fieldtype": "Data", "width": 150},
         {"label": "Over Time", "fieldname": "over_time", "fieldtype": "Data", "width": 150},
         {"label": "Total Working Hours", "fieldname": "total_working_hours", "fieldtype": "Data", "width": 150},
         {"label": "Total Break Time", "fieldname": "total_break_time", "fieldtype": "Data", "width": 150}
@@ -129,6 +130,7 @@ def get_data(filters):
     # Totals accumulators
     total_late = 0
     total_early = 0
+    total_late_early = 0
     total_overtime_minutes = 0
     total_working_minutes = 0
     total_break_minutes = 0
@@ -227,10 +229,12 @@ def get_data(filters):
 
             late_val = row.custom_late_coming_minutes if is_first and not is_ct_sunday and row.custom_late_coming_minutes else 0
             early_val = row.custom_early_going_minutes if is_last and not is_ct_sunday and row.custom_early_going_minutes else 0
+            late_early_val = row.custom_late_early if is_last and not is_ct_sunday and row.custom_late_early else 0 
 
             # Accumulate totals
             total_late += late_val
             total_early += early_val
+            total_late_early += late_early_val
             if is_last:
                 total_overtime_minutes += str_to_minutes(overtime) if overtime else 0
                 total_working_minutes += str_to_minutes(total_working_hours) if total_working_hours else 0
@@ -247,10 +251,12 @@ def get_data(filters):
                 "log_type": row.log_type or "IN",
                 "late": row.custom_late_coming_minutes if is_first and not is_ct_sunday else "",
                 "early": row.custom_early_going_minutes if is_last and not is_ct_sunday else "",
+                "late_early": row.custom_late_early if is_last and not is_ct_sunday else "",
                 "over_time": overtime if is_last else "",
                 "total_working_hours": total_working_hours if is_last else "",
                 "total_break_time": total_break_time if is_last else ""
             })
+
 
     # Append a total summary row at the end
     result.append({
@@ -264,6 +270,7 @@ def get_data(filters):
         "log_type": "<b>Total</b>",
         "late": f"<b>{total_late}</b>" if total_late else "",
         "early": f"<b>{total_early}</b>" if total_early else "",
+        "late_early": f"<b>{total_late_early}</b>" if total_late_early else "",
         "over_time": f"<b>{minutes_to_str(total_overtime_minutes)}</b>" if total_overtime_minutes > 0 else "",
         "total_working_hours": f"<b>{minutes_to_str(total_working_minutes)}</b>" if total_working_minutes > 0 else "",
         "total_break_time": f"<b>{minutes_to_str(total_break_minutes)}</b>" if total_break_minutes > 0 else ""
