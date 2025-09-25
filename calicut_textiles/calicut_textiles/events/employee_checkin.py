@@ -100,8 +100,8 @@ def update_employee_checkin_fields(doc, method):
     total_hours = total_seconds / 3600
     doc.custom_total_hours = round(total_hours, 2)
 
-    grace_late = 10
-    grace_early = 10
+    grace_late = 11
+    grace_early = 11
 
     if doc.log_type == 'IN':
         grace_limit = shift_start + timedelta(minutes=grace_late)

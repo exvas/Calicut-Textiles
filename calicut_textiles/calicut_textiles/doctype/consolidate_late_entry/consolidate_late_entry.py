@@ -61,9 +61,7 @@ def get_employee_late_entries(from_date, to_date):
     GROUP BY employee
     """
     late_early_sums = frappe.db.sql(late_early_sum_query, {"from_dt": from_dt_str, "to_dt": to_dt_str}, as_dict=True)
-    print("late_early_sums", late_early_sums)
     late_early_map = {d["employee"]: d["total_late_early"] or 0 for d in late_early_sums}
-    print("late_early_map", late_early_map)
 
     #  Keep only the latest OUT checkin for each employee
     latest_checkin_map = {}
