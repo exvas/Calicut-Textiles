@@ -173,7 +173,7 @@ def get_data(filters):
 
         holiday_list = frappe.get_value("Employee", employee, "holiday_list") or ""
 
-        if holiday_list == "CT Holidays" and date.weekday() == 6:
+        if (holiday_list == "CT Holidays" or holiday_list == "RT Sunday Holidays") and date.weekday() == 6:
             total_overtime_minutes_day = (out_time - in_time).total_seconds() / 60
         else:
 
@@ -225,11 +225,12 @@ def get_data(filters):
             is_first = i == 0
             is_last = i == len(entries) - 1
 
-            is_ct_sunday = holiday_list == "CT Holidays" and date.weekday() == 6
+            is_ct_sunday = (holiday_list == "CT Holidays" and date.weekday() == 6)  or (holiday_list == "RT Sunday Holidays" and date.weekday() == 6)
+
 
             late_val = row.custom_late_coming_minutes if is_first and not is_ct_sunday and row.custom_late_coming_minutes else 0
             early_val = row.custom_early_going_minutes if is_last and not is_ct_sunday and row.custom_early_going_minutes else 0
-            late_early_val = row.custom_late_early if is_last and not is_ct_sunday and row.custom_late_early else 0 
+            late_early_val = row.custom_late_early if is_last and not is_ct_sunday and row.custom_late_early else 0
 
             # Accumulate totals
             total_late += late_val
