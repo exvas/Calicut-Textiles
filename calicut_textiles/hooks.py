@@ -29,6 +29,7 @@ app_include_js = ["/assets/calicut_textiles/js/barcode_scan_38.js"]
 
 # include js in doctype views
 doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
+              "Payroll Entry" : "public/js/payroll_entry.js",
               "Item" : "public/item.js",
               "Purchase Order" : "public/purchase_order.js",
               "Salary Slip" : "public/salary_slip.js",
