@@ -6,8 +6,6 @@ from collections import defaultdict
 # =====================================================
 # CONFIG
 # =====================================================
-SETTINGS = frappe.get_single("Calicut Textiles Settings")
-LEAVE_TYPE = SETTINGS.leave_type
 
 # =====================================================
 # VALIDATIONS
@@ -50,7 +48,9 @@ def get_leave_encashment_component(leave_type):
 # =====================================================
 @frappe.whitelist()
 def enqueue_payroll_processing(payroll_entry):
-    validate_leave_type(LEAVE_TYPE, "Payroll Processing")
+    settings = frappe.get_single("Calicut Textiles Settings")
+    leave_type = settings.leave_type
+    validate_leave_type(leave_type, "Payroll Processing")
     process_payroll_entry(payroll_entry)
 
 # =====================================================
@@ -212,6 +212,8 @@ def create_overtime(pe, employees, employee_map, checkin_map):
 # ATTENDANCE / LEAVE
 # =====================================================
 def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
+    settings = frappe.get_single("Calicut Textiles Settings")
+    leave_type = settings.leave_type
     holidays = holiday_map.get(
         employee_map[emp].holiday_list,
         set()
@@ -227,7 +229,7 @@ def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
     present_days = set(checkin_map[emp].keys())
     missing_days = sorted(working_days - present_days)
 
-    max_leave = get_max_consecutive_leave(LEAVE_TYPE)
+    max_leave = get_max_consecutive_leave(leave_type)
     used_leave = count_existing_leave(emp, start, end)
 
     for d in missing_days:
@@ -320,11 +322,13 @@ def create_monthly_overtime(emp, date, minutes, amount, component):
 # LEAVE
 # =====================================================
 def count_existing_leave(emp, start, end):
+    settings = frappe.get_single("Calicut Textiles Settings")
+    leave_type = settings.leave_type
     return frappe.db.count(
         "Leave Application",
         {
             "employee": emp,
-            "leave_type": LEAVE_TYPE,
+            "leave_type": leave_type,
             "docstatus": 1,
             "from_date": ["<=", end],
             "to_date": [">=", start]
@@ -332,9 +336,11 @@ def count_existing_leave(emp, start, end):
     )
 
 def create_leave_application(emp, date):
+    settings = frappe.get_single("Calicut Textiles Settings")
+    leave_type = settings.leave_type
     doc = frappe.new_doc("Leave Application")
     doc.employee = emp
-    doc.leave_type = LEAVE_TYPE
+    doc.leave_type = leave_type
     doc.from_date = date
     doc.to_date = date
     doc.status = "Approved"
@@ -355,7 +361,9 @@ def mark_absent(emp, date):
     doc.insert(ignore_permissions=True)
 
 def create_leave_encashment(emp, date, days):
-    component = get_leave_encashment_component(LEAVE_TYPE)
+    settings = frappe.get_single("Calicut Textiles Settings")
+    leave_type = settings.leave_type
+    component = get_leave_encashment_component(leave_type)
     if frappe.db.exists(
         "Additional Salary",
         {
