@@ -50,8 +50,13 @@ def get_leave_encashment_component(leave_type):
 def enqueue_payroll_processing(payroll_entry):
     settings = frappe.get_single("Calicut Textiles Settings")
     leave_type = settings.leave_type
-    validate_leave_type(leave_type, "Payroll Processing")
-    process_payroll_entry(payroll_entry)
+    if leave_type:
+        process_payroll_entry(payroll_entry)
+    else:
+        frappe.throw(
+            f"Leave Type {leave_type} not found for Payroll Processing.",
+            title="Invalid Leave Type"
+        )
 
 # =====================================================
 # MAIN PAYROLL FLOW
