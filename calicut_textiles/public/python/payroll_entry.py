@@ -143,11 +143,12 @@ def load_checkins(employees, start, end):
 # OVERTIME
 # =====================================================
 def create_overtime(pe, employees, employee_map, checkin_map):
-    threshold = SETTINGS.threshold_overtime_minutes or 0
-    excluded_shift = SETTINGS.shift
-    ot_component = SETTINGS.ot_component
-    early_threshold = SETTINGS.threshold_early_minutes or 0
-    early_component = SETTINGS.early_component
+    settings = frappe.get_single("Calicut Textiles Settings")
+    threshold = settings.threshold_overtime_minutes or 0
+    excluded_shift = settings.shift
+    ot_component = settings.ot_component
+    early_threshold = settings.threshold_early_minutes or 0
+    early_component = settings.early_component
 
     for emp in employees:
         if frappe.db.exists(
