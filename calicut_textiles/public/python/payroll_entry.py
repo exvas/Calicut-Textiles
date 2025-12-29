@@ -63,6 +63,9 @@ def enqueue_payroll_processing(payroll_entry):
 # =====================================================
 def process_payroll_entry(payroll_entry):
     pe = frappe.get_doc("Payroll Entry", payroll_entry)
+    company_account = frappe.db.get_value(
+        "Company", {"name": pe.company}, "default_employee_advance_account"
+    )
 
     employees = [
         row.employee for row in pe.employees
@@ -82,8 +85,8 @@ def process_payroll_entry(payroll_entry):
     create_overtime(
         pe, employees, employee_map, checkin_map
     )
-
     for emp in employees:
+        create_employee_advances_deductions(start_date, end_date, emp, company_account)
         process_attendance(
             emp,
             start_date,
@@ -93,9 +96,42 @@ def process_payroll_entry(payroll_entry):
             checkin_map
         )
 
+def create_employee_advances_deductions(start, end, employee, company_account):
+    advance_salary_list = frappe.get_all("Employee Advance",
+        filters={
+            "employee": employee,
+            "posting_date": ["between", [start, end]],
+            "docstatus": 1,
+        },
+        fields=["name","claimed_amount","paid_amount"]
+    )
+    claimed_amounts = sum([d.claimed_amount for d in advance_salary_list])
+    paid_amounts = sum([d.paid_amount for d in advance_salary_list])
+    total_advance = paid_amounts - claimed_amounts
+    if frappe.db.exists(
+        "Additional Salary",
+        {
+            "employee": employee,
+            "salary_component": company_account,
+            "payroll_date": end,
+            "docstatus": 1
+        }
+    ):
+        return
+    if total_advance >0:
+        doc = frappe.new_doc("Additional Salary")
+        doc.employee = employee
+        doc.salary_component = company_account
+        doc.amount = total_advance
+        doc.payroll_date = end
+        doc.docstatus = 1
+        doc.insert(ignore_permissions=True)
+
+        
 # =====================================================
 # DATA LOADERS
 # =====================================================
+
 def load_employees(employees):
     data = frappe.get_all(
         "Employee",
@@ -185,16 +221,24 @@ def create_overtime(pe, employees, employee_map, checkin_map):
 
             normal_start = shift_start - timedelta(minutes=threshold)
             normal_end = shift_end + timedelta(minutes=threshold)
+            normal_start_for_late = shift_start + timedelta(minutes=early_threshold)
+            normal_end_for_late = shift_end - timedelta(minutes=early_threshold)
 
             if in_time < normal_start:
                 total_ot_minutes += threshold + minutes(normal_start - in_time)
 
             if out_time > normal_end:
                 total_ot_minutes += threshold + minutes(out_time - normal_end)
+            
+            if in_time > normal_start_for_late:
+                total_early_minutes += early_threshold + minutes(in_time - normal_start_for_late)
 
-            for r in rows:
-                if r.custom_late_early and r.custom_late_early > early_threshold:
-                    total_early_minutes += r.custom_late_early
+            if out_time < normal_end_for_late:
+                total_early_minutes += early_threshold + minutes(out_time - normal_end_for_late)
+
+            # for r in rows:
+            #     if r.custom_late_early and r.custom_late_early > early_threshold:
+            #         total_early_minutes += r.custom_late_early
 
         rate = get_per_minute_salary(emp, pe.start_date, pe.end_date, shift_hours)
 
@@ -206,13 +250,15 @@ def create_overtime(pe, employees, employee_map, checkin_map):
                 round(rate * total_ot_minutes, 2),
                 ot_component
             )
-        elif total_early_minutes > 0:
+        if total_early_minutes > 0:
+            print(total_early_minutes," total_early_minutes")
             create_monthly_additional_salary(
                 emp,
                 pe.end_date,
                 round(rate * total_early_minutes, 2),
                 early_component
             )
+
 
 # =====================================================
 # ATTENDANCE / LEAVE
@@ -237,8 +283,12 @@ def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
 
     max_leave = get_max_consecutive_leave(leave_type)
     used_leave = count_existing_leave(emp, start, end)
+    
 
     for d in missing_days:
+        # 🔒 SAFETY CHECK
+        if has_attendance_marked(emp, d):
+            continue
         if used_leave < max_leave:
             create_leave_application(emp, d)
             used_leave += 1
@@ -252,6 +302,17 @@ def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
 # =====================================================
 # HELPERS
 # =====================================================
+
+def has_attendance_marked(emp, date):
+    return frappe.db.exists(
+        "Attendance",
+        {
+            "employee": emp,
+            "attendance_date": date,
+            "status": ["in", ["Absent", "On Leave"]]
+        }
+    )
+
 def filter_noise(times):
     clean, last = [], None
     for t in times:
@@ -312,6 +373,16 @@ def create_monthly_additional_salary(emp, date, amount, component):
     doc.insert(ignore_permissions=True)
 
 def create_monthly_overtime(emp, date, minutes, amount, component):
+    if frappe.db.exists(
+        "Additional Salary",
+        {
+            "employee": emp,
+            "salary_component": component,
+            "payroll_date": date,
+            "docstatus": 1
+        }
+    ):
+        return
     if amount <= 0:
         return
     doc = frappe.new_doc("Additional Salary")
