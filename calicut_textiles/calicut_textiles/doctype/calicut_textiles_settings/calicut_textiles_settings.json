@@ -9,7 +9,6 @@
   "section_break_tuju",
   "ot_component",
   "threshold_overtime_minutes",
-  "leave_type",
   "column_break_0hrb",
   "early_component",
   "threshold_early_minutes",
@@ -146,19 +145,13 @@
    "fieldname": "threshold_early_minutes",
    "fieldtype": "Int",
    "label": "Threshold Early Minutes"
-  },
-  {
-   "fieldname": "leave_type",
-   "fieldtype": "Link",
-   "label": "Leave Type",
-   "options": "Leave Type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-12-24 16:13:03.831528",
+ "modified": "2025-12-30 14:29:35.687812",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles Settings",
