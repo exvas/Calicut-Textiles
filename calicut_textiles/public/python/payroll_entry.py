@@ -91,25 +91,43 @@ def create_employee_advances_deductions(start, end, employee, company_account):
     claimed_amounts = sum([d.claimed_amount for d in advance_salary_list])
     paid_amounts = sum([d.paid_amount for d in advance_salary_list])
     total_advance = paid_amounts - claimed_amounts
-    if frappe.db.exists(
+    existing = frappe.get_all(
         "Additional Salary",
-        {
+        filters={
             "employee": employee,
             "salary_component": salary_component,
             "payroll_date": end,
             "docstatus": 1
-        }
-    ):
-        return
-    if total_advance >0:
+        },
+        fields=["name", "amount"],
+        limit=1
+    )
+
+    if existing:
+        existing_doc = frappe.get_doc("Additional Salary", existing[0].name)
+
+        # If amount is same, do nothing
+        if float(existing_doc.amount) == float(total_advance):
+            return
+
+        # Bypass permission checks
+        existing_doc.flags.ignore_permissions = True
+        existing_doc.cancel()
+
+        existing_doc.delete(ignore_permissions=True)
+
+    # Create new record only if amount > 0
+    if total_advance > 0:
         doc = frappe.new_doc("Additional Salary")
         doc.employee = employee
         doc.salary_component = salary_component
         doc.custom_is_system_generated = 1
         doc.amount = total_advance
         doc.payroll_date = end
-        doc.docstatus = 1
+
         doc.insert(ignore_permissions=True)
+        doc.submit()
+
 
         
 # =====================================================
@@ -428,16 +446,24 @@ def create_monthly_additional_salary(emp, date, amount, component):
     doc.insert(ignore_permissions=True)
 
 def create_monthly_overtime(emp, date, minutes, amount, component):
-    if frappe.db.exists(
+    existing = frappe.get_all(
         "Additional Salary",
-        {
+        filters={
             "employee": emp,
             "salary_component": component,
             "payroll_date": date,
             "docstatus": 1
         }
-    ):
-        return
+    )
+    if existing:
+        existing_doc = frappe.get_doc("Additional Salary", existing[0].name)
+        if float(existing_doc.amount) == float(amount):
+            return
+        # Bypass permission checks
+        existing_doc.flags.ignore_permissions = True
+        existing_doc.cancel()
+
+        existing_doc.delete(ignore_permissions=True)
     if amount <= 0:
         return
     doc = frappe.new_doc("Additional Salary")
@@ -510,14 +536,24 @@ def mark_absent(emp, date):
 
 def create_leave_encashment(emp, date, days, leave_type):
     component = get_leave_encashment_component(leave_type)
-    if frappe.db.exists(
+    existing = frappe.get_all(
         "Additional Salary",
-        {
+        filters={
             "employee": emp,
             "salary_component": component,
             "docstatus": 1
         }
-    ):
+    )
+    amount =round(daily * days, 2)
+    if existing:
+        existing_doc = frappe.get_doc("Additional Salary", existing[0].name)
+        if float(existing_doc.amount) == float(amount):
+            return
+        # Bypass permission checks
+        existing_doc.flags.ignore_permissions = True
+        existing_doc.cancel()
+
+        existing_doc.delete(ignore_permissions=True)
         return
 
     daily = frappe.db.get_value(
@@ -544,3 +580,111 @@ def to_time(value):
         secs = int(value.total_seconds())
         return time(secs // 3600, (secs % 3600) // 60, secs % 60)
     return value
+
+@frappe.whitelist()
+def cancell_additonal_salary(doc, method):
+    for row in doc.employees:
+        additional_salaries = frappe.get_all("Additional Salary",
+            filters={
+                "employee": row.employee,
+                "payroll_date": doc.end_date,
+                "custom_is_system_generated": 1,
+                "docstatus": 1
+            },
+            fields=["name"]
+        )
+        for sal in additional_salaries:
+            additional_salary_doc = frappe.get_doc("Additional Salary", sal.name)
+            # Bypass permission checks
+            additional_salary_doc.flags.ignore_permissions = True
+            additional_salary_doc.cancel()
+
+            additional_salary_doc.delete(ignore_permissions=True)
+
+from hrms.payroll.doctype.payroll_entry.payroll_entry import PayrollEntry
+from hrms.payroll.doctype.payroll_entry.payroll_entry import log_payroll_failure, get_existing_salary_slips
+from frappe import _
+
+class CustomPayrollEntry(PayrollEntry):
+    @frappe.whitelist()
+    def create_salary_slips(self):
+        """
+        Creates salary slip for selected employees if already not created
+        """
+        self.check_permission("write")
+        employees = [emp.employee for emp in self.employees]
+
+        if employees:
+            args = frappe._dict(
+                {
+                    "salary_slip_based_on_timesheet": self.salary_slip_based_on_timesheet,
+                    "payroll_frequency": self.payroll_frequency,
+                    "start_date": self.start_date,
+                    "end_date": self.end_date,
+                    "company": self.company,
+                    "posting_date": self.posting_date,
+                    "deduct_tax_for_unclaimed_employee_benefits": self.deduct_tax_for_unclaimed_employee_benefits,
+                    "deduct_tax_for_unsubmitted_tax_exemption_proof": self.deduct_tax_for_unsubmitted_tax_exemption_proof,
+                    "payroll_entry": self.name,
+                    "exchange_rate": self.exchange_rate,
+                    "currency": self.currency,
+                }
+            )
+            if len(employees) > 30 or frappe.flags.enqueue_payroll_entry:
+                self.db_set("status", "Queued")
+                frappe.enqueue(
+                    create_salary_slips_for_employees,
+                    timeout=3000,
+                    employees=employees,
+                    args=args,
+                    publish_progress=False,
+                )
+                frappe.msgprint(
+                    _("Salary Slip creation is queued. It may take a few minutes"),
+                    alert=True,
+                    indicator="blue",
+                )
+            else:
+                create_salary_slips_for_employees(employees, args, publish_progress=False)
+                # since this method is called via frm.call this doc needs to be updated manually
+                self.reload()
+
+
+def create_salary_slips_for_employees(employees, args, publish_progress=True):
+    payroll_entry = frappe.get_cached_doc("Payroll Entry", args.payroll_entry)
+
+    try:
+        salary_slips_exist_for = get_existing_salary_slips(employees, args)
+        count = 0
+
+        employees = list(set(employees) - set(salary_slips_exist_for))
+        for emp in employees:
+            args.update({"doctype": "Salary Slip", "employee": emp})
+            doc = frappe.get_doc(args).insert()
+            doc.save()
+
+            count += 1
+            if publish_progress:
+                frappe.publish_progress(
+                    count * 100 / len(employees),
+                    title=_("Creating Salary Slips..."),
+                )
+
+        payroll_entry.db_set({"status": "Submitted", "salary_slips_created": 1, "error_message": ""})
+
+        if salary_slips_exist_for:
+            frappe.msgprint(
+                _(
+                    "Salary Slips already exist for employees {}, and will not be processed by this payroll."
+                ).format(frappe.bold(", ".join(emp for emp in salary_slips_exist_for))),
+                title=_("Message"),
+                indicator="orange",
+            )
+
+    except Exception as e:
+        frappe.db.rollback()
+        log_payroll_failure("creation", payroll_entry, e)
+
+    finally:
+        frappe.db.commit()  # nosemgrep
+        frappe.publish_realtime("completed_salary_slip_creation", user=frappe.session.user)
