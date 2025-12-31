@@ -11,6 +11,7 @@
   "threshold_overtime_minutes",
   "column_break_0hrb",
   "early_component",
+  "threshold_early_minutes",
   "auto_encashment",
   "ot_salary",
   "shift",
@@ -139,13 +140,18 @@
    "fieldtype": "Link",
    "label": "Shift ",
    "options": "Shift Type"
+  },
+  {
+   "fieldname": "threshold_early_minutes",
+   "fieldtype": "Int",
+   "label": "Threshold Early Minutes"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-06 14:19:52.638979",
+ "modified": "2025-12-30 14:29:35.687812",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Calicut Textiles Settings",

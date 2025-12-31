@@ -417,6 +417,8 @@ def create_overtime_additional_salary(payroll_date):
                 additional_salary = frappe.new_doc("Additional Salary")
                 additional_salary.employee = emp.name
                 additional_salary.company = emp.company
+                additional_salary.custom_is_overtime = total_overtime_minutes
+                additional_salary.custom_ot_min = total_overtime_minutes
                 additional_salary.payroll_date = current_date
                 additional_salary.amount = overtime_amount
                 additional_salary.salary_component = "Over Time"

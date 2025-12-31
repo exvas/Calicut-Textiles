@@ -29,6 +29,7 @@ app_include_js = ["/assets/calicut_textiles/js/barcode_scan_38.js"]
 
 # include js in doctype views
 doctype_js = {"Purchase Receipt" : "public/purchase_recipt.js",
+              "Payroll Entry" : "public/js/payroll_entry.js",
               "Item" : "public/item.js",
               "Purchase Order" : "public/purchase_order.js",
               "Salary Slip" : "public/salary_slip.js",
@@ -131,7 +132,8 @@ doctype_list_js = {"Item" : "public/item_list.js",
 
 override_doctype_class = {
 	"Leave Encashment": "calicut_textiles.calicut_textiles.events.encashment.CustomLeaveEncashment",
-    "Department": "calicut_textiles.calicut_textiles.events.department.CustomDepartment"
+    "Department": "calicut_textiles.calicut_textiles.events.department.CustomDepartment",
+    "Payroll Entry":"calicut_textiles.public.python.payroll_entry.CustomPayrollEntry"
 }
 
 # Document Events
@@ -145,6 +147,9 @@ doc_events = {
                     "calicut_textiles.calicut_textiles.item.item_name_unique", ]
 
 	},
+    "Payroll Entry":{
+        "on_cancel":"calicut_textiles.public.python.payroll_entry.cancell_additonal_salary",
+    },
     "Item Price": {
         "validate":["calicut_textiles.calicut_textiles.item_price.update_custom_rate_code"]
 	},
