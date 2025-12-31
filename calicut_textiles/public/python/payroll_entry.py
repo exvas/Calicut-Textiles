@@ -65,7 +65,7 @@ def process_payroll_entry(payroll_entry):
     checkin_map = load_checkins(employees, start_date, end_date)
 
     create_overtime(
-        pe, employees, employee_map, checkin_map
+        pe, employees, employee_map, checkin_map, holiday_map
     )
     for emp in employees:
         create_employee_advances_deductions(start_date, end_date, emp, company_account)
@@ -105,6 +105,7 @@ def create_employee_advances_deductions(start, end, employee, company_account):
         doc = frappe.new_doc("Additional Salary")
         doc.employee = employee
         doc.salary_component = salary_component
+        doc.custom_is_system_generated = 1
         doc.amount = total_advance
         doc.payroll_date = end
         doc.docstatus = 1
@@ -161,15 +162,20 @@ def load_checkins(employees, start, end):
 # =====================================================
 # OVERTIME
 # =====================================================
-def create_overtime(pe, employees, employee_map, checkin_map):
+
+def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
     settings = frappe.get_single("Calicut Textiles Settings")
+
     threshold = settings.threshold_overtime_minutes or 0
     excluded_shift = settings.shift
     ot_component = settings.ot_component
+
     early_threshold = settings.threshold_early_minutes or 0
     early_component = settings.early_component
 
     for emp in employees:
+
+        # Skip if OT already created
         if frappe.db.exists(
             "Additional Salary",
             {
@@ -182,7 +188,8 @@ def create_overtime(pe, employees, employee_map, checkin_map):
         ):
             continue
 
-        shift_name = employee_map[emp].default_shift
+        emp_doc = employee_map[emp]
+        shift_name = emp_doc.default_shift
         if not shift_name or shift_name == excluded_shift:
             continue
 
@@ -191,39 +198,61 @@ def create_overtime(pe, employees, employee_map, checkin_map):
         if shift_hours <= 0:
             continue
 
+        # Resolve employee holidays once
+        holidays = holiday_map.get(
+            emp_doc.holiday_list,
+            set()
+        )
+
         total_ot_minutes = 0
         total_early_minutes = 0
 
-        for date, rows in checkin_map[emp].items():
+        for date, rows in checkin_map.get(emp, {}).items():
             times = filter_noise([r.time for r in rows])
             if len(times) < 2:
                 continue
 
-            in_time, out_time = times[0], times[-1]
+            in_time = times[0]
+            out_time = times[-1]
+
+            # ---------------- HOLIDAY OT ----------------
+            if date in holidays:
+                worked_minutes = minutes(out_time - in_time)
+                if worked_minutes > 0:
+                    total_ot_minutes += worked_minutes
+                continue
+            # --------------------------------------------
+
             shift_start, shift_end = shift_bounds(shift, date)
 
             normal_start = shift_start - timedelta(minutes=threshold)
             normal_end = shift_end + timedelta(minutes=threshold)
+
             normal_start_for_late = shift_start + timedelta(minutes=early_threshold)
             normal_end_for_late = shift_end - timedelta(minutes=early_threshold)
 
+            # Overtime before shift
             if in_time < normal_start:
                 total_ot_minutes += threshold + minutes(normal_start - in_time)
 
+            # Overtime after shift
             if out_time > normal_end:
                 total_ot_minutes += threshold + minutes(out_time - normal_end)
-            
+
+            # --------- LATE / EARLY (NON-HOLIDAY ONLY) ---------
             if in_time > normal_start_for_late:
                 total_early_minutes += early_threshold + minutes(in_time - normal_start_for_late)
 
             if out_time < normal_end_for_late:
-                total_early_minutes += early_threshold + minutes(out_time - normal_end_for_late)
+                total_early_minutes += early_threshold + minutes(normal_end_for_late - out_time)
+            # ---------------------------------------------------
 
-            # for r in rows:
-            #     if r.custom_late_early and r.custom_late_early > early_threshold:
-            #         total_early_minutes += r.custom_late_early
-
-        rate = get_per_minute_salary(emp, pe.start_date, pe.end_date, shift_hours)
+        rate = get_per_minute_salary(
+            emp,
+            pe.start_date,
+            pe.end_date,
+            shift_hours
+        )
 
         if total_ot_minutes > 0:
             create_monthly_overtime(
@@ -233,15 +262,15 @@ def create_overtime(pe, employees, employee_map, checkin_map):
                 round(rate * total_ot_minutes, 2),
                 ot_component
             )
+
         if total_early_minutes > 0:
-            print(total_early_minutes," total_early_minutes")
-            create_monthly_additional_salary(
+            create_monthly_overtime(
                 emp,
                 pe.end_date,
+                total_early_minutes,
                 round(rate * total_early_minutes, 2),
                 early_component
             )
-
 
 # =====================================================
 # ATTENDANCE / LEAVE
@@ -286,7 +315,7 @@ def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
 
     # 5. Leave limits
     max_leave = get_max_consecutive_leave(leave_type)
-    used_leave = count_existing_leave(emp, start, end)
+    used_leave = count_existing_leave_days(emp, start, end)
 
     # 6. Apply leave / absent
     for day in missing_days:
@@ -394,6 +423,7 @@ def create_monthly_additional_salary(emp, date, amount, component):
     doc.salary_component = component
     doc.amount = amount
     doc.payroll_date = date
+    doc.custom_is_system_generated = 1
     doc.docstatus = 1
     doc.insert(ignore_permissions=True)
 
@@ -411,7 +441,8 @@ def create_monthly_overtime(emp, date, minutes, amount, component):
     if amount <= 0:
         return
     doc = frappe.new_doc("Additional Salary")
-    doc.employee = emp
+    doc.employee = emp,
+    doc.custom_is_system_generated = 1
     doc.salary_component = component
     doc.custom_is_overtime = 1
     doc.custom_ot_min = minutes
@@ -423,19 +454,34 @@ def create_monthly_overtime(emp, date, minutes, amount, component):
 # =====================================================
 # LEAVE
 # =====================================================
-def count_existing_leave(emp, start, end):
-    leave_type = get_employee_leave_type(emp, start, end)
 
-    return frappe.db.count(
+def count_existing_leave_days(emp, start, end):
+    start = getdate(start)
+    end = getdate(end)
+
+    leaves = frappe.db.get_all(
         "Leave Application",
-        {
+        filters={
             "employee": emp,
-            "leave_type": leave_type,
             "docstatus": 1,
             "from_date": ["<=", end],
-            "to_date": [">=", start]
-        }
+            "to_date": [">=", start],
+        },
+        fields=["from_date", "to_date"]
     )
+
+    total_days = 0
+
+    for leave in leaves:
+        leave_start = max(getdate(leave.from_date), start)
+        leave_end = min(getdate(leave.to_date), end)
+
+        # +1 because both dates are inclusive
+        days = (leave_end - leave_start).days + 1
+        total_days += days
+
+    return total_days
+
 
 def create_leave_application(emp, date, leave_type):
     doc = frappe.new_doc("Leave Application")
@@ -443,6 +489,7 @@ def create_leave_application(emp, date, leave_type):
     doc.leave_type = leave_type
     doc.from_date = date
     doc.to_date = date
+    doc.custom_is_system_generated = 1
     doc.status = "Approved"
     doc.docstatus = 1
     doc.insert(ignore_permissions=True)
@@ -457,6 +504,7 @@ def mark_absent(emp, date):
     doc.employee = emp
     doc.attendance_date = date
     doc.status = "Absent"
+    doc.custom_is_system_generated = 1
     doc.docstatus = 1
     doc.insert(ignore_permissions=True)
 
@@ -487,6 +535,7 @@ def create_leave_encashment(emp, date, days, leave_type):
     doc.salary_component = component
     doc.amount = round(daily * days, 2)
     doc.payroll_date = date
+    doc.custom_is_system_generated = 1
     doc.docstatus = 1
     doc.insert(ignore_permissions=True)
 
