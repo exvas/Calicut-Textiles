@@ -334,7 +334,8 @@ def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
 
     # 6. Apply leave / absent
     for day in missing_days:
-        if max_leave!=0:
+
+        if leave_type or max_leave!=0:
             if used_leave < max_leave:
                 create_leave_application(emp, day, leave_type)
                 used_leave += 1
@@ -344,7 +345,7 @@ def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
             mark_absent(emp, day)
 
     # 7. Encashment
-    if max_leave!=0:
+    if leave_type or max_leave!=0:
         encash = max_leave - used_leave
         if encash > 0:
             create_leave_encashment(emp, end, encash, leave_type)
@@ -368,10 +369,7 @@ def get_employee_leave_type(emp, start, end):
     )
 
     if not allocation:
-        frappe.throw(
-            f"No Leave Allocation found for employee {emp} "
-            f"between {start} and {end}"
-        )
+        return None
 
     return allocation.leave_type
 
