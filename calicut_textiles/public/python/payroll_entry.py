@@ -255,11 +255,16 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
                 total_ot_minutes += threshold + minutes(out_time - normal_end)
 
             # --------- LATE / EARLY (NON-HOLIDAY ONLY) ---------
-            if in_time > normal_start_for_late:
-                total_early_minutes += early_threshold + minutes(in_time - normal_start_for_late)
+            for row in rows:
+                if row.custom_late_coming_minutes > early_threshold:
+                    total_early_minutes += int(row.custom_late_coming_minutes)
+                if row.custom_early_going_minutes > early_threshold:
+                    total_early_minutes += int(row.custom_early_going_minutes)
+            # if in_time > normal_start_for_late:
+            #     total_early_minutes += early_threshold + minutes(in_time - normal_start_for_late)
 
-            if out_time < normal_end_for_late:
-                total_early_minutes += early_threshold + minutes(normal_end_for_late - out_time)
+            # if out_time < normal_end_for_late:
+            #     total_early_minutes += early_threshold + minutes(normal_end_for_late - out_time)
             # ---------------------------------------------------
 
         rate = get_per_minute_salary(
