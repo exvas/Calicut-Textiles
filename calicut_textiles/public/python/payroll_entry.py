@@ -164,7 +164,7 @@ def load_checkins(employees, start, end):
             "employee": ["in", employees],
             "time": ["between", [start, end + timedelta(days=1)]]
         },
-        fields=["employee", "time", "custom_late_early"],
+        fields=["employee", "time", "custom_late_early","custom_late_coming_minutes","custom_early_going_minutes"],
         order_by="time asc"
     )
 
@@ -255,16 +255,18 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
                 total_ot_minutes += threshold + minutes(out_time - normal_end)
 
             # --------- LATE / EARLY (NON-HOLIDAY ONLY) ---------
-            # for row in rows:
-            #     if row.custom_late_coming_minutes and row.custom_late_coming_minutes > early_threshold:
-            #         total_early_minutes += int(row.custom_late_coming_minutes)
-            #     if row.custom_early_going_minutes and row.custom_early_going_minutes > early_threshold:
-            #         total_early_minutes += int(row.custom_early_going_minutes)
-            if in_time > normal_start_for_late:
-                total_early_minutes += early_threshold + minutes(normal_start_for_late - in_time)
+            for row in rows:
+                custom_late_coming_minutes = row.custom_late_coming_minutes if row.custom_late_coming_minutes else 0
+                custom_early_going_minutes = row.custom_early_going_minutes if row.custom_early_going_minutes else 0
+                if custom_late_coming_minutes > early_threshold:
+                    total_early_minutes += int(custom_late_coming_minutes)
+                if custom_early_going_minutes > early_threshold:
+                    total_early_minutes += int(custom_early_going_minutes)
+            # if in_time > normal_start_for_late:
+            #     total_early_minutes += early_threshold + minutes(in_time - normal_start_for_late)
 
-            if out_time < normal_end_for_late:
-                total_early_minutes += early_threshold + minutes(normal_end_for_late - out_time)
+            # if out_time < normal_end_for_late:
+            #     total_early_minutes += early_threshold + minutes(normal_end_for_late - out_time)
             # ---------------------------------------------------
 
         rate = get_per_minute_salary(
