@@ -245,7 +245,6 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
 
             normal_start_for_late = shift_start + timedelta(minutes=early_threshold)
             normal_end_for_late = shift_end - timedelta(minutes=early_threshold)
-            early_threshold = 0 if early_threshold is None else early_threshold
 
             # Overtime before shift
             if in_time < normal_start:
@@ -262,7 +261,7 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
             #     if row.custom_early_going_minutes and row.custom_early_going_minutes > early_threshold:
             #         total_early_minutes += int(row.custom_early_going_minutes)
             if in_time > normal_start_for_late:
-                total_early_minutes += early_threshold + minutes(in_time - normal_start_for_late)
+                total_early_minutes += early_threshold + minutes(normal_start_for_late - in_time)
 
             if out_time < normal_end_for_late:
                 total_early_minutes += early_threshold + minutes(normal_end_for_late - out_time)
