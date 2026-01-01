@@ -185,7 +185,7 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
     excluded_shift = settings.shift
     ot_component = settings.ot_component
 
-    early_threshold = settings.threshold_early_minutes or 0
+    early_threshold = (settings.threshold_early_minutes or 0) * 2
     early_component = settings.early_component
 
     for emp in employees:
@@ -254,16 +254,20 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
                 total_ot_minutes += threshold + minutes(out_time - normal_end)
 
             # --------- LATE / EARLY (NON-HOLIDAY ONLY) ---------
-            total_early_minutes = 0
-            total_late_minutes = 0
+            # total_early_minutes = 0
+            # total_late_minutes = 0
             for row in rows:
-                custom_late_coming_minutes = row.custom_late_coming_minutes if row.custom_late_coming_minutes else 0
-                custom_early_going_minutes = row.custom_early_going_minutes if row.custom_early_going_minutes else 0
-                if custom_late_coming_minutes > early_threshold:
-                    total_late_minutes += int(custom_late_coming_minutes)
-                if custom_early_going_minutes > early_threshold:
-                    total_early_minutes += int(custom_early_going_minutes)
-            total_early_late_minutes += total_early_minutes + total_late_minutes
+                if row.custom_late_early:
+                    custom_minutes = row.custom_late_early
+                    if custom_minutes > early_threshold:
+                        total_early_late_minutes += custom_minutes
+                # custom_late_coming_minutes = row.custom_late_coming_minutes if row.custom_late_coming_minutes else 0
+                # custom_early_going_minutes = row.custom_early_going_minutes if row.custom_early_going_minutes else 0
+                # if custom_late_coming_minutes > early_threshold:
+                #     total_late_minutes += int(custom_late_coming_minutes)
+                # if custom_early_going_minutes > early_threshold:
+                #     total_early_minutes += int(custom_early_going_minutes)
+            # total_early_late_minutes += total_early_minutes + total_late_minutes
             # if in_time > normal_start_for_late:
             #     total_early_minutes += early_threshold + minutes(in_time - normal_start_for_late)
 
