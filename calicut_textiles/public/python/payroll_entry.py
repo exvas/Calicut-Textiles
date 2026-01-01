@@ -543,7 +543,15 @@ def create_leave_encashment(emp, date, days, leave_type):
             "docstatus": 1
         }
     )
-    amount =round(daily * days, 2)
+    daily = frappe.db.get_value(
+        "Salary Structure Assignment",
+        {"employee": emp, "docstatus": 1},
+        "custom_leave_encashment_amount_per_day",
+        order_by="from_date desc"
+    )
+    if not daily:
+        return
+    amount = round(daily * days, 2)
     if existing:
         existing_doc = frappe.get_doc("Additional Salary", existing[0].name)
         if float(existing_doc.amount) == float(amount):
@@ -555,20 +563,10 @@ def create_leave_encashment(emp, date, days, leave_type):
         existing_doc.delete(ignore_permissions=True)
         return
 
-    daily = frappe.db.get_value(
-        "Salary Structure Assignment",
-        {"employee": emp, "docstatus": 1},
-        "custom_leave_encashment_amount_per_day",
-        order_by="from_date desc"
-    )
-
-    if not daily:
-        return
-
     doc = frappe.new_doc("Additional Salary")
     doc.employee = emp
     doc.salary_component = component
-    doc.amount = round(daily * days, 2)
+    doc.amount = amount
     doc.payroll_date = date
     doc.custom_is_system_generated = 1
     doc.docstatus = 1
