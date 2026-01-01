@@ -14,10 +14,7 @@ def get_max_consecutive_leave(leave_type):
         "max_continuous_days_allowed"
     )
     if not value:
-        frappe.throw(
-            f"Max Continuous Leave not set for {leave_type}.",
-            title="Leave Type Configuration Error"
-        )
+        return 0
     return int(value)
 
 def get_leave_encashment_component(leave_type):
@@ -337,16 +334,20 @@ def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
 
     # 6. Apply leave / absent
     for day in missing_days:
-        if used_leave < max_leave:
-            create_leave_application(emp, day, leave_type)
-            used_leave += 1
+        if max_leave!=0:
+            if used_leave < max_leave:
+                create_leave_application(emp, day, leave_type)
+                used_leave += 1
+            else:
+                mark_absent(emp, day)
         else:
             mark_absent(emp, day)
 
     # 7. Encashment
-    encash = max_leave - used_leave
-    if encash > 0:
-        create_leave_encashment(emp, end, encash, leave_type)
+    if max_leave!=0:
+        encash = max_leave - used_leave
+        if encash > 0:
+            create_leave_encashment(emp, end, encash, leave_type)
 
 
 # =====================================================
