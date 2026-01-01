@@ -135,7 +135,7 @@ def load_employees(employees):
     data = frappe.get_all(
         "Employee",
         filters={"name": ["in", employees]},
-        fields=["name", "holiday_list", "default_shift"]
+        fields=["name", "holiday_list", "default_shift","date_of_joining"]
     )
     return {d.name: d for d in data}
 
@@ -300,7 +300,8 @@ def process_attendance(emp, start, end, employee_map, holiday_map, checkin_map):
 
     # 1. Build working days
     working_days = set()
-    current = start
+    doj = employee_map[emp].date_of_joining
+    current = max(start, doj) if doj else start
     while current <= end:
         if current not in holidays:
             working_days.add(current)
