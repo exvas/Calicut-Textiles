@@ -291,6 +291,7 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
                 ot_component
             )
         if total_early_late_minutes > 0:
+            total_early_late_minutes = total_early_late_minutes/2
             create_monthly_overtime(
                 emp,
                 pe.end_date,
