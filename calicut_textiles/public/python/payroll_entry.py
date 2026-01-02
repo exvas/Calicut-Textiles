@@ -76,54 +76,73 @@ def process_payroll_entry(payroll_entry):
         )
 
 def create_employee_advances_deductions(start, end, employee, company_account):
-    salary_component = frappe.db.get_value("Salary Component Account",{'account': company_account,'parent':'Employee Advance'},'parent')
-    advance_salary_list = frappe.get_all("Employee Advance",
+    salary_component = frappe.db.get_value(
+        "Salary Component Account",
+        {
+            "account": company_account,
+            "parent": "Employee Advance"
+        },
+        "parent"
+    )
+
+    if not salary_component:
+        return
+
+    employee_advances = frappe.get_all(
+        "Employee Advance",
         filters={
             "employee": employee,
             "posting_date": ["between", [start, end]],
             "docstatus": 1,
         },
-        fields=["name","claimed_amount","paid_amount"]
-    )
-    claimed_amounts = sum([d.claimed_amount for d in advance_salary_list])
-    paid_amounts = sum([d.paid_amount for d in advance_salary_list])
-    total_advance = paid_amounts - claimed_amounts
-    existing = frappe.get_all(
-        "Additional Salary",
-        filters={
-            "employee": employee,
-            "salary_component": salary_component,
-            "payroll_date": end,
-            "docstatus": 1
-        },
-        fields=["name", "amount"],
-        limit=1
+        fields=["name", "claimed_amount", "paid_amount"]
     )
 
-    if existing:
-        existing_doc = frappe.get_doc("Additional Salary", existing[0].name)
+    for adv in employee_advances:
+        advance_amount = (adv.paid_amount or 0) - (adv.claimed_amount or 0)
 
-        # If amount is same, do nothing
-        if float(existing_doc.amount) == float(total_advance):
-            return
+        if advance_amount <= 0:
+            continue
 
-        # Bypass permission checks
-        existing_doc.flags.ignore_permissions = True
-        existing_doc.cancel()
+        existing = frappe.get_all(
+            "Additional Salary",
+            filters={
+                "employee": employee,
+                "salary_component": salary_component,
+                "payroll_date": end,
+                "ref_docname": adv.name,
+                "docstatus": ["!=", 2],
+            },
+            fields=["name", "amount", "docstatus"],
+            limit=1
+        )
 
-        existing_doc.delete(ignore_permissions=True)
+        if existing:
+            existing_doc = frappe.get_doc("Additional Salary", existing[0].name)
 
-    # Create new record only if amount > 0
-    if total_advance > 0:
+            if float(existing_doc.amount) == float(advance_amount):
+                continue
+
+            existing_doc.flags.ignore_permissions = True
+
+            if existing_doc.docstatus == 1:
+                existing_doc.cancel()
+
+            existing_doc.delete(ignore_permissions=True)
+
         doc = frappe.new_doc("Additional Salary")
         doc.employee = employee
         doc.salary_component = salary_component
-        doc.custom_is_system_generated = 1
-        doc.amount = total_advance
+        doc.amount = advance_amount
         doc.payroll_date = end
+        doc.custom_is_system_generated = 1
+        doc.ref_doctype = "Employee Advance"  # 🔑 Reference
+        doc.ref_docname = adv.name  # 🔑 Reference
+        doc.flags.ignore_permissions = True
 
         doc.insert(ignore_permissions=True)
         doc.submit()
+
 
 
         
