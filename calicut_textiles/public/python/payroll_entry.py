@@ -135,7 +135,7 @@ def load_employees(employees):
     data = frappe.get_all(
         "Employee",
         filters={"name": ["in", employees]},
-        fields=["name", "holiday_list", "default_shift","date_of_joining"]
+        fields=["name", "holiday_list", "default_shift","date_of_joining","employment_type"]
     )
     return {d.name: d for d in data}
 
@@ -218,6 +218,8 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
             emp_doc.holiday_list,
             set()
         )
+        if emp_doc.employment_type == 'Part-time':
+            continue
 
         total_ot_minutes = 0
         total_early_late_minutes = 0
