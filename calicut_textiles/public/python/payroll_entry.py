@@ -222,9 +222,15 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
         ):
             continue
 
-        emp_doc = employee_map[emp]
+        emp_doc = employee_map.get(emp)
+        if not emp_doc:
+            continue
+
         shift_name = emp_doc.default_shift
         if not shift_name or shift_name == excluded_shift:
+            continue
+
+        if emp_doc.employment_type == "Part-time":
             continue
 
         shift = frappe.get_doc("Shift Type", shift_name)
@@ -232,16 +238,11 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
         if shift_hours <= 0:
             continue
 
-        # Resolve employee holidays once
-        holidays = holiday_map.get(
-            emp_doc.holiday_list,
-            set()
-        )
-        if emp_doc.employment_type == 'Part-time':
-            continue
+        holidays = holiday_map.get(emp_doc.holiday_list, set())
 
         total_ot_minutes = 0
         total_early_late_minutes = 0
+
         for date, rows in checkin_map.get(emp, {}).items():
             times = filter_noise([r.time for r in rows])
             if len(times) < 2:
@@ -250,51 +251,34 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
             in_time = times[0]
             out_time = times[-1]
 
-            # ---------------- HOLIDAY OT ----------------
+            # ---------------- HOLIDAY LOGIC ----------------
             if date in holidays:
                 worked_minutes = minutes(out_time - in_time)
                 if worked_minutes > 0:
                     total_ot_minutes += worked_minutes
-                continue
-            # --------------------------------------------
+                continue  # CRITICAL: skip early/late completely
+            # ------------------------------------------------
 
             shift_start, shift_end = shift_bounds(shift, date)
 
             normal_start = shift_start - timedelta(minutes=threshold)
             normal_end = shift_end + timedelta(minutes=threshold)
 
-            normal_start_for_late = shift_start + timedelta(minutes=early_threshold)
-            normal_end_for_late = shift_end - timedelta(minutes=early_threshold)
-
-            # Overtime before shift
+            # ---------------- OVERTIME ----------------
             if in_time < normal_start:
                 total_ot_minutes += threshold + minutes(normal_start - in_time)
 
-            # Overtime after shift
             if out_time > normal_end:
                 total_ot_minutes += threshold + minutes(out_time - normal_end)
+            # --------------------------------------------
 
-            # --------- LATE / EARLY (NON-HOLIDAY ONLY) ---------
-            # total_early_minutes = 0
-            # total_late_minutes = 0
+            # ----------- EARLY / LATE (NON-HOLIDAY ONLY) -----------
             for row in rows:
                 if row.custom_late_early:
-                    custom_minutes = row.custom_late_early
+                    custom_minutes = int(row.custom_late_early)
                     if custom_minutes > early_threshold:
                         total_early_late_minutes += custom_minutes
-                # custom_late_coming_minutes = row.custom_late_coming_minutes if row.custom_late_coming_minutes else 0
-                # custom_early_going_minutes = row.custom_early_going_minutes if row.custom_early_going_minutes else 0
-                # if custom_late_coming_minutes > early_threshold:
-                #     total_late_minutes += int(custom_late_coming_minutes)
-                # if custom_early_going_minutes > early_threshold:
-                #     total_early_minutes += int(custom_early_going_minutes)
-            # total_early_late_minutes += total_early_minutes + total_late_minutes
-            # if in_time > normal_start_for_late:
-            #     total_early_minutes += early_threshold + minutes(in_time - normal_start_for_late)
-
-            # if out_time < normal_end_for_late:
-            #     total_early_minutes += early_threshold + minutes(normal_end_for_late - out_time)
-            # ---------------------------------------------------
+            # ------------------------------------------------------
 
         rate = get_per_minute_salary(
             emp,
@@ -311,8 +295,9 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
                 round(rate * total_ot_minutes, 2),
                 ot_component
             )
+
         if total_early_late_minutes > 0:
-            total_early_late_minutes = total_early_late_minutes/2
+            total_early_late_minutes = total_early_late_minutes / 2
             create_monthly_overtime(
                 emp,
                 pe.end_date,
