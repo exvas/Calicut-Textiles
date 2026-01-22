@@ -276,14 +276,10 @@ def create_overtime(pe, employees, employee_map, checkin_map, holiday_map):
             # --------------------------------------------
 
             # ----------- EARLY / LATE (NON-HOLIDAY ONLY) -----------
-            print("In Time:", in_time, "Normal Late Early Start:", normal_lateearly_start)
             if in_time > normal_lateearly_start:
-                print("Adding Late Minutes")
                 total_early_late_minutes += early_threshold + minutes(in_time - normal_lateearly_start)
             if out_time < normal_lateearly_end:
-                print("Adding Early Minutes")
                 total_early_late_minutes += early_threshold + minutes(normal_lateearly_end - out_time)
-            print("Total Early/Late Minutes so far:", total_early_late_minutes)
             # for row in rows:
             #     if row.custom_late_early:
             #         print(row.custom_late_early, row.time)
