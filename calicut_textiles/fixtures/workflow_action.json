@@ -1,0 +1,464 @@
+[
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-07-14 16:21:40.394544",
+  "name": "6j2s1ploa7",
+  "permitted_roles": [
+   {
+    "parent": "6j2s1ploa7",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Accounts Manager"
+   }
+  ],
+  "reference_doctype": "Bank Account",
+  "reference_name": "ICICI BANK 0226 Uniforms",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-08-01 16:31:41.951151",
+  "name": "0cervpf2nd",
+  "permitted_roles": [
+   {
+    "parent": "0cervpf2nd",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00002",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-08-12 11:51:18.054565",
+  "name": "99dcprame9",
+  "permitted_roles": [
+   {
+    "parent": "99dcprame9",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00003",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-08-16 17:47:03.998577",
+  "name": "a8s00fukcd",
+  "permitted_roles": [
+   {
+    "parent": "a8s00fukcd",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00004",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-08-30 14:17:55.101775",
+  "name": "6iqf777q3b",
+  "permitted_roles": [
+   {
+    "parent": "6iqf777q3b",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00007",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-09-12 12:24:51.491938",
+  "name": "09ai5le5tm",
+  "permitted_roles": [
+   {
+    "parent": "09ai5le5tm",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00008",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-09-16 09:43:28.421490",
+  "name": "4pokvb2152",
+  "permitted_roles": [
+   {
+    "parent": "4pokvb2152",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "CT SALES ENTRY"
+   }
+  ],
+  "reference_doctype": "Sales Invoice",
+  "reference_name": "RT2507746",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-09-16 09:54:58.374910",
+  "name": "40g7m6ug57",
+  "permitted_roles": [
+   {
+    "parent": "40g7m6ug57",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "CT SALES ENTRY"
+   }
+  ],
+  "reference_doctype": "Sales Invoice",
+  "reference_name": "CT2503123",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Draft"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-09-24 13:17:46.267404",
+  "name": "blambgon6o",
+  "permitted_roles": [
+   {
+    "parent": "blambgon6o",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00009",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-10-01 09:00:13.080393",
+  "name": "dglicf4eiq",
+  "permitted_roles": [
+   {
+    "parent": "dglicf4eiq",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00010",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-10-10 16:11:48.565280",
+  "name": "0n9tvl2fl7",
+  "permitted_roles": [
+   {
+    "parent": "0n9tvl2fl7",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00011",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-10-18 13:17:11.019744",
+  "name": "bevmn9d4oj",
+  "permitted_roles": [
+   {
+    "parent": "bevmn9d4oj",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00012",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-11-03 17:34:28.379480",
+  "name": "31nrh1jb4o",
+  "permitted_roles": [
+   {
+    "parent": "31nrh1jb4o",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00013",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-11-18 16:24:50.448145",
+  "name": "5968b38993",
+  "permitted_roles": [
+   {
+    "parent": "5968b38993",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00014",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-11-25 10:44:38.387396",
+  "name": "ak3feinbg1",
+  "permitted_roles": [
+   {
+    "parent": "ak3feinbg1",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00015",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-12-05 08:32:26.227848",
+  "name": "cs4md9lk47",
+  "permitted_roles": [
+   {
+    "parent": "cs4md9lk47",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00016",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-12-12 17:10:42.953384",
+  "name": "du2dpjmbk2",
+  "permitted_roles": [
+   {
+    "parent": "du2dpjmbk2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00017",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-12-20 09:21:58.051138",
+  "name": "99dc1ardm0",
+  "permitted_roles": [
+   {
+    "parent": "99dc1ardm0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00018",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "sirilvasudev@gmail.com",
+  "completed_by_role": "Expense Approver",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2025-12-31 12:17:04.264345",
+  "name": "fh8isi1ejq",
+  "permitted_roles": [
+   {
+    "parent": "fh8isi1ejq",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "Expense Approver"
+   }
+  ],
+  "reference_doctype": "Expense Claim",
+  "reference_name": "HR-EXP-2025-00019",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "dailycashapprovel",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-01-26 17:42:53.324440",
+  "name": "1llr4hsuqq",
+  "permitted_roles": [
+   {
+    "parent": "1llr4hsuqq",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "dailycashapprovel"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "1lkpdr28kd",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": null,
+  "completed_by_role": null,
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-01-27 13:13:59.218033",
+  "name": "froa2n25n2",
+  "permitted_roles": [
+   {
+    "parent": "froa2n25n2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "dailycashapprovel"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "frneghftuu",
+  "status": "Open",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "dailycashapprovel",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-01-27 13:33:01.367046",
+  "name": "r0l1aj9l5k",
+  "permitted_roles": [
+   {
+    "parent": "r0l1aj9l5k",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "dailycashapprovel"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "r0lju4vo5t",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ }
+]

@@ -1,0 +1,92 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": null,
+  "modified": "2025-03-25 22:59:08.453950",
+  "name": "Pending Approval",
+  "style": "Warning",
+  "workflow_state_name": "Pending Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-08-19 20:51:53.552810",
+  "name": "Pending Senior Approval",
+  "style": "",
+  "workflow_state_name": "Pending Senior Approval"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": null,
+  "modified": "2025-03-25 22:59:08.453973",
+  "name": "Cancelled",
+  "style": "Danger",
+  "workflow_state_name": "Cancelled"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-09-15 15:37:32.257346",
+  "name": "Check Out",
+  "style": "Success",
+  "workflow_state_name": "Check Out"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "",
+  "modified": "2025-09-15 15:27:38.246177",
+  "name": "Cancel Requested",
+  "style": "",
+  "workflow_state_name": "Cancel Requested"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": null,
+  "modified": "2025-03-25 22:59:08.453931",
+  "name": "Submitted",
+  "style": "Primary",
+  "workflow_state_name": "Submitted"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "remove",
+  "modified": "2024-07-30 18:01:52.987894",
+  "name": "Rejected",
+  "style": "Danger",
+  "workflow_state_name": "Rejected"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": null,
+  "modified": "2025-03-25 22:59:08.453892",
+  "name": "Draft",
+  "style": "Danger",
+  "workflow_state_name": "Draft"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "question-sign",
+  "modified": "2024-07-24 11:15:05.648402",
+  "name": "Pending",
+  "style": "",
+  "workflow_state_name": "Pending"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow State",
+  "icon": "ok-sign",
+  "modified": "2024-07-30 18:01:52.987135",
+  "name": "Approved",
+  "style": "Success",
+  "workflow_state_name": "Approved"
+ }
+]
