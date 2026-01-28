@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2026-01-26 17:22:26.542287",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -17,7 +18,8 @@
   "section_break_m8ry",
   "payment_entry",
   "journal_entry",
-  "amended_from"
+  "amended_from",
+  "naming_series"
  ],
  "fields": [
   {
@@ -113,16 +115,25 @@
    "fieldtype": "Link",
    "label": "Cost Center",
    "options": "Cost Center"
+  },
+  {
+   "default": "DCE-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming SeriesDCE-.YYYY.-.#####",
+   "options": "DCE-.YYYY.-.#####"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-28 14:04:14.217998",
+ "modified": "2026-01-28 16:28:04.425592",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Daliy Cash Entry",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
