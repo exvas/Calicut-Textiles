@@ -39,7 +39,7 @@ def create_payment_entry(daliy_cash_entry):
 			"paid_amount": doc.amount,
 			"source_exchange_rate": 1,
 			"target_exchange_rate": 1,
-			"cost_center": frappe.db.get_value("Company", company, "cost_center"),
+			"cost_center": doc.cost_center if doc.cost_center else frappe.db.get_value("Company", company, "cost_center"),
 			"remarks": doc.note
 		})
 		payment_entry.insert()
@@ -61,13 +61,13 @@ def create_journal_entry(daliy_cash_entry):
 				"account": frappe.db.get_value("Company", company, "default_cash_account"),
 				"debit_in_account_currency": doc.amount,
 				"debit": doc.amount,
-				"cost_center": frappe.db.get_value("Company", company, "cost_center"),
+				"cost_center": doc.cost_center if doc.cost_center else frappe.db.get_value("Company", company, "cost_center"),
 			},
 			{
 				"account": frappe.db.get_value("Company", company, "default_expense_account"),
 				"credit_in_account_currency": doc.amount,
 				"credit": doc.amount,
-				"cost_center": frappe.db.get_value("Company", company, "cost_center"),
+				"cost_center": doc.cost_center if doc.cost_center else frappe.db.get_value("Company", company, "cost_center"),
 			}
 		]
 	})
