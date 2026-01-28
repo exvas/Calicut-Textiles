@@ -184,7 +184,13 @@ doc_events = {
     },
     "Employee Checkin": {
         "before_save": "calicut_textiles.calicut_textiles.events.employee_checkin.update_employee_checkin_fields"
-    }
+    },
+    # "Payment Entry": {
+    #     "before_delete": "calicut_textiles.calicut_textiles.doctype.daliy_cash_entry.daliy_cash_entry.delete_linked_daliy_cash_entry"
+    # },
+    # "Journal Entry": {
+    #     "before_delete": "calicut_textiles.calicut_textiles.doctype.daliy_cash_entry.daliy_cash_entry.delete_linked_journal_daliy_cash_entry"
+    # }
 
 }
 
