@@ -3,7 +3,7 @@
 
 frappe.ui.form.on("Daliy Cash Entry", {
 	refresh:function(frm) {
-        if (frm.doc.paid_type && frm.doc.docstatus === 1) {
+        if (frm.doc.paid_type!="Other" && frm.doc.docstatus === 1 && !frm.doc.payment_entry) {
             frm.add_custom_button(__("Payment Entry"),function () {
                 frappe.call({
                     method:"calicut_textiles.calicut_textiles.doctype.daliy_cash_entry.daliy_cash_entry.create_payment_entry",
@@ -15,7 +15,7 @@ frappe.ui.form.on("Daliy Cash Entry", {
                 })
             },__("Create"));
         }
-        if(frm.doc.docstatus === 1){
+        if(frm.doc.paid_type=="Other" &&frm.doc.docstatus === 1 && !frm.doc.journal_entry){
             frm.add_custom_button(__("Journal Entry"),function () {
                 frappe.call({
                     method:"calicut_textiles.calicut_textiles.doctype.daliy_cash_entry.daliy_cash_entry.create_journal_entry",

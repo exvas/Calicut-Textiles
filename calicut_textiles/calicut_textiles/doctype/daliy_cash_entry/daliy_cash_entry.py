@@ -13,39 +13,14 @@ class DaliyCashEntry(Document):
 				pe.cancel()
 			frappe.db.set_value(self.doctype, self.name, "payment_entry", None)
 			frappe.db.commit()
-			pe.delete()
+			# pe.delete()
 		if self.journal_entry:
 			je = frappe.get_doc("Journal Entry", self.journal_entry)
 			if je.docstatus == 1:
 				je.cancel()
 			frappe.db.set_value(self.doctype, self.name, "journal_entry", None)
 			frappe.db.commit()
-			je.delete()
-	def validate(self):
-		if not self.paid_to:
-			return
-
-		emp = frappe.db.get_value(
-			"Employee",
-			{"employee_name": ["like", f"%{self.paid_to}%"]},
-			"name"
-		)
-
-		sup = frappe.db.get_value(
-			"Supplier",
-			{"supplier_name": ["like", f"%{self.paid_to}%"]},
-			"name"
-		)
-
-		if emp:
-			self.paid_type = "Employee"
-			self.paid_name = emp
-		elif sup:
-			self.paid_type = "Supplier"
-			self.paid_name = sup
-		else:
-			self.paid_type = ""
-			self.paid_name = ""
+			# je.delete()
 
 @frappe.whitelist()
 def create_payment_entry(daliy_cash_entry):
@@ -59,7 +34,7 @@ def create_payment_entry(daliy_cash_entry):
 			"company": company,
 			"paid_from": frappe.db.get_value("Company", company, "default_cash_account"),
 			"party_type": doc.paid_type,
-			"party": doc.paid_name,
+			"party": doc.paid_to,
 			"received_amount":doc.amount,
 			"paid_amount": doc.amount,
 			"source_exchange_rate": 1,
@@ -80,7 +55,7 @@ def create_journal_entry(daliy_cash_entry):
 		"doctype": "Journal Entry",
 		"company": company,
 		"posting_date": doc.posting_date,
-		"user_remark": f"Paid To :{doc.paid_to}, Note:{doc.note}",
+		"user_remark": f"Paid To :{doc.paid_name}, Note:{doc.note}",
 		"accounts": [
 			{
 				"account": frappe.db.get_value("Company", company, "default_cash_account"),
@@ -100,3 +75,24 @@ def create_journal_entry(daliy_cash_entry):
 	frappe.db.set_value(doc.doctype, doc.name, "journal_entry", journal_entry.name)
 	frappe.db.commit()
 	return journal_entry
+
+
+@frappe.whitelist()
+def delete_linked_daliy_cash_entry(payment_entry, method):
+	dce_name = frappe.db.get_value("Daliy Cash Entry", {"payment_entry": payment_entry.name})
+	if dce_name:
+		dce = frappe.get_doc("Daliy Cash Entry", dce_name)
+		frappe.db.set_value(dce.doctype, dce.name, "payment_entry", None)
+		frappe.db.commit()
+		if dce.docstatus == 1:
+			dce.cancel()
+			
+@frappe.whitelist()
+def delete_linked_journal_daliy_cash_entry(journal_entry, method):
+	dce_name = frappe.db.get_value("Daliy Cash Entry", {"journal_entry": journal_entry.name})
+	if dce_name:
+		dce = frappe.get_doc("Daliy Cash Entry", dce_name)
+		frappe.db.set_value(dce.doctype, dce.name, "journal_entry", None)
+		frappe.db.commit()
+		if dce.docstatus == 1:
+			dce.cancel()

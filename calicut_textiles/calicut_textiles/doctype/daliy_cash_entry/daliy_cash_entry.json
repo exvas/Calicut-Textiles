@@ -6,8 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "posting_date",
-  "paid_to",
   "paid_type",
+  "paid_to",
   "paid_name",
   "column_break_rdjj",
   "amount",
@@ -32,17 +32,11 @@
    "reqd": 1
   },
   {
-   "fieldname": "paid_to",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Paid To",
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_rdjj",
    "fieldtype": "Column Break"
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -50,6 +44,7 @@
    "reqd": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fieldname": "note",
    "fieldtype": "Small Text",
    "in_list_view": 1,
@@ -62,16 +57,12 @@
    "label": "Attatchment "
   },
   {
-   "fieldname": "paid_type",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Paid Type"
-  },
-  {
+   "allow_in_quick_entry": 1,
+   "depends_on": "eval:doc.paid_type==\"Other\"",
    "fieldname": "paid_name",
    "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Paid Name"
+   "label": "Paid Name",
+   "mandatory_depends_on": "eval:doc.paid_type==\"Other\""
   },
   {
    "allow_on_submit": 1,
@@ -98,13 +89,30 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "paid_type",
+   "fieldtype": "Select",
+   "label": "Paid Type",
+   "options": "\nCustomer\nEmployee\nSupplier\nOther",
+   "reqd": 1
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "depends_on": "eval:doc.paid_type!=\"Other\"",
+   "fieldname": "paid_to",
+   "fieldtype": "Dynamic Link",
+   "label": "Paid To",
+   "mandatory_depends_on": "eval:doc.paid_type!=\"Other\"",
+   "options": "paid_type"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-01-27 14:12:51.675806",
+ "modified": "2026-01-28 13:08:44.577022",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Daliy Cash Entry",
