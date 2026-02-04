@@ -12,7 +12,7 @@ class DaliyCashEntry(Document):
 			if pe.docstatus == 1:
 				pe.cancel()
 			frappe.db.set_value(self.doctype, self.name, "payment_entry", None)
-			frappe.db.set_value(self.doctype, self.name, "status", None)
+			frappe.db.set_value(self.doctype, self.name, "voucher_status", None)
 			frappe.db.commit()
 			# pe.delete()
 		if self.journal_entry:
@@ -20,7 +20,7 @@ class DaliyCashEntry(Document):
 			if je.docstatus == 1:
 				je.cancel()
 			frappe.db.set_value(self.doctype, self.name, "journal_entry", None)
-			frappe.db.set_value(self.doctype, self.name, "status", None)
+			frappe.db.set_value(self.doctype, self.name, "voucher_status", None)
 			frappe.db.commit()
 			# je.delete()
 
@@ -47,7 +47,7 @@ def create_payment_entry(daliy_cash_entry):
 		})
 		payment_entry.insert()
 		frappe.db.set_value(doc.doctype, doc.name, "payment_entry", payment_entry.name)
-		frappe.db.set_value(doc.doctype, doc.name, "status", "Voucher Created")
+		frappe.db.set_value(doc.doctype, doc.name, "voucher_status", "Voucher Created")
 		frappe.db.commit()
 		return payment_entry
 
@@ -79,7 +79,7 @@ def create_journal_entry(daliy_cash_entry):
 	})
 	journal_entry.insert()
 	frappe.db.set_value(doc.doctype, doc.name, "journal_entry", journal_entry.name)
-	frappe.db.set_value(doc.doctype, doc.name, "status", "Voucher Created")
+	frappe.db.set_value(doc.doctype, doc.name, "voucher_status", "Voucher Created")
 	frappe.db.commit()
 	return journal_entry
 
@@ -90,7 +90,7 @@ def delete_linked_daliy_cash_entry(payment_entry, method):
 	if dce_name:
 		dce = frappe.get_doc("Daliy Cash Entry", dce_name)
 		frappe.db.set_value(dce.doctype, dce.name, "payment_entry", None)
-		frappe.db.set_value(dce.doctype, dce.name, "status", None)
+		frappe.db.set_value(dce.doctype, dce.name, "voucher_status", None)
 		frappe.db.commit()
 		if dce.docstatus == 1:
 			dce.cancel()
@@ -101,7 +101,7 @@ def delete_linked_journal_daliy_cash_entry(journal_entry, method):
 	if dce_name:
 		dce = frappe.get_doc("Daliy Cash Entry", dce_name)
 		frappe.db.set_value(dce.doctype, dce.name, "journal_entry", None)
-		frappe.db.set_value(dce.doctype, dce.name, "status", None)
+		frappe.db.set_value(dce.doctype, dce.name, "voucher_status", None)
 		frappe.db.commit()
 		if dce.docstatus == 1:
 			dce.cancel()
