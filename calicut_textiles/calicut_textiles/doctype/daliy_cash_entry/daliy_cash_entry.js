@@ -3,6 +3,13 @@
 
 frappe.ui.form.on("Daliy Cash Entry", {
 	refresh:function(frm) {
+        frm.set_query("cost_center", function() {
+            return {
+                filters: {
+                    'is_group': 0
+                }
+            };
+        });
         if (frm.doc.paid_type!="Other" && frm.doc.docstatus === 1 && !frm.doc.payment_entry) {
             frm.add_custom_button(__("Payment Entry"),function () {
                 frappe.call({

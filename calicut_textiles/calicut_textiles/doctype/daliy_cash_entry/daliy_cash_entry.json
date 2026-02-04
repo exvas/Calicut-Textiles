@@ -19,7 +19,8 @@
   "payment_entry",
   "journal_entry",
   "amended_from",
-  "naming_series"
+  "naming_series",
+  "voucher_status"
  ],
  "fields": [
   {
@@ -30,7 +31,6 @@
    "default": "Today",
    "fieldname": "posting_date",
    "fieldtype": "Date",
-   "in_list_view": 1,
    "label": "Date",
    "reqd": 1
   },
@@ -42,7 +42,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "amount",
    "fieldtype": "Currency",
-   "in_list_view": 1,
    "label": "Amount ",
    "reqd": 1
   },
@@ -50,7 +49,6 @@
    "allow_in_quick_entry": 1,
    "fieldname": "note",
    "fieldtype": "Small Text",
-   "in_list_view": 1,
    "label": "Remarks",
    "reqd": 1
   },
@@ -123,13 +121,34 @@
    "hidden": 1,
    "label": "Naming SeriesDCE-.YYYY.-.#####",
    "options": "DCE-.YYYY.-.#####"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "allow_on_submit": 1,
+   "columns": 1,
+   "fieldname": "voucher_status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Voucher Status",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-01-28 16:28:04.425592",
+ "links": [
+  {
+   "group": "Voucher Entry",
+   "link_doctype": "Journal Entry",
+   "link_fieldname": "custom_daily_cash_entry"
+  },
+  {
+   "group": "Voucher Entry",
+   "link_doctype": "Payment Entry",
+   "link_fieldname": "custom_daily_cash_entry"
+  }
+ ],
+ "modified": "2026-02-04 10:59:54.634383",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Daliy Cash Entry",
