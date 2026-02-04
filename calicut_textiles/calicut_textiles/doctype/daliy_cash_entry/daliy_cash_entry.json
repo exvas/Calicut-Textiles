@@ -19,7 +19,8 @@
   "payment_entry",
   "journal_entry",
   "amended_from",
-  "naming_series"
+  "naming_series",
+  "status"
  ],
  "fields": [
   {
@@ -123,13 +124,30 @@
    "hidden": 1,
    "label": "Naming SeriesDCE-.YYYY.-.#####",
    "options": "DCE-.YYYY.-.#####"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "label": "Status"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-01-28 16:28:04.425592",
+ "links": [
+  {
+   "group": "Voucher Entry",
+   "link_doctype": "Journal Entry",
+   "link_fieldname": "custom_daily_cash_entry"
+  },
+  {
+   "group": "Voucher Entry",
+   "link_doctype": "Payment Entry",
+   "link_fieldname": "custom_daily_cash_entry"
+  }
+ ],
+ "modified": "2026-02-04 10:50:10.514543",
  "modified_by": "Administrator",
  "module": "Calicut Textiles",
  "name": "Daliy Cash Entry",

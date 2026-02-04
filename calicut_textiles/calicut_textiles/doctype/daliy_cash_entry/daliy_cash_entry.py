@@ -12,6 +12,7 @@ class DaliyCashEntry(Document):
 			if pe.docstatus == 1:
 				pe.cancel()
 			frappe.db.set_value(self.doctype, self.name, "payment_entry", None)
+			frappe.db.set_value(self.doctype, self.name, "status", None)
 			frappe.db.commit()
 			# pe.delete()
 		if self.journal_entry:
@@ -19,6 +20,7 @@ class DaliyCashEntry(Document):
 			if je.docstatus == 1:
 				je.cancel()
 			frappe.db.set_value(self.doctype, self.name, "journal_entry", None)
+			frappe.db.set_value(self.doctype, self.name, "status", None)
 			frappe.db.commit()
 			# je.delete()
 
@@ -31,6 +33,7 @@ def create_payment_entry(daliy_cash_entry):
 			"doctype": "Payment Entry",
 			"payment_type": "Pay",
 			"mode_of_payment": "Cash",
+			"custom_daily_cash_entry": doc.name,
 			"company": company,
 			"paid_from": frappe.db.get_value("Company", company, "default_cash_account"),
 			"party_type": doc.paid_type,
@@ -44,6 +47,7 @@ def create_payment_entry(daliy_cash_entry):
 		})
 		payment_entry.insert()
 		frappe.db.set_value(doc.doctype, doc.name, "payment_entry", payment_entry.name)
+		frappe.db.set_value(doc.doctype, doc.name, "status", "Voucher Created")
 		frappe.db.commit()
 		return payment_entry
 
@@ -56,23 +60,26 @@ def create_journal_entry(daliy_cash_entry):
 		"company": company,
 		"posting_date": doc.posting_date,
 		"user_remark": f"Paid To :{doc.paid_name}, Note:{doc.note}",
+		"custom_cost_center": doc.cost_center if doc.cost_center else frappe.db.get_value("Company", company, "cost_center"),
+		"custom_daily_cash_entry": doc.name,
 		"accounts": [
 			{
 				"account": frappe.db.get_value("Company", company, "default_cash_account"),
-				"debit_in_account_currency": doc.amount,
-				"debit": doc.amount,
+				"credit_in_account_currency": doc.amount,
+				"credit": doc.amount,
 				"cost_center": doc.cost_center if doc.cost_center else frappe.db.get_value("Company", company, "cost_center"),
 			},
 			{
 				"account": frappe.db.get_value("Company", company, "default_expense_account"),
-				"credit_in_account_currency": doc.amount,
-				"credit": doc.amount,
+				"debit_in_account_currency": doc.amount,
+				"debit": doc.amount,
 				"cost_center": doc.cost_center if doc.cost_center else frappe.db.get_value("Company", company, "cost_center"),
 			}
 		]
 	})
 	journal_entry.insert()
 	frappe.db.set_value(doc.doctype, doc.name, "journal_entry", journal_entry.name)
+	frappe.db.set_value(doc.doctype, doc.name, "status", "Voucher Created")
 	frappe.db.commit()
 	return journal_entry
 
@@ -83,6 +90,7 @@ def delete_linked_daliy_cash_entry(payment_entry, method):
 	if dce_name:
 		dce = frappe.get_doc("Daliy Cash Entry", dce_name)
 		frappe.db.set_value(dce.doctype, dce.name, "payment_entry", None)
+		frappe.db.set_value(dce.doctype, dce.name, "status", None)
 		frappe.db.commit()
 		if dce.docstatus == 1:
 			dce.cancel()
@@ -93,6 +101,7 @@ def delete_linked_journal_daliy_cash_entry(journal_entry, method):
 	if dce_name:
 		dce = frappe.get_doc("Daliy Cash Entry", dce_name)
 		frappe.db.set_value(dce.doctype, dce.name, "journal_entry", None)
+		frappe.db.set_value(dce.doctype, dce.name, "status", None)
 		frappe.db.commit()
 		if dce.docstatus == 1:
 			dce.cancel()
