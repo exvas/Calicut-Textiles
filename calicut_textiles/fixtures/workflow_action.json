@@ -502,5 +502,131 @@
   "status": "Completed",
   "user": null,
   "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "CT CASH APPROVER",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-01-28 16:28:15.988453",
+  "name": "def7l0p647",
+  "permitted_roles": [
+   {
+    "parent": "def7l0p647",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "CT CASH APPROVER"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "DCE-2026-00003",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "CT CASH APPROVER",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-02-02 08:58:19.333175",
+  "name": "0i114nrd12",
+  "permitted_roles": [
+   {
+    "parent": "0i114nrd12",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "CT CASH APPROVER"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "DCE-2026-00004",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "CT CASH APPROVER",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-02-02 08:58:58.133788",
+  "name": "0u5i54nru2",
+  "permitted_roles": [
+   {
+    "parent": "0u5i54nru2",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "CT CASH APPROVER"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "DCE-2026-00005",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "CT CASH APPROVER",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-02-02 09:05:47.161046",
+  "name": "4tvon0lj79",
+  "permitted_roles": [
+   {
+    "parent": "4tvon0lj79",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "CT CASH APPROVER"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "DCE-2026-00006",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "CT CASH APPROVER",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-02-02 09:08:27.287501",
+  "name": "6g024ji9m0",
+  "permitted_roles": [
+   {
+    "parent": "6g024ji9m0",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "CT CASH APPROVER"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "DCE-2026-00007",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
+ },
+ {
+  "completed_by": "Administrator",
+  "completed_by_role": "CT CASH APPROVER",
+  "docstatus": 0,
+  "doctype": "Workflow Action",
+  "modified": "2026-02-04 10:56:12.716719",
+  "name": "t4fd2pp7qt",
+  "permitted_roles": [
+   {
+    "parent": "t4fd2pp7qt",
+    "parentfield": "permitted_roles",
+    "parenttype": "Workflow Action",
+    "role": "CT CASH APPROVER"
+   }
+  ],
+  "reference_doctype": "Daliy Cash Entry",
+  "reference_name": "DCE-2026-00008",
+  "status": "Completed",
+  "user": null,
+  "workflow_state": "Pending"
  }
 ]
