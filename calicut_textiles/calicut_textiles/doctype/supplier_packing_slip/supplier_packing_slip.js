@@ -35,10 +35,10 @@ frappe.ui.form.on('Supplier Packing Slip Item', {
     add: function(frm, cdt, cdn) {
         var item = frappe.get_doc(cdt, cdn);
 
-        if (item.qty > item.po_actual_qty) {
-            frappe.msgprint(__('Quantity is more than in Actual Qty'));
-            return; 
-        }
+        if (flt(item.qty) > flt(item.po_actual_qty)) {
+			frappe.msgprint(__('Quantity cannot be greater than Actual Qty'));
+			return;
+			}
 
         if (item.qty <= 0) {
             frappe.msgprint(__('Quantity is zero, cannot add a new row.'));
