@@ -33,44 +33,54 @@ frappe.ui.form.on("Supplier Packing Slip", {
 });
 frappe.ui.form.on('Supplier Packing Slip Item', {
     add: function(frm, cdt, cdn) {
-    var item = frappe.get_doc(cdt, cdn);
 
-    // validations
-    if (item.qty > item.po_actual_qty) {
-        frappe.msgprint(__('Quantity is more than in Actual Qty'));
-        return;
-    }
+        let row = frappe.get_doc(cdt, cdn);
 
-    if (item.qty <= 0) {
-        frappe.msgprint(__('Quantity is zero, cannot add a new row.'));
-        return;
-    }
+        if (flt(row.qty) <= 0) {
+            frappe.msgprint(__('Quantity must be greater than zero.'));
+            return;
+        }
 
-    // calculate remaining qty
-    let remaining_qty = flt(item.po_actual_qty) - flt(item.qty);
+        if (flt(row.qty) > flt(row.po_actual_qty)) {
+            frappe.msgprint(__('Quantity is more than Actual Qty.'));
+            return;
+        }
 
-    // update current row first
-    frappe.model.set_value(cdt, cdn, 'po_remaining_qty', remaining_qty);
+        let remaining_qty = flt(row.po_actual_qty) - flt(row.qty);
 
-    // -------- create new row (CORRECT WAY) ----------
-    let child = frappe.model.add_child(
-        frm.doc,
-        "Supplier Packing Slip Item",          // Child Doctype name
-        "supplier_packing_slip_item"           // Table fieldname
-    );
+        frappe.model.set_value(cdt, cdn, 'po_remaining_qty', remaining_qty);
 
-    // populate new row
-    child.item_code = item.item_code;
-    child.qty = 0;
-    child.uom = item.uom;
-    child.po_ref = item.po_ref;
-    child.po_actual_qty = remaining_qty;
-    child.purchase_order_item = item.purchase_order_item;
-    child.lot_no = item.lot_no;
+        if (remaining_qty <= 0) {
+            frm.refresh_field('supplier_packing_slip_item');
+            return;
+        }
 
-    // refresh grid
-    frm.refresh_field('supplier_packing_slip_item');
+        let table = frm.doc.supplier_packing_slip_item;
+        let current_index = table.findIndex(d => d.name === row.name);
 
+        // create row (adds at last)
+        let new_row = frm.add_child('supplier_packing_slip_item');
+
+        // populate values
+        new_row.item_code = row.item_code;
+        new_row.qty = 0;
+        new_row.uom = row.uom;
+        new_row.po_ref = row.po_ref;
+        new_row.po_actual_qty = remaining_qty;
+        new_row.po_remaining_qty = remaining_qty;
+        new_row.purchase_order_item = row.purchase_order_item;
+        new_row.lot_no = row.lot_no;
+
+        // remove from last position
+        table.splice(table.length - 1, 1);
+
+        // insert after current row
+        table.splice(current_index + 1, 0, new_row);
+
+        // reindex
+        table.forEach((d, i) => d.idx = i + 1);
+
+        frm.refresh_field('supplier_packing_slip_item');
     },
 
     qty: function(frm, cdt, cdn) {
