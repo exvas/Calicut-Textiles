@@ -29,7 +29,42 @@ def before_save(doc, method):
             doc.custom_deducted_gross = deducted_gross
             doc.custom_deducted_basic = deducted_gross * 62.5 / 100
             doc.custom_deducted_da = deducted_gross * 40 / 100
+        
 
+@frappe.whitelist()
+def add_pf_esi_deduction(doc, method):
+    if doc.employee and doc.start_date:
+        without_pay = frappe.db.get_list(
+            "Leave Application",
+            filters={
+                "employee": doc.employee,
+                "leave_type": "Leave Without Pay",
+                "status": "Approved",
+                "from_date": [">=", doc.start_date],
+                "to_date": ["<=", doc.end_date]
+            },
+            fields=["total_leave_days"]
+        )
+        total_without_pay_days = sum(leave.total_leave_days for leave in without_pay) if without_pay else 0
+      
+        per_day = frappe.db.get_value("Salary Structure Assignment", {"employee": doc.employee}, "custom_leave_encashment_amount_per_day", order_by="creation desc")
+        
+        lop = per_day * total_without_pay_days
+        deducted_gross = calculate_deducted_gross(doc.employee, doc.start_date) - lop
+        custom_deducted_basic = deducted_gross * 62.5 / 100
+        custom_deducted_da = deducted_gross * 40 / 100
+        pf_amount = custom_deducted_basic + custom_deducted_da * 0.12 if (custom_deducted_basic + custom_deducted_da) * 0.12 < 0.12 * 15000 else 0.12 * 15000
+        esi_amount = deducted_gross * 0.75 / 100 if deducted_gross * 0.75 / 100 < 0.75 * 21000/100 else 0.75 * 21000/100
+        existing_pf = next((e for e in doc.earnings if e.salary_component == "Provident Fund"), None)
+        if existing_pf:
+            existing_pf.amount = pf_amount
+        else:
+            doc.append("earnings", {"salary_component": "Provident Fund", "amount": pf_amount})
+        existing_esi = next((e for e in doc.earnings if e.salary_component == "ESI"), None)
+        if existing_esi:
+            existing_esi.amount = esi_amount
+        else:
+            doc.append("earnings", {"salary_component": "ESI", "amount": esi_amount})
 
 
 @frappe.whitelist()
