@@ -160,6 +160,7 @@ doc_events = {
 	},
     "Salary Slip": {
         "before_insert": "calicut_textiles.calicut_textiles.events.salary_slip.before_save",
+        "validate": "calicut_textiles.calicut_textiles.events.salary_slip.add_pf_esi_deduction",
 
     },
     "Purchase Invoice": {
