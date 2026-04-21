@@ -11,7 +11,7 @@ from erpnext.stock.report.batch_wise_balance_history.batch_wise_balance_history 
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
-    columns = get_columns()
+    columns = get_columns(filters)
     data = get_data(filters)
     return columns, data
 
@@ -20,28 +20,54 @@ def _precision():
     return cint(frappe.db.get_default("float_precision")) or 3
 
 
-def get_columns():
-    return [
+def get_columns(filters):
+    show_batch = cint(filters.get("show_batch"))
+    cols = [
         {"label": _("Item Code"), "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 140},
         {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data", "width": 220},
         {"label": _("Item Group"), "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 140},
         {"label": _("Parent Item Group"), "fieldname": "parent_item_group", "fieldtype": "Link", "options": "Item Group", "width": 150},
-        {"label": _("Batch"), "fieldname": "batch_no", "fieldtype": "Link", "options": "Batch", "width": 140},
+        {"label": _("Warehouse"), "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 140},
+    ]
+    if show_batch:
+        cols.append({"label": _("Batch"), "fieldname": "batch_no", "fieldtype": "Link", "options": "Batch", "width": 140})
+    cols.extend([
         {"label": _("Valuation Rate"), "fieldname": "valuation_rate", "fieldtype": "Currency", "width": 120},
         {"label": _("Balance Qty"), "fieldname": "balance_qty", "fieldtype": "Float", "width": 110, "precision": 2},
         {"label": _("Balance Value"), "fieldname": "balance_value", "fieldtype": "Currency", "width": 130},
-        {"label": _("Entered Via"), "fieldname": "voucher_type", "fieldtype": "Data", "width": 140},
-        {"label": _("Document"), "fieldname": "voucher_no", "fieldtype": "Dynamic Link", "options": "voucher_type", "width": 170},
-        {"label": _("Entry Date"), "fieldname": "posting_date", "fieldtype": "Date", "width": 110},
-        {"label": _("Age (Days)"), "fieldname": "age", "fieldtype": "Int", "width": 90},
-        {"label": _("Supplier"), "fieldname": "supplier_name", "fieldtype": "Data", "width": 220},
-        {"label": _("Supplier Group"), "fieldname": "supplier_group", "fieldtype": "Link", "options": "Supplier Group", "width": 160},
-    ]
+    ])
+    if show_batch:
+        cols.extend([
+            {"label": _("Entered Via"), "fieldname": "voucher_type", "fieldtype": "Data", "width": 140},
+            {"label": _("Document"), "fieldname": "voucher_no", "fieldtype": "Dynamic Link", "options": "voucher_type", "width": 170},
+            {"label": _("Entry Date"), "fieldname": "posting_date", "fieldtype": "Date", "width": 110},
+            {"label": _("Age (Days)"), "fieldname": "age", "fieldtype": "Int", "width": 90},
+            {"label": _("Ageing"), "fieldname": "age_bucket", "fieldtype": "Data", "width": 100},
+            {"label": _("Supplier"), "fieldname": "supplier_name", "fieldtype": "Data", "width": 220},
+            {"label": _("Supplier Group"), "fieldname": "supplier_group", "fieldtype": "Link", "options": "Supplier Group", "width": 160},
+        ])
+    return cols
+
+
+def age_bucket(days):
+    if days is None:
+        return ""
+    if days <= 30:
+        return "0-30"
+    if days <= 60:
+        return "31-60"
+    if days <= 90:
+        return "61-90"
+    return "90+"
 
 
 def get_data(filters):
-    filters.setdefault("from_date", "1900-01-01")
-    filters.setdefault("to_date", filters.get("as_on_date") or nowdate())
+    # User-facing from/to dates filter rows by each batch's entry date (earliest
+    # inward movement). SLE fetch still scans full history so balances stay correct.
+    entry_from_date = filters.pop("from_date", None)
+    entry_to_date = filters.pop("to_date", None)
+    filters["from_date"] = "1900-01-01"
+    filters["to_date"] = filters.get("as_on_date") or nowdate()
 
     movements = get_stock_ledger_entries_for_batch_no(filters) + get_stock_ledger_entries_for_batch_bundle(filters)
     if not movements:
@@ -53,7 +79,7 @@ def get_data(filters):
     for m in movements:
         if not m.get("batch_no"):
             continue
-        key = (m["item_code"], m["batch_no"])
+        key = (m["item_code"], m["batch_no"], m.get("warehouse"))
         b = balances.setdefault(key, {"qty": 0.0, "value": 0.0})
         b["qty"] += flt(m["actual_qty"])
         b["value"] += flt(m["stock_value_difference"])
@@ -75,8 +101,8 @@ def get_data(filters):
 
     today_d = getdate(today())
     rows = []
-    for (item_code, batch_no), bal in positive.items():
-        origin = origin_map.get((item_code, batch_no)) or {}
+    for (item_code, batch_no, warehouse), bal in positive.items():
+        origin = origin_map.get((item_code, batch_no, warehouse)) or {}
         item = item_map.get(item_code) or {}
         v_type = origin.get("voucher_type")
         v_no = origin.get("voucher_no")
@@ -84,12 +110,14 @@ def get_data(filters):
         valuation_rate = (bal["value"] / bal["qty"]) if bal["qty"] else 0
         balance_value = bal["qty"] * valuation_rate
         supplier = supplier_map.get((v_type, v_no)) or {}
+        days = date_diff(today_d, posting_date) if posting_date else None
 
         rows.append({
             "item_code": item_code,
             "item_name": item.get("item_name"),
             "item_group": item.get("item_group"),
             "parent_item_group": item.get("parent_item_group"),
+            "warehouse": warehouse,
             "batch_no": batch_no,
             "valuation_rate": flt(valuation_rate, precision),
             "balance_qty": flt(bal["qty"], precision),
@@ -97,15 +125,72 @@ def get_data(filters):
             "voucher_type": v_type,
             "voucher_no": v_no,
             "posting_date": posting_date,
-            "age": date_diff(today_d, posting_date) if posting_date else None,
+            "age": days,
+            "age_bucket": age_bucket(days),
             "supplier_name": supplier.get("supplier_name") or supplier.get("supplier"),
             "supplier": supplier.get("supplier"),
             "supplier_group": supplier.get("supplier_group"),
         })
 
     rows = apply_supplier_filters(rows, filters)
-    rows.sort(key=lambda r: (r["item_code"] or "", r["posting_date"] or getdate("1900-01-01")))
+    rows = apply_entry_date_filter(rows, entry_from_date, entry_to_date)
+    rows = apply_ageing_filter(rows, filters.get("ageing"))
+
+    if not cint(filters.get("show_batch")):
+        rows = aggregate_by_item_warehouse(rows, precision)
+        rows.sort(key=lambda r: (r["item_code"] or "", r.get("warehouse") or ""))
+        return rows
+
+    rows.sort(key=lambda r: (r["item_code"] or "", r.get("warehouse") or "", r["posting_date"] or getdate("1900-01-01")))
     return rows
+
+
+def aggregate_by_item_warehouse(rows, precision):
+    items = {}
+    for r in rows:
+        key = (r["item_code"], r.get("warehouse"))
+        agg = items.setdefault(key, {
+            "item_code": r["item_code"],
+            "item_name": r.get("item_name"),
+            "item_group": r.get("item_group"),
+            "parent_item_group": r.get("parent_item_group"),
+            "warehouse": r.get("warehouse"),
+            "balance_qty": 0.0,
+            "balance_value": 0.0,
+        })
+        agg["balance_qty"] += flt(r.get("balance_qty"))
+        agg["balance_value"] += flt(r.get("balance_value"))
+    for agg in items.values():
+        qty = agg["balance_qty"]
+        agg["valuation_rate"] = flt(agg["balance_value"] / qty, precision) if qty else 0
+        agg["balance_qty"] = flt(qty, precision)
+        agg["balance_value"] = flt(agg["balance_value"], precision)
+    return list(items.values())
+
+
+def apply_ageing_filter(rows, bucket):
+    if not bucket:
+        return rows
+    return [r for r in rows if r.get("age_bucket") == bucket]
+
+
+def apply_entry_date_filter(rows, entry_from_date, entry_to_date):
+    if not entry_from_date and not entry_to_date:
+        return rows
+    ef = getdate(entry_from_date) if entry_from_date else None
+    et = getdate(entry_to_date) if entry_to_date else None
+    out = []
+    for r in rows:
+        pd = r.get("posting_date")
+        if not pd:
+            continue
+        d = getdate(pd)
+        if ef and d < ef:
+            continue
+        if et and d > et:
+            continue
+        out.append(r)
+    return out
 
 
 def apply_supplier_filters(rows, filters):
@@ -124,22 +209,21 @@ def apply_supplier_filters(rows, filters):
 
 
 def get_batch_origins(batch_keys):
-    """Return the earliest INWARD movement per (item_code, batch_no) along with
-    voucher_type, voucher_no, posting_date, incoming_rate. Used to populate the
-    "Entered Via / Document / Entry Date / Supplier" columns.
+    """Return the earliest INWARD movement per (item_code, batch_no, warehouse) along with
+    voucher_type, voucher_no, posting_date, incoming_rate.
     """
     if not batch_keys:
         return {}
 
     by_item = {}
-    for ic, bn in batch_keys:
+    for ic, bn, _wh in batch_keys:
         by_item.setdefault(ic, set()).add(bn)
 
     origins = {}
     for item_code, batches in by_item.items():
         legacy = frappe.db.sql(
             """
-            SELECT item_code, batch_no, posting_date, posting_time, creation,
+            SELECT item_code, batch_no, warehouse, posting_date, posting_time, creation,
                    voucher_type, voucher_no, incoming_rate
             FROM `tabStock Ledger Entry`
             WHERE is_cancelled = 0
@@ -153,7 +237,7 @@ def get_batch_origins(batch_keys):
         )
         bundled = frappe.db.sql(
             """
-            SELECT sle.item_code, e.batch_no, sle.posting_date, sle.posting_time, sle.creation,
+            SELECT sle.item_code, e.batch_no, sle.warehouse, sle.posting_date, sle.posting_time, sle.creation,
                    sle.voucher_type, sle.voucher_no, e.incoming_rate
             FROM `tabStock Ledger Entry` sle
             INNER JOIN `tabSerial and Batch Entry` e ON e.parent = sle.serial_and_batch_bundle
@@ -168,7 +252,7 @@ def get_batch_origins(batch_keys):
             as_dict=True,
         )
         for r in legacy + bundled:
-            key = (r["item_code"], r["batch_no"])
+            key = (r["item_code"], r["batch_no"], r["warehouse"])
             sort_key = (r["posting_date"], r["posting_time"], r["creation"])
             existing = origins.get(key)
             if existing is None or sort_key < existing["_sort"]:

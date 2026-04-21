@@ -1,6 +1,18 @@
 frappe.query_reports["Stock Balance Detailed"] = {
     filters: [
         {
+            fieldname: "from_date",
+            label: __("From Date"),
+            fieldtype: "Date",
+            default: "2025-05-18",
+        },
+        {
+            fieldname: "to_date",
+            label: __("To Date"),
+            fieldtype: "Date",
+            default: frappe.datetime.nowdate(),
+        },
+        {
             fieldname: "item_code",
             label: __("Item"),
             fieldtype: "Link",
@@ -25,6 +37,12 @@ frappe.query_reports["Stock Balance Detailed"] = {
             options: "Batch",
         },
         {
+            fieldname: "ageing",
+            label: __("Ageing"),
+            fieldtype: "Select",
+            options: ["", "0-30", "31-60", "61-90", "90+"].join("\n"),
+        },
+        {
             fieldname: "supplier",
             label: __("Supplier"),
             fieldtype: "Link",
@@ -35,6 +53,12 @@ frappe.query_reports["Stock Balance Detailed"] = {
             label: __("Supplier Group"),
             fieldtype: "Link",
             options: "Supplier Group",
+        },
+        {
+            fieldname: "show_batch",
+            label: __("Show Batch"),
+            fieldtype: "Check",
+            default: 1,
         },
     ],
 };
