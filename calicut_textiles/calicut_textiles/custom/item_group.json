@@ -92,5 +92,5 @@
    "value": "[\"gs\", \"item_group_name\", \"parent_item_group\", \"is_group\", \"image\", \"column_break_5\", \"code\", \"defaults\", \"item_group_defaults\", \"sec_break_taxes\", \"taxes\", \"lft\", \"old_parent\", \"rgt\"]"
   }
  ],
- "sync_on_migrate": 1
+ "sync_on_migrate": 0
 }

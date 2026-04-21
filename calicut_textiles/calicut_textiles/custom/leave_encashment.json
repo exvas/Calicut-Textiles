@@ -139,5 +139,5 @@
    "value": "[\"employee\", \"employee_name\", \"department\", \"company\", \"column_break_4\", \"leave_period\", \"leave_type\", \"leave_allocation\", \"leave_balance\", \"column_break_cevy\", \"actual_encashable_days\", \"encashment_days\", \"encashment_amount\", \"custom_is_system_generated\", \"accounting_section\", \"pay_via_payment_entry\", \"expense_account\", \"payable_account\", \"column_break_vdnb\", \"posting_date\", \"currency\", \"paid_amount\", \"accounting_dimensions_section\", \"cost_center\", \"dimension_col_break\", \"payroll\", \"encashment_date\", \"column_break_14\", \"additional_salary\", \"section_break_svbb\", \"amended_from\", \"status\"]"
   }
  ],
- "sync_on_migrate": 1
+ "sync_on_migrate": 0
 }

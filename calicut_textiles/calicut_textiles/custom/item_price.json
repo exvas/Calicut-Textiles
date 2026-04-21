@@ -115,5 +115,5 @@
    "value": "[\"item_code\", \"uom\", \"packing_unit\", \"column_break_17\", \"item_name\", \"brand\", \"item_description\", \"price_list_details\", \"price_list\", \"customer\", \"supplier\", \"batch_no\", \"column_break_3\", \"buying\", \"selling\", \"item_details\", \"currency\", \"col_br_1\", \"price_list_rate\", \"custom_rate_code\", \"section_break_15\", \"valid_from\", \"lead_time_days\", \"column_break_18\", \"valid_upto\", \"section_break_24\", \"note\", \"reference\"]"
   }
  ],
- "sync_on_migrate": 1
+ "sync_on_migrate": 0
 }

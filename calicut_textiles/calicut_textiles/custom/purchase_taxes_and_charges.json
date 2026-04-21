@@ -69,5 +69,5 @@
  "doctype": "Purchase Taxes and Charges",
  "links": [],
  "property_setters": [],
- "sync_on_migrate": 1
+ "sync_on_migrate": 0
 }
